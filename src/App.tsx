@@ -1,14 +1,7 @@
-import { Toaster } from "sonner";
+import { AppRouter } from "./router";
 
 function App() {
-  return (
-    <>
-      <main className="flex items-center justify-center min-h-screen">
-        <p>Welcome to Tauri + React</p>
-      </main>
-      <Toaster richColors position="bottom-right" />
-    </>
-  );
+  return <AppRouter />;
 }
 
 export default App;
