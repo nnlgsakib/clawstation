@@ -54,7 +54,11 @@ Plans:
   3. User can install OpenClaw natively without Docker on supported platforms
   4. After installation completes, app automatically verifies the install by running a health check
   5. When installation fails, user sees a specific error message explaining what went wrong and how to fix it
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 03-installation-engine-01-PLAN.md — System check step (platform, Docker, Node.js, disk, RAM, port validation)
+- [ ] 03-installation-engine-02-PLAN.md — Installation orchestration (Docker and native install flows with progress tracking)
+- [ ] 03-installation-engine-03-PLAN.md — Verification and completion steps (health check, success/error screens)
 
 ### Phase 4: Configuration & Sandboxing
 **Goal**: User can visually configure OpenClaw settings without editing files manually
@@ -102,7 +106,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Foundation | 0/3 | Planning complete | - |
 | 2. Docker Integration | 0/2 | Planning complete | - |
-| 3. Installation Engine | 0/6 | Not started | - |
+| 3. Installation Engine | 0/3 | Planning complete | - |
 | 4. Configuration & Sandboxing | 0/12 | Not started | - |
 | 5. Monitoring | 0/4 | Not started | - |
 | 6. Lifecycle | 0/4 | Not started | - |
