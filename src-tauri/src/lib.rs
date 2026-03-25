@@ -1,6 +1,7 @@
 // OpenClaw Desktop — Tauri v2 application
 
 mod commands;
+mod docker;
 mod error;
 mod state;
 
@@ -20,6 +21,7 @@ pub fn run() {
             commands::docker::check_docker_health,
             commands::docker::get_docker_info,
             commands::docker::detect_docker,
+            commands::system_check::run_system_check,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
