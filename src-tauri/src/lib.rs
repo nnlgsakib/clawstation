@@ -17,6 +17,9 @@ pub fn run() {
         .manage(Mutex::new(AppState::default()))
         .invoke_handler(tauri::generate_handler![
             commands::platform::get_platform_info,
+            commands::docker::check_docker_health,
+            commands::docker::get_docker_info,
+            commands::docker::detect_docker,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
