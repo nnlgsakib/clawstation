@@ -39,7 +39,10 @@ Plans:
   2. When Docker is missing on Windows, app shows WSL2 setup guidance with actionable steps
   3. When Docker Desktop is unavailable or misconfigured, app shows a clear error with recovery instructions
   4. Docker health check runs before any Docker-dependent operation
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 02-docker-integration-01-PLAN.md — Docker backend (Rust types, detection, health check commands)
+- [ ] 02-docker-integration-02-PLAN.md — Docker frontend (status hook, page UI, error messages)
 
 ### Phase 3: Installation Engine
 **Goal**: User can install OpenClaw on their machine through a guided wizard
@@ -98,7 +101,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 0/3 | Planning complete | - |
-| 2. Docker Integration | 0/2 | Not started | - |
+| 2. Docker Integration | 0/2 | Planning complete | - |
 | 3. Installation Engine | 0/6 | Not started | - |
 | 4. Configuration & Sandboxing | 0/12 | Not started | - |
 | 5. Monitoring | 0/4 | Not started | - |
