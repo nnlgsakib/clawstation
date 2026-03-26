@@ -8,6 +8,7 @@ import { Docker } from "@/pages/docker";
 import { Install } from "@/pages/install";
 import { Configure } from "@/pages/configure";
 import { Monitor } from "@/pages/monitor";
+import { Channels } from "@/pages/channels";
 import { Settings } from "@/pages/settings";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ function AnimatedRoutes() {
           <Route path="/install" element={<Install />} />
           <Route path="/configure" element={<Configure />} />
           <Route path="/monitor" element={<Monitor />} />
+          <Route path="/channels" element={<Channels />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </motion.div>

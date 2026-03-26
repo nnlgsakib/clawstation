@@ -5,6 +5,7 @@ import {
   Download,
   Settings2,
   Activity,
+  MessageSquare,
   Cog,
 } from "lucide-react";
 
@@ -12,13 +13,14 @@ const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/docker", label: "Docker", icon: Container },
   { to: "/install", label: "Install", icon: Download },
+  { to: "/channels", label: "Channels", icon: MessageSquare },
   { to: "/configure", label: "Configure", icon: Settings2 },
   { to: "/monitor", label: "Monitor", icon: Activity },
   { to: "/settings", label: "Settings", icon: Cog },
 ];
 
 /**
- * Sidebar navigation with 6 items using Lucide icons.
+ * Sidebar navigation with 7 items using Lucide icons.
  * Active state: blue-600 left border (3px) + blue-50 background.
  */
 export function SidebarNav() {

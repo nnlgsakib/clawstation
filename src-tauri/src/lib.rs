@@ -40,6 +40,9 @@ pub fn run() {
             commands::uninstall::uninstall_openclaw,
             commands::update::check_openclaw_update,
             commands::update::update_openclaw,
+            commands::channels::get_channels,
+            commands::channels::disconnect_channel,
+            commands::channels::connect_channel,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
