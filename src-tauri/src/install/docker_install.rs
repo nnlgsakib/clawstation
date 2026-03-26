@@ -3,12 +3,25 @@ use crate::error::AppError;
 use crate::install::InstallResult;
 use crate::install::progress::emit_progress;
 use crate::install::verify::verify_gateway_health;
+use serde::{Deserialize, Serialize};
 
 
 
 const OPENCLAW_IMAGE: &str = "ghcr.io/openclaw/openclaw:latest";
 const GATEWAY_PORT: u16 = 18789;
 const BRIDGE_PORT: u16 = 18790;
+
+/// Per-layer progress event for Docker image pull.
+///
+/// Emitted during image pull to provide granular visibility into
+/// individual layer download status.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DockerLayerProgressEvent {
+    pub layer_id: String,
+    pub description: String,
+    pub percentage: u8,
+}
 
 /// Docker Compose-based installation flow.
 ///
@@ -121,6 +134,25 @@ pub async fn docker_install(app_handle: &tauri::AppHandle) -> Result<InstallResu
                         percent,
                         &format!("{status}..."),
                     );
+
+                    // Emit per-layer progress event for granular visibility
+                    if let Some(layer_id) = info.id.as_ref().and_then(|id| {
+                        if id.len() >= 12 {
+                            Some(id.chars().take(12).collect::<String>())
+                        } else {
+                            Some(id.clone())
+                        }
+                    }) {
+                        let _ = tauri::Emitter::emit(
+                            app_handle,
+                            "docker-layer-progress",
+                            DockerLayerProgressEvent {
+                                layer_id,
+                                description: status.to_string(),
+                                percentage: pull_percent.min(50),
+                            },
+                        );
+                    }
                 }
             }
             Err(e) => {
