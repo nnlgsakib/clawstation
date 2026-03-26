@@ -1,6 +1,7 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
+import { motion, type Variants } from "motion/react"
 
 import { cn } from "@/lib/utils"
 
@@ -33,6 +34,13 @@ const buttonVariants = cva(
   }
 )
 
+const interactionVariants: Variants = {
+  initial: { scale: 1 },
+  hover: { scale: 1.04 },
+  tap: { scale: 0.96 },
+  focus: { scale: 1.02 },
+}
+
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
@@ -41,11 +49,15 @@ export interface ButtonProps
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button"
+    const Comp = asChild ? Slot : motion.button
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
+        className={cn(buttonVariants({ variant, size, className }))}
+        variants={interactionVariants}
+        whileHover="hover"
+        whileTap="tap"
+        whileFocus="focus"
         {...props}
       />
     )
