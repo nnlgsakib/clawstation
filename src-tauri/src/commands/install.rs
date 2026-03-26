@@ -19,6 +19,7 @@ pub enum InstallMethod {
 pub struct InstallRequest {
     pub method: InstallMethod,
     pub workspace_path: Option<String>,
+    pub install_dir: Option<String>,
 }
 
 /// Install OpenClaw via the selected method (Docker or native).
@@ -31,9 +32,61 @@ pub async fn install_openclaw(
     app_handle: tauri::AppHandle,
 ) -> Result<InstallResult, AppError> {
     match request.method {
-        InstallMethod::Docker => docker_install(&app_handle).await,
+        InstallMethod::Docker => docker_install(&app_handle, request.install_dir.as_deref()).await,
         InstallMethod::Native => native_install(&app_handle).await,
     }
+}
+
+/// Clean (remove) the installation directory for a fresh install.
+///
+/// Removes the entire directory tree at the given path.
+/// The frontend should call this before starting a new installation
+/// when the user opts for a clean install.
+#[tauri::command]
+pub async fn clean_install_dir(path: String) -> Result<(), AppError> {
+    let dir = std::path::Path::new(&path);
+    if dir.exists() {
+        tokio::fs::remove_dir_all(dir).await.map_err(|e| {
+            AppError::InstallationFailed {
+                reason: format!("Failed to clean install directory: {e}"),
+                suggestion: format!(
+                    "Check permissions for {}. Try removing it manually.",
+                    path
+                ),
+            }
+        })?;
+    }
+    Ok(())
+}
+
+/// Cancel the currently running installation.
+///
+/// This is a best-effort cancellation. Docker compose processes
+/// started during installation will be stopped via `docker compose down`.
+/// The frontend should set isInstalling to false after calling this.
+#[tauri::command]
+pub async fn cancel_install(install_dir: Option<String>) -> Result<(), AppError> {
+    let config_dir = match install_dir {
+        Some(dir) => std::path::PathBuf::from(dir),
+        None => dirs::home_dir()
+            .ok_or_else(|| AppError::Internal {
+                message: "Cannot find home directory".into(),
+                suggestion: "Ensure the HOME environment variable is set".into(),
+            })?
+            .join(".openclaw"),
+    };
+    let repo_dir = config_dir.join("repo");
+
+    // Try to stop any running compose services
+    if repo_dir.exists() && repo_dir.join("docker-compose.yml").exists() {
+        let _ = tokio::process::Command::new("docker")
+            .args(["compose", "down"])
+            .current_dir(&repo_dir)
+            .output()
+            .await;
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]
@@ -52,17 +105,19 @@ mod tests {
 
     #[test]
     fn install_request_deserializes() {
-        let json = r#"{"method":"docker","workspacePath":"/tmp/test"}"#;
+        let json = r#"{"method":"docker","workspacePath":"/tmp/test","installDir":"/opt/openclaw"}"#;
         let req: InstallRequest = serde_json::from_str(json).unwrap();
         assert!(matches!(req.method, InstallMethod::Docker));
         assert_eq!(req.workspace_path, Some("/tmp/test".into()));
+        assert_eq!(req.install_dir, Some("/opt/openclaw".into()));
     }
 
     #[test]
-    fn install_request_deserializes_without_workspace() {
+    fn install_request_deserializes_without_optional_fields() {
         let json = r#"{"method":"native"}"#;
         let req: InstallRequest = serde_json::from_str(json).unwrap();
         assert!(matches!(req.method, InstallMethod::Native));
         assert_eq!(req.workspace_path, None);
+        assert_eq!(req.install_dir, None);
     }
 }

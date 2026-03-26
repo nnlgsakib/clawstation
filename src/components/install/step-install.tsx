@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import {
   CheckCircle2,
   XCircle,
@@ -6,9 +6,15 @@ import {
   Download,
   Container,
   Rocket,
+  FolderOpen,
+  Trash2,
+  X,
 } from "lucide-react";
+import { open } from "@tauri-apps/plugin-dialog";
 import {
   useInstallOpenClaw,
+  cleanInstallDir,
+  cancelInstall,
   type InstallMethod,
 } from "@/hooks/use-install";
 import { useOnboardingStore } from "@/stores/use-onboarding-store";
@@ -88,6 +94,11 @@ function InstallProgressBar({
   );
 }
 
+function getDefaultInstallDir(): string {
+  // Use forward slashes for consistency; Tauri/Rust handles path separators
+  return "~/.openclaw";
+}
+
 interface StepInstallProps {
   method: InstallMethod;
 }
@@ -100,16 +111,52 @@ export function StepInstall({ method }: StepInstallProps) {
     transitionToError,
     isInstalling: storeIsInstalling,
     setIsInstalling,
+    installDir: storeInstallDir,
+    setInstallDir,
   } = useOnboardingStore();
+
+  const [isCleaning, setIsCleaning] = useState(false);
+  const [cleanError, setCleanError] = useState<string | null>(null);
+
+  const installDir = storeInstallDir || getDefaultInstallDir();
+
+  const handleSelectDir = useCallback(async () => {
+    try {
+      const selected = await open({
+        directory: true,
+        multiple: false,
+        title: "Select OpenClaw Installation Directory",
+        defaultPath: installDir.replace("~", ""),
+      });
+      if (selected && typeof selected === "string") {
+        setInstallDir(selected);
+      }
+    } catch {
+      // User cancelled or dialog unavailable
+    }
+  }, [installDir, setInstallDir]);
+
+  const handleCleanInstall = useCallback(async () => {
+    setIsCleaning(true);
+    setCleanError(null);
+    try {
+      await cleanInstallDir(installDir);
+    } catch (err) {
+      setCleanError(
+        err instanceof Error ? err.message : "Failed to clean install directory"
+      );
+    } finally {
+      setIsCleaning(false);
+    }
+  }, [installDir]);
 
   const handleStartInstall = useCallback(() => {
     setIsInstalling(true);
     mutate(
-      { method },
+      { method, installDir },
       {
         onSuccess: () => {
           setIsInstalling(false);
-          // Auto-transition to verify step on success
           transitionToVerify(method);
         },
         onError: (err) => {
@@ -118,7 +165,16 @@ export function StepInstall({ method }: StepInstallProps) {
         },
       }
     );
-  }, [method, mutate, transitionToVerify, transitionToError, setIsInstalling]);
+  }, [method, installDir, mutate, transitionToVerify, transitionToError, setIsInstalling]);
+
+  const handleCancel = useCallback(async () => {
+    try {
+      await cancelInstall(installDir);
+    } catch {
+      // Best-effort cancellation
+    }
+    setIsInstalling(false);
+  }, [installDir, setIsInstalling]);
 
   // Determine UI state — use store flag so state persists across navigation
   const isInstalling = isPending || storeIsInstalling;
@@ -138,25 +194,62 @@ export function StepInstall({ method }: StepInstallProps) {
         </p>
       </div>
 
-      {/* Idle state — show start button */}
+      {/* Idle state — show config + start button */}
       {!isInstalling && !isComplete && !hasFailed && (
         <Card>
-          <CardContent className="flex flex-col items-center gap-4 p-8">
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground">
-                {method === "docker"
-                  ? "This will pull the OpenClaw Docker image and configure the gateway."
-                  : "This will install OpenClaw globally via npm and run the setup wizard."}
+          <CardContent className="flex flex-col gap-6 p-8">
+            {/* Install directory picker */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Installation Directory</label>
+              <div className="flex gap-2">
+                <div className="flex-1 rounded-md border bg-muted/50 px-3 py-2 text-sm font-mono">
+                  {installDir}
+                </div>
+                <Button variant="outline" size="icon" onClick={handleSelectDir}>
+                  <FolderOpen className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                OpenClaw configs, workspace, and repository will be stored here.
               </p>
             </div>
-            <Button size="lg" onClick={handleStartInstall}>
-              {method === "docker" ? (
-                <Container className="mr-2 h-4 w-4" />
-              ) : (
-                <Download className="mr-2 h-4 w-4" />
+
+            {/* Clean install */}
+            <div className="space-y-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCleanInstall}
+                disabled={isCleaning}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                {isCleaning ? "Cleaning..." : "Clean Install Directory"}
+              </Button>
+              {cleanError && (
+                <p className="text-xs text-destructive">{cleanError}</p>
               )}
-              Start Installation
-            </Button>
+              <p className="text-xs text-muted-foreground">
+                Removes the directory above for a fresh start. Safe to skip if this is
+                your first install.
+              </p>
+            </div>
+
+            {/* Start button */}
+            <div className="text-center">
+              <p className="mb-4 text-sm text-muted-foreground">
+                {method === "docker"
+                  ? "This will clone the OpenClaw repository and start services via Docker Compose."
+                  : "This will install OpenClaw globally via npm and run the setup wizard."}
+              </p>
+              <Button size="lg" onClick={handleStartInstall}>
+                {method === "docker" ? (
+                  <Container className="mr-2 h-4 w-4" />
+                ) : (
+                  <Download className="mr-2 h-4 w-4" />
+                )}
+                Start Installation
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -174,7 +267,7 @@ export function StepInstall({ method }: StepInstallProps) {
             <Skeleton className="h-4 w-48" />
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div className="md:col-span-2 space-y-2">
-                <Skeleton className="h-96 w-full" />
+                <Skeleton className="h-80 w-full" />
               </div>
               <div className="space-y-2">
                 {Array.from({ length: 6 }).map((_, i) => (
@@ -185,6 +278,12 @@ export function StepInstall({ method }: StepInstallProps) {
                   </div>
                 ))}
               </div>
+            </div>
+            <div className="flex justify-end">
+              <Button variant="outline" size="sm" onClick={handleCancel}>
+                <X className="mr-2 h-4 w-4" />
+                Cancel
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -207,6 +306,12 @@ export function StepInstall({ method }: StepInstallProps) {
               <div className="h-80 overflow-y-auto rounded-lg border p-4">
                 <LayerProgress className="space-y-1" />
               </div>
+            </div>
+            <div className="flex justify-end">
+              <Button variant="outline" size="sm" onClick={handleCancel}>
+                <X className="mr-2 h-4 w-4" />
+                Cancel Installation
+              </Button>
             </div>
           </CardContent>
         </Card>

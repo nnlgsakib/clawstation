@@ -42,7 +42,10 @@ pub struct DockerLogEvent {
 /// 4. Write .env with generated gateway token
 /// 5. Start gateway via docker compose up (from repo)
 /// 6. Verify gateway health
-pub async fn docker_install(app_handle: &tauri::AppHandle) -> Result<InstallResult, AppError> {
+pub async fn docker_install(
+    app_handle: &tauri::AppHandle,
+    install_dir: Option<&str>,
+) -> Result<InstallResult, AppError> {
     // Step 1: Verify Docker is available
     emit_progress(
         app_handle,
@@ -72,11 +75,15 @@ pub async fn docker_install(app_handle: &tauri::AppHandle) -> Result<InstallResu
         10,
         "Creating configuration directories...",
     );
-    let home = dirs::home_dir().ok_or_else(|| AppError::Internal {
-        message: "Cannot find home directory".into(),
-        suggestion: "Ensure the HOME environment variable is set".into(),
-    })?;
-    let config_dir = home.join(".openclaw");
+    let config_dir = match install_dir {
+        Some(dir) => std::path::PathBuf::from(dir),
+        None => dirs::home_dir()
+            .ok_or_else(|| AppError::Internal {
+                message: "Cannot find home directory".into(),
+                suggestion: "Ensure the HOME environment variable is set".into(),
+            })?
+            .join(".openclaw"),
+    };
     let workspace_dir = config_dir.join("workspace");
     let repo_dir = config_dir.join("repo");
 

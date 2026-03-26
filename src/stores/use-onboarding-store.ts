@@ -34,6 +34,7 @@ interface OnboardingState {
   step: OnboardingStep;
   systemCheckResult: SystemCheckResult | null;
   installMethod: InstallMethod | null;
+  installDir: string | null;
   installProgress: InstallProgressData | null;
   verificationProgress: InstallProgressData | null;
   verificationResult: VerificationResult | null;
@@ -44,6 +45,7 @@ interface OnboardingState {
   setStep: (step: OnboardingStep) => void;
   setSystemCheckResult: (result: SystemCheckResult) => void;
   setInstallMethod: (method: InstallMethod) => void;
+  setInstallDir: (dir: string | null) => void;
   setInstallProgress: (progress: InstallProgressData | null) => void;
   setVerificationProgress: (progress: InstallProgressData | null) => void;
   setVerificationResult: (result: VerificationResult | null) => void;
@@ -62,6 +64,7 @@ const initialState = {
   step: "system_check" as OnboardingStep,
   systemCheckResult: null,
   installMethod: null,
+  installDir: null,
   installProgress: null,
   verificationProgress: null,
   verificationResult: null,
@@ -75,6 +78,7 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
   setStep: (step) => set({ step }),
   setSystemCheckResult: (result) => set({ systemCheckResult: result }),
   setInstallMethod: (method) => set({ installMethod: method }),
+  setInstallDir: (dir) => set({ installDir: dir }),
   setInstallProgress: (progress) => set({ installProgress: progress }),
   setVerificationProgress: (progress) => set({ verificationProgress: progress }),
   setVerificationResult: (result) => set({ verificationResult: result }),

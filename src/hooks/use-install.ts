@@ -21,6 +21,7 @@ export interface InstallResult {
 interface InstallRequest {
   method: InstallMethod;
   workspacePath?: string;
+  installDir?: string;
 }
 
 /**
@@ -52,4 +53,18 @@ export function useInstallOpenClaw() {
     ...mutation,
     progress,
   };
+}
+
+/**
+ * Clean (remove) the installation directory for a fresh install.
+ */
+export async function cleanInstallDir(path: string): Promise<void> {
+  await invoke("clean_install_dir", { path });
+}
+
+/**
+ * Cancel the currently running installation.
+ */
+export async function cancelInstall(installDir?: string): Promise<void> {
+  await invoke("cancel_install", { installDir });
 }

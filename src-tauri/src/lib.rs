@@ -27,6 +27,8 @@ pub fn run() {
             commands::docker::detect_docker,
             commands::system_check::run_system_check,
             commands::install::install_openclaw,
+            commands::install::clean_install_dir,
+            commands::install::cancel_install,
             commands::verify_installation::verify_installation,
             commands::config::read_config,
             commands::config::write_config,
