@@ -21,11 +21,22 @@ export type InstallMethod = "docker" | "native";
 
 type OnboardingStep = "system_check" | "install" | "verify" | "ready" | "error";
 
+export interface VerificationResult {
+  success: boolean;
+  method: string;
+  gatewayUrl: string;
+  gatewayToken: string | null;
+  error: string | null;
+  suggestion: string | null;
+}
+
 interface OnboardingState {
   step: OnboardingStep;
   systemCheckResult: SystemCheckResult | null;
   installMethod: InstallMethod | null;
   installProgress: InstallProgressData | null;
+  verificationProgress: InstallProgressData | null;
+  verificationResult: VerificationResult | null;
   isLoading: boolean;
   error: string | null;
 
@@ -33,8 +44,15 @@ interface OnboardingState {
   setSystemCheckResult: (result: SystemCheckResult) => void;
   setInstallMethod: (method: InstallMethod) => void;
   setInstallProgress: (progress: InstallProgressData | null) => void;
+  setVerificationProgress: (progress: InstallProgressData | null) => void;
+  setVerificationResult: (result: VerificationResult | null) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+  transitionToVerify: (method: InstallMethod) => void;
+  transitionToReady: (result: VerificationResult) => void;
+  transitionToError: (errorMessage: string) => void;
+  retryVerification: () => void;
+  retryInstallation: () => void;
   reset: () => void;
 }
 
@@ -43,6 +61,8 @@ const initialState = {
   systemCheckResult: null,
   installMethod: null,
   installProgress: null,
+  verificationProgress: null,
+  verificationResult: null,
   isLoading: false,
   error: null,
 };
@@ -53,7 +73,43 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
   setSystemCheckResult: (result) => set({ systemCheckResult: result }),
   setInstallMethod: (method) => set({ installMethod: method }),
   setInstallProgress: (progress) => set({ installProgress: progress }),
+  setVerificationProgress: (progress) => set({ verificationProgress: progress }),
+  setVerificationResult: (result) => set({ verificationResult: result }),
   setLoading: (loading) => set({ isLoading: loading }),
   setError: (error) => set({ error }),
+  transitionToVerify: (method) =>
+    set({
+      step: "verify",
+      installMethod: method,
+      verificationProgress: null,
+      verificationResult: null,
+      error: null,
+    }),
+  transitionToReady: (result) =>
+    set({
+      step: "ready",
+      verificationResult: result,
+      error: null,
+    }),
+  transitionToError: (errorMessage) =>
+    set({
+      step: "error",
+      error: errorMessage,
+    }),
+  retryVerification: () =>
+    set({
+      step: "verify",
+      verificationProgress: null,
+      verificationResult: null,
+      error: null,
+    }),
+  retryInstallation: () =>
+    set({
+      step: "install",
+      installProgress: null,
+      verificationProgress: null,
+      verificationResult: null,
+      error: null,
+    }),
   reset: () => set(initialState),
 }));

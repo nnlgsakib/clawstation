@@ -48,7 +48,7 @@ interface StepInstallProps {
 export function StepInstall({ method }: StepInstallProps) {
   const { progress, mutate, isPending, isSuccess, isError, error, data } =
     useInstallOpenClaw();
-  const { setStep, setError } = useOnboardingStore();
+  const { transitionToVerify, transitionToError } = useOnboardingStore();
 
   const handleStartInstall = useCallback(() => {
     mutate(
@@ -56,15 +56,14 @@ export function StepInstall({ method }: StepInstallProps) {
       {
         onSuccess: () => {
           // Auto-transition to verify step on success
-          setStep("verify");
+          transitionToVerify(method);
         },
         onError: (err) => {
-          setError(err.message || "Installation failed");
-          setStep("error");
+          transitionToError(err.message || "Installation failed");
         },
       }
     );
-  }, [method, mutate, setStep, setError]);
+  }, [method, mutate, transitionToVerify, transitionToError]);
 
   // Determine UI state
   const isInstalling = isPending;
@@ -144,7 +143,7 @@ export function StepInstall({ method }: StepInstallProps) {
                 Gateway: {data.gatewayUrl}
               </p>
             </div>
-            <Button onClick={() => setStep("verify")}>
+            <Button onClick={() => transitionToVerify(method)}>
               Continue to Verification
             </Button>
           </CardContent>

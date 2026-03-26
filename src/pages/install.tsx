@@ -1,6 +1,9 @@
 import { useOnboardingStore, type InstallMethod } from "@/stores/use-onboarding-store";
 import { SystemCheck } from "@/components/system-check";
 import { StepInstall } from "@/components/install/step-install";
+import { StepVerify } from "@/components/install/step-verify";
+import { StepReady } from "@/components/install/step-ready";
+import { StepError } from "@/components/install/step-error";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Container, Download, ArrowRight } from "lucide-react";
@@ -73,17 +76,6 @@ function MethodSelector() {
   );
 }
 
-function PlaceholderStep({ title }: { title: string }) {
-  return (
-    <div className="flex items-center justify-center p-8">
-      <div className="text-center">
-        <h2 className="text-xl font-semibold">{title}</h2>
-        <p className="mt-2 text-sm text-muted-foreground">Coming soon</p>
-      </div>
-    </div>
-  );
-}
-
 export function Install() {
   const { step, installMethod } = useOnboardingStore();
 
@@ -97,11 +89,11 @@ export function Install() {
       }
       return <StepInstall method={installMethod} />;
     case "verify":
-      return <PlaceholderStep title="Verifying Installation" />;
+      return <StepVerify />;
     case "ready":
-      return <PlaceholderStep title="Installation Complete" />;
+      return <StepReady />;
     case "error":
-      return <PlaceholderStep title="Installation Error" />;
+      return <StepError />;
     default:
       return <SystemCheck />;
   }
