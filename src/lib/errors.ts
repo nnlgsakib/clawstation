@@ -52,6 +52,14 @@ export const errorMessages: Record<string, AppError> = {
     message: "Could not connect to the internet.",
     suggestion: "Check your network connection and try again. A firewall or proxy may be blocking access.",
   },
+  openclaw_not_running: {
+    message: "OpenClaw is not running.",
+    suggestion: "Start OpenClaw from the Install page or via Docker: docker run openclaw",
+  },
+  api_unavailable: {
+    message: "OpenClaw API is not responding.",
+    suggestion: "OpenClaw may be starting up. Wait a moment and try refreshing.",
+  },
   permission_denied: {
     message: "Permission was denied for this operation.",
     suggestion: "Try running the app as administrator (Windows) or with sudo (Linux).",
@@ -115,6 +123,8 @@ function matchErrorPattern(message: string): AppError | null {
   if (lower.includes("docker") && lower.includes("daemon")) return errorMessages.docker_daemon_not_running
   if (lower.includes("docker desktop")) return errorMessages.docker_desktop_not_running
   if (lower.includes("wsl") || lower.includes("wsl2")) return errorMessages.wsl_backend_not_ready
+  if (lower.includes("openclaw") && lower.includes("not running")) return errorMessages.openclaw_not_running
+  if (lower.includes("openclaw") && lower.includes("api")) return errorMessages.api_unavailable
   if (lower.includes("docker")) return errorMessages.docker_unavailable
   if (lower.includes("network") || lower.includes("fetch") || lower.includes("connection"))
     return errorMessages.network_error
