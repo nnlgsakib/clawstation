@@ -64,6 +64,10 @@ export const errorMessages: Record<string, AppError> = {
     message: "Permission was denied for this operation.",
     suggestion: "Try running the app as administrator (Windows) or with sudo (Linux).",
   },
+  uninstall_failed: {
+    message: "OpenClaw uninstall failed. {reason}",
+    suggestion: "Some containers or files may still exist. Try removing them manually via Docker CLI or file manager.",
+  },
   unknown: {
     message: "Something went wrong. Try again, or check the details below for a fix.",
     suggestion: "An unexpected error occurred. Restart the app. If this keeps happening, check the logs.",
@@ -130,6 +134,8 @@ function matchErrorPattern(message: string): AppError | null {
     return errorMessages.network_error
   if (lower.includes("permission") || lower.includes("access denied"))
     return errorMessages.permission_denied
+  if (lower.includes("install") && lower.includes("uninstall")) return errorMessages.uninstall_failed
+  if (lower.includes("uninstall")) return errorMessages.uninstall_failed
   if (lower.includes("install")) return errorMessages.installation_failed
   if (lower.includes("config") || lower.includes("yaml") || lower.includes("json"))
     return errorMessages.config_error
