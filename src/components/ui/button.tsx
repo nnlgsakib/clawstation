@@ -4,6 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { motion, type Variants } from "motion/react"
 
 import { cn } from "@/lib/utils"
+import { springPresets } from "@/lib/animation"
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
@@ -58,6 +59,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         whileHover="hover"
         whileTap="tap"
         whileFocus="focus"
+        transition={springPresets.stable}
         {...props}
       />
     )

@@ -1,17 +1,12 @@
 import * as React from "react"
 import { motion } from "motion/react"
 import { cn } from "@/lib/utils"
+import { springPresets } from "@/lib/animation"
 
 interface ProgressProps {
   value?: number
   max?: number
   className?: string
-}
-
-const springTransition = {
-  type: "spring" as const,
-  stiffness: 300,
-  damping: 20,
 }
 
 const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
@@ -34,7 +29,7 @@ const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
           className="h-full bg-primary"
           initial={{ width: "0%" }}
           animate={{ width: `${percent}%` }}
-          transition={springTransition}
+          transition={springPresets.gentle}
         />
       </motion.div>
     )
