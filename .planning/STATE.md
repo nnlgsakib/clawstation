@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: UX Polish & Channels
-status: executing
-last_updated: "2026-03-26T14:54:33.943Z"
+status: completed
+last_updated: "2026-03-26T15:26:08.300Z"
 last_activity: 2026-03-26
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 9
+  completed_plans: 9
 ---
 
 # STATE: OpenClaw Desktop
@@ -23,8 +23,8 @@ progress:
 ## Current Position
 
 Phase: 07 (installation-ux-animation-foundation) — COMPLETE
-Plan: 8 of 8
-Status: All plans executed, phase complete
+Plan: 9 of 9
+Status: Gap closure plan executed, all verification gaps closed
 Last activity: 2026-03-26
 
 ## Performance Metrics
@@ -34,7 +34,7 @@ Last activity: 2026-03-26
 | Phases planned | 6 |
 | Requirements mapped | 31/31 |
 | Coverage | 100% |
-| Plans completed | 7/8 |
+| Plans completed | 9/9 |
 | Phases completed | 0/6 |
 | Phase 01-foundation P01 | 33min | 3 tasks | 40 files |
 | Phase 01-foundation P03 | 23min | 3 tasks | 15 files |
@@ -62,6 +62,7 @@ Last activity: 2026-03-26
 | Phase 07-installation-ux-animation-foundation P07 | 1min | 1 tasks | 1 files |
 | Phase 07-installation-ux-animation-foundation P07 | 1min | 1 tasks | 1 files |
 | Phase 07-installation-ux-animation-foundation P08 | 2min | 1 tasks | 1 files |
+| Phase 07-installation-ux-animation-foundation P09 | 5min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -117,6 +118,8 @@ Last activity: 2026-03-26
 - Auto-scroll pause threshold: 200px from bottom — standard terminal UX for reading historical output
 - AnimatePresence at router level (mode='wait') wrapping Routes with motion.div keyed by location.pathname — single point of control for all page transitions
 - Docker layer progress events via dedicated Tauri channel (docker-layer-progress) — per-layer ID tracking with update-or-add semantics
+- DockerLogEvent struct separate from DockerLayerProgressEvent — raw text log output vs structured per-layer progress
+- springPresets.stable for button micro-interactions (400/30), springPresets.gentle for progress bars (200/20) — centralized animation presets from @/lib/animation
 
 ### Critical Pitfalls (from research)
 
@@ -134,6 +137,6 @@ Last activity: 2026-03-26
 
 ## Session Continuity
 
-**Last action:** Completed 07-08-PLAN.md (2min, 1 task, 1 file) — Final installation step integration with Skeleton loading states
-**Next action:** Phase 07 complete. Ready for Phase 08 (channel-management) or milestone completion review.
-**Files to review:** `.planning/phases/07-installation-ux-animation-foundation/07-08-SUMMARY.md`
+**Last action:** Completed 07-09-PLAN.md (5min, 2 tasks, 3 files) — Gap closure: Docker log streaming + animation.ts wiring
+**Next action:** Phase 07 fully complete (9/9 plans). Ready for Phase 08 (channel-management) or milestone completion review.
+**Files to review:** `.planning/phases/07-installation-ux-animation-foundation/07-09-SUMMARY.md`

@@ -25,7 +25,7 @@
 4. Loading states show skeleton placeholders instead of blank space
 5. Page transitions are smooth with fade/slide animations
 
-**Plans:** 8 plans
+**Plans:** 9 plans
 
 Plans:
 - [x] 07-installation-ux-animation-foundation-01-PLAN.md — Create Docker log viewer and integrate into installation flow
@@ -35,8 +35,8 @@ Plans:
 - [x] 07-installation-ux-animation-foundation-05-PLAN.md — Enhance button micro-interactions with Framer Motion
 - [x] 07-installation-ux-animation-foundation-06-PLAN.md — Implement skeleton loading states for data-fetching pages
 - [x] 07-installation-ux-animation-foundation-07-PLAN.md — Implement smooth page transitions throughout the application
-
- - [ ] 07-installation-ux-animation-foundation-08-PLAN.md — Final integration verification of all UX enhancements in installation step
+- [x] 07-installation-ux-animation-foundation-08-PLAN.md — Final integration verification of all UX enhancements in installation step
+- [x] 07-installation-ux-animation-foundation-09-PLAN.md — Gap closure: Docker log streaming + animation.ts wiring
 ---
 
 #### Phase 8: Channel Management Core
