@@ -87,10 +87,11 @@ Plans:
   2. User can see a list of currently active agent sessions
   3. User can view streamed agent activity logs in the app
   4. User can see the status of sandbox containers (running, stopped, absent)
-**Plans**: 2 plans
+**Plans**: 3 plans
 Plans:
 - [x] 05-monitoring-01-PLAN.md — Monitoring backend (Rust types, Tauri commands for status/sessions/containers)
 - [x] 05-monitoring-02-PLAN.md — Monitoring frontend (hooks, dashboard page replacing PageStub)
+- [ ] 05-monitoring-03-PLAN.md — Gap closure: container log streaming (backend command + frontend wiring)
 **UI hint**: yes
 
 ### Phase 6: Lifecycle
