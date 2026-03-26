@@ -102,7 +102,7 @@ async fn connect_docker() -> Result<Docker, AppError> {
                 ),
             }
         })?,
-        "windows" => Docker::connect_with_http_defaults().map_err(|e| {
+        "windows" => Docker::connect_with_named_pipe_defaults().map_err(|e| {
             AppError::DockerDesktopNotRunning {
                 suggestion: format!(
                     "Cannot connect to Docker daemon: {}. Open Docker Desktop and wait for it to show 'Docker Desktop is running'.",
@@ -184,8 +184,8 @@ async fn check_docker_linux() -> Result<DockerStatus, AppError> {
 }
 
 async fn check_docker_windows() -> Result<DockerStatus, AppError> {
-    // Try HTTP connection (Docker Desktop default)
-    if let Ok(docker) = Docker::connect_with_http_defaults() {
+    // Try named pipe connection (Docker Desktop default on Windows)
+    if let Ok(docker) = Docker::connect_with_named_pipe_defaults() {
         if docker.ping().await.is_ok() {
             let version_info = docker.version().await.ok();
             return Ok(DockerStatus {

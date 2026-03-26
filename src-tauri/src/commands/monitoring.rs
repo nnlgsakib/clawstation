@@ -296,7 +296,7 @@ async fn connect_docker() -> Result<Docker, AppError> {
                 ),
             }
         })?,
-        "windows" => Docker::connect_with_http_defaults().map_err(|e| {
+        "windows" => Docker::connect_with_named_pipe_defaults().map_err(|e| {
             AppError::DockerDesktopNotRunning {
                 suggestion: format!(
                     "Cannot connect to Docker daemon: {}. Open Docker Desktop and wait for it to show 'Docker Desktop is running'.",

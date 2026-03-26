@@ -73,8 +73,8 @@ async fn check_docker_linux() -> Result<DockerStatus, Box<dyn std::error::Error>
 }
 
 async fn check_docker_windows() -> Result<DockerStatus, Box<dyn std::error::Error>> {
-    // Try HTTP connection first (Docker Desktop default)
-    if let Ok(docker) = Docker::connect_with_http_defaults() {
+    // Try named pipe connection first (Docker Desktop default on Windows)
+    if let Ok(docker) = Docker::connect_with_named_pipe_defaults() {
         if docker.ping().await.is_ok() {
             let version_info = docker.version().await.ok();
             return Ok(DockerStatus {
