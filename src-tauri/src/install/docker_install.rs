@@ -23,6 +23,16 @@ pub struct DockerLayerProgressEvent {
     pub percentage: u8,
 }
 
+/// Raw Docker log output event for the terminal viewer.
+///
+/// Emitted during image pull and compose up to provide real-time
+/// log visibility in the DockerLogViewer component.
+#[derive(Debug, Clone, Serialize)]
+pub struct DockerLogEvent {
+    pub output: String,
+    pub timestamp: u64,
+}
+
 /// Docker Compose-based installation flow.
 ///
 /// Steps:
@@ -153,6 +163,23 @@ pub async fn docker_install(app_handle: &tauri::AppHandle) -> Result<InstallResu
                             },
                         );
                     }
+
+                    // Emit raw Docker log output for the terminal viewer
+                    let _ = tauri::Emitter::emit(
+                        app_handle,
+                        "docker-log-output",
+                        DockerLogEvent {
+                            output: if let Some(id) = &info.id {
+                                format!("[{}] {}", id, status)
+                            } else {
+                                status.clone()
+                            },
+                            timestamp: std::time::SystemTime::now()
+                                .duration_since(std::time::UNIX_EPOCH)
+                                .unwrap_or_default()
+                                .as_millis() as u64,
+                        },
+                    );
                 }
             }
             Err(e) => {
@@ -229,6 +256,38 @@ pub async fn docker_install(app_handle: &tauri::AppHandle) -> Result<InstallResu
             reason: format!("Failed to run docker compose: {e}"),
             suggestion: "Ensure 'docker compose' (v2) is available. Run: docker compose version".into(),
         })?;
+
+    // Emit compose stdout as log output
+    let stdout_str = String::from_utf8_lossy(&output.stdout);
+    if !stdout_str.trim().is_empty() {
+        let _ = tauri::Emitter::emit(
+            app_handle,
+            "docker-log-output",
+            DockerLogEvent {
+                output: format!("compose: {}", stdout_str.trim()),
+                timestamp: std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .as_millis() as u64,
+            },
+        );
+    }
+
+    // Emit compose stderr as log output (errors visible in log viewer)
+    let stderr_str = String::from_utf8_lossy(&output.stderr);
+    if !stderr_str.trim().is_empty() {
+        let _ = tauri::Emitter::emit(
+            app_handle,
+            "docker-log-output",
+            DockerLogEvent {
+                output: format!("compose-err: {}", stderr_str.trim()),
+                timestamp: std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .as_millis() as u64,
+            },
+        );
+    }
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
