@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-last_updated: "2026-03-26T05:01:46.602Z"
+last_updated: "2026-03-26T05:05:46.163Z"
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 17
-  completed_plans: 15
+  completed_plans: 16
 ---
 
 # STATE: OpenClaw Desktop
@@ -22,7 +22,7 @@ progress:
 ## Current Position
 
 Phase: 06 (lifecycle) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 ## Performance Metrics
 
@@ -48,6 +48,7 @@ Plan: 2 of 3
 | Phase 05-monitoring P02 | 3min | 2 tasks | 3 files |
 | Phase 05-monitoring P03 | 3min | 2 tasks | 4 files |
 | Phase 06-lifecycle P03 | 3min | 2 tasks | 6 files |
+| Phase 06-lifecycle P02 | 3min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -96,6 +97,7 @@ Plan: 2 of 3
 - useContainerLogs wired to get_container_logs backend (tail=200, 5s polling)
 - Monitoring dashboard 4-card layout matching docker.tsx visual pattern
 - get_container_logs returns empty string on Docker failure (graceful degradation, consistent with monitoring pattern)
+- DownloadEvent discriminated union: capture contentLength from Started event, track chunkLength from Progress for percentage
 
 ### Critical Pitfalls (from research)
 
@@ -113,6 +115,6 @@ Plan: 2 of 3
 
 ## Session Continuity
 
-**Last action:** Completed 05-monitoring-03-PLAN.md (3min, 2 tasks, 4 files) — closed MON-03 gap
-**Next action:** Phase 05 fully complete (3/3 plans). Run verification, then Phase 06 (update-engine) or uninstall-engine
-**Files to review:** `.planning/phases/05-monitoring/05-monitoring-03-SUMMARY.md`
+**Last action:** Completed 06-lifecycle-02-PLAN.md (3min, 2 tasks, 7 files) — desktop app auto-update
+**Next action:** Phase 06 fully complete (3/3 plans). Run verification, then next phase.
+**Files to review:** `.planning/phases/06-lifecycle/06-lifecycle-02-SUMMARY.md`
