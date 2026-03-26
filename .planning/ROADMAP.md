@@ -72,8 +72,11 @@ Plans:
   5. User can enable/disable individual tools (shell, filesystem, browser, API) via toggle switches
   6. Config editor validates all changes before writing and shows the user if something is invalid
   7. When sandbox is enabled, app automatically runs setup scripts without manual intervention
-**Plans**: TBD
-**UI hint**: yes
+**Plans**: 3 plans
+Plans:
+- [ ] 04-configuration-sandboxing-01-PLAN.md — Config backend (Rust types, read/write/validate commands)
+- [ ] 04-configuration-sandboxing-02-PLAN.md — Config frontend (Zustand store, provider + sandbox UI)
+- [ ] 04-configuration-sandboxing-03-PLAN.md — Tool policies + agent defaults + sandbox setup trigger
 
 ### Phase 5: Monitoring
 **Goal**: User can see what OpenClaw is doing in real-time from the desktop app
@@ -107,6 +110,6 @@ Plans:
 | 1. Foundation | 0/3 | Planning complete | - |
 | 2. Docker Integration | 0/2 | Planning complete | - |
 | 3. Installation Engine | 0/3 | Planning complete | - |
-| 4. Configuration & Sandboxing | 0/12 | Not started | - |
+| 4. Configuration & Sandboxing | 0/3 | Planning complete | - |
 | 5. Monitoring | 0/4 | Not started | - |
 | 6. Lifecycle | 0/4 | Not started | - |
