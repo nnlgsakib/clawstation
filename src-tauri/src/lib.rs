@@ -3,6 +3,7 @@
 mod commands;
 mod docker;
 mod error;
+mod install;
 mod state;
 
 use state::AppState;

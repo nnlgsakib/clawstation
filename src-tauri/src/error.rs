@@ -34,6 +34,26 @@ pub enum AppError {
         suggestion: String,
     },
 
+    #[error("Installation verification failed: {reason}. {suggestion}")]
+    VerificationFailed { reason: String, suggestion: String },
+
+    #[error("Node.js version too old: {current}. Minimum required: {minimum}. {suggestion}")]
+    NodeVersionTooOld {
+        current: String,
+        minimum: String,
+        suggestion: String,
+    },
+
+    #[error("Insufficient disk space: {free_gb}GB free, need {required_gb}GB. {suggestion}")]
+    InsufficientDiskSpace {
+        free_gb: u64,
+        required_gb: u64,
+        suggestion: String,
+    },
+
+    #[error("Port {port} is already in use. {suggestion}")]
+    PortInUse { port: u16, suggestion: String },
+
     #[error("Internal error: {message}. {suggestion}")]
     Internal { message: String, suggestion: String },
 }
