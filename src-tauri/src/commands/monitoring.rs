@@ -1,4 +1,4 @@
-use bollard::container::ListContainersOptions;
+use bollard::container::{ListContainersOptions, LogsOptions};
 use bollard::Docker;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -188,6 +188,43 @@ pub async fn get_sandbox_containers() -> Result<Vec<SandboxContainer>, AppError>
         .collect();
 
     Ok(sandbox_containers)
+}
+
+/// Fetch logs from a Docker container.
+///
+/// Returns the last `tail` lines of log output as a single string.
+/// Returns empty string if Docker is unavailable or container not found.
+#[tauri::command]
+pub async fn get_container_logs(
+    container_id: String,
+    tail: Option<usize>,
+) -> Result<String, AppError> {
+    let docker = match connect_docker().await {
+        Ok(d) => d,
+        Err(_) => return Ok(String::new()),
+    };
+
+    let options = LogsOptions::<String> {
+        stdout: true,
+        stderr: true,
+        tail: tail.unwrap_or(100).to_string(),
+        ..Default::default()
+    };
+
+    let mut logs_stream = docker.logs(&container_id, Some(options));
+
+    let mut output = String::new();
+    use futures_util::StreamExt;
+    while let Some(line) = logs_stream.next().await {
+        match line {
+            Ok(log_output) => {
+                output.push_str(&log_output.to_string());
+            }
+            Err(_) => break,
+        }
+    }
+
+    Ok(output)
 }
 
 // ─── Private helpers ──────────────────────────────────────────────
