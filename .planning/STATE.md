@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: Milestone complete
-last_updated: "2026-03-26T05:16:27.539Z"
+milestone: v1.1
+milestone_name: UX Polish & Channels
+status: Defining requirements
+last_updated: "2026-03-26T12:00:00.000Z"
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 17
-  completed_plans: 17
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # STATE: OpenClaw Desktop
@@ -16,14 +16,15 @@ progress:
 ## Project Reference
 
 **Core Value:** Make OpenClaw installable and manageable by anyone — from download to daily use — without touching a terminal.
-**Current Focus:** v1.0 MVP complete — planning next milestone
+**Current Focus:** v1.1 UX Polish & Channels — defining requirements
 **Tech Stack:** Tauri v2 + React 19 + TypeScript + Tailwind v4 + shadcn/ui + bollard (Rust Docker client)
 
 ## Current Position
 
-Phase: —
+Phase: Not started (defining requirements)
 Plan: —
-Status: Milestone v1.0 complete (2026-03-26)
+Status: Defining requirements
+Last activity: 2026-03-26 — Milestone v1.1 started
 
 ## Performance Metrics
 

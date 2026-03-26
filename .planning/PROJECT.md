@@ -27,7 +27,26 @@ Make OpenClaw installable and manageable by anyone — from download to daily us
 
 ### Active
 
-*(All v1 requirements validated)*
+#### v1.1: UX Polish & Channels
+
+**Installation UX**
+- [ ] Real-time Docker log streaming during installation (replace fake percentage)
+- [ ] Show actual pull progress, layer downloads, container startup
+- [ ] Make installation feel alive and trustworthy
+
+**UI/UX Overhaul**
+- [ ] Modern, interactive design (not flat)
+- [ ] Micro-interactions and animations throughout
+- [ ] Better visual hierarchy and feedback
+- [ ] Loading states, transitions, hover effects
+- [ ] Consistent design language across all pages
+
+**Channel Management (NEW)**
+- [ ] Visual UI for connecting social apps (WhatsApp, Telegram, Discord, Slack, etc.)
+- [ ] QR code pairing flow for WhatsApp
+- [ ] Bot token setup for Telegram/Discord
+- [ ] Connection status and health monitoring
+- [ ] Pairing/approval controls (who can message your agent)
 
 ### Out of Scope
 
@@ -63,6 +82,15 @@ Make OpenClaw installable and manageable by anyone — from download to daily us
 | Full config exposure | Users should never need to edit YAML/JSON manually | ✓ Validated v1.0 |
 | Docker connection duplicated in monitoring.rs | 10 lines vs coupling with docker.rs | ✓ Validated v1.0 |
 | Log streaming placeholder pattern | Frontend API stable before backend exists | ✓ Validated v1.0 |
+
+## Current Milestone: v1.1 UX Polish & Channels
+
+**Goal:** Transform the flat MVP into a polished, interactive experience with real-time feedback and channel management.
+
+**Target features:**
+- Real installation progress with Docker log streaming
+- UI/UX overhaul with animations and micro-interactions
+- Channel management for social app connections (WhatsApp, Telegram, Discord, etc.)
 
 ## Current State
 
@@ -102,4 +130,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-26 after Phase 6: Lifecycle — **v1.0 milestone complete**
+*Last updated: 2026-03-26 after starting v1.1 milestone*
