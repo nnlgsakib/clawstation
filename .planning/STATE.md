@@ -16,13 +16,14 @@ progress:
 ## Project Reference
 
 **Core Value:** Make OpenClaw installable and manageable by anyone — from download to daily use — without touching a terminal.
-**Current Focus:** Phase 06 — lifecycle
+**Current Focus:** v1.0 MVP complete — planning next milestone
 **Tech Stack:** Tauri v2 + React 19 + TypeScript + Tailwind v4 + shadcn/ui + bollard (Rust Docker client)
 
 ## Current Position
 
-Phase: 06
-Plan: Not started
+Phase: —
+Plan: —
+Status: Milestone v1.0 complete (2026-03-26)
 
 ## Performance Metrics
 
