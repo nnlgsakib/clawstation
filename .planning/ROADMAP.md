@@ -104,8 +104,12 @@ Plans:
   3. User can update the desktop app itself with one click
   4. User can uninstall OpenClaw completely (binary, config, sandbox containers)
   5. User can choose to preserve their configuration during uninstall
-**Plans**: TBD
-**UI hint**: yes
+  **Plans**: 3 plans
+  Plans:
+  - [ ] 06-lifecycle-01-PLAN.md — OpenClaw one-click update (backend + frontend)
+  - [ ] 06-lifecycle-02-PLAN.md — Desktop app auto-update (tauri-plugin-updater)
+  - [ ] 06-lifecycle-03-PLAN.md — Uninstall engine (clean removal + config preservation)
+  **UI hint**: yes
 
 ## Progress Table
 
@@ -116,4 +120,4 @@ Plans:
 | 3. Installation Engine | 0/3 | Planning complete | - |
 | 4. Configuration & Sandboxing | 0/3 | Planning complete | - |
 | 5. Monitoring | 0/2 | Planning complete | - |
-| 6. Lifecycle | 0/4 | Not started | - |
+| 6. Lifecycle | 0/3 | Planning complete | - |
