@@ -90,7 +90,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 05-monitoring-01-PLAN.md — Monitoring backend (Rust types, Tauri commands for status/sessions/containers)
-- [ ] 05-monitoring-02-PLAN.md — Monitoring frontend (hooks, dashboard page replacing PageStub)
+- [x] 05-monitoring-02-PLAN.md — Monitoring frontend (hooks, dashboard page replacing PageStub)
 **UI hint**: yes
 
 ### Phase 6: Lifecycle

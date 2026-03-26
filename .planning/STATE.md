@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready to execute
-last_updated: "2026-03-26T04:00:38.101Z"
+status: Phase complete — ready for verification
+last_updated: "2026-03-26T04:09:27.089Z"
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 13
-  completed_plans: 12
+  completed_plans: 13
 ---
 
 # STATE: OpenClaw Desktop
@@ -21,8 +21,8 @@ progress:
 
 ## Current Position
 
-Phase: 05 (monitoring) — EXECUTING
-Plan: 2 of 2
+Phase: 05 (monitoring) — COMPLETE
+Plan: 2 of 2 (all done)
 
 ## Performance Metrics
 
@@ -45,6 +45,7 @@ Plan: 2 of 2
 | Phase 04-configuration-sandboxing P02 | 8min | 2 tasks | 7 files |
 | Phase 04-configuration-sandboxing P03 | 14min | 2 tasks | 7 files |
 | Phase 05-monitoring P01 | 3min | 1 tasks | 3 files |
+| Phase 05-monitoring P02 | 3min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -89,6 +90,9 @@ Plan: 2 of 2
 - OpenClawStatus as tagged enum (serde tag="state") for frontend pattern matching
 - Monitoring commands return empty/unknown on failure (graceful degradation, not errors)
 - Duplicated connect_docker() helper per command module (self-containment over shared code)
+- Adaptive polling for monitoring: 15s when OpenClaw not running, 1min when running, 30s for sessions/containers
+- useContainerLogs placeholder until get_container_logs backend command exists
+- Monitoring dashboard 4-card layout matching docker.tsx visual pattern
 
 ### Critical Pitfalls (from research)
 
@@ -106,6 +110,6 @@ Plan: 2 of 2
 
 ## Session Continuity
 
-**Last action:** Completed 05-monitoring-01-PLAN.md (3min, 1 task, 3 files)
-**Next action:** Plan 02 of Phase 05 — monitoring frontend dashboard
-**Files to review:** `.planning/phases/05-monitoring/05-monitoring-01-SUMMARY.md`
+**Last action:** Completed 05-monitoring-02-PLAN.md (3min, 2 tasks, 3 files)
+**Next action:** Phase 05 complete — run verification, then Phase 06 (update-engine) or uninstall-engine
+**Files to review:** `.planning/phases/05-monitoring/05-monitoring-02-SUMMARY.md`
