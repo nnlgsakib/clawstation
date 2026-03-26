@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: UX Polish & Channels
 status: ready
-last_updated: "2026-03-26T15:45:00.000Z"
+last_updated: "2026-03-26T23:34:00.000Z"
 last_activity: 2026-03-26
 progress:
   total_phases: 4
-  completed_phases: 1
-  total_plans: 9
-  completed_plans: 9
+  completed_phases: 4
+  total_plans: 12
+  completed_plans: 12
 ---
 
 # STATE: OpenClaw Desktop
@@ -17,14 +17,14 @@ progress:
 ## Project Reference
 
 **Core Value:** Make OpenClaw installable and manageable by anyone — from download to daily use — without touching a terminal.
-**Current Focus:** Phase 08 — channel-management-core
+**Current Focus:** v1.1 milestone complete — all phases done
 **Tech Stack:** Tauri v2 + React 19 + TypeScript + Tailwind v4 + shadcn/ui + bollard (Rust Docker client)
 
 ## Current Position
 
-Phase: 08
-Plan: Not started
-Status: Gap closure plan executed, all verification gaps closed
+Phase: 10
+Plan: Complete
+Status: All v1.1 phases executed and verified
 Last activity: 2026-03-26
 
 ## Performance Metrics
@@ -120,6 +120,14 @@ Last activity: 2026-03-26
 - Docker layer progress events via dedicated Tauri channel (docker-layer-progress) — per-layer ID tracking with update-or-add semantics
 - DockerLogEvent struct separate from DockerLayerProgressEvent — raw text log output vs structured per-layer progress
 - springPresets.stable for button micro-interactions (400/30), springPresets.gentle for progress bars (200/20) — centralized animation presets from @/lib/animation
+- Channel data fetched from OpenClaw backend via Tauri commands (Phase 8)
+- Channel status model: connected/disconnected/expired/connecting (Phase 8)
+- Pairing modal as dialog (not separate route) with channel-specific components (Phase 9)
+- WhatsApp QR polling every 5s for refresh detection (Phase 9)
+- Telegram/Discord token validation: format check before API call (Phase 9)
+- Contact states: approved/pending/blocked with inline action buttons (Phase 10)
+- Activity feed: 30s polling, sender + channel icon + preview + timestamp (Phase 10)
+- Tab system on channels page: Channels | Contacts | Activity (Phase 10)
 
 ### Critical Pitfalls (from research)
 
@@ -148,6 +156,6 @@ Last activity: 2026-03-26
 
 ## Session Continuity
 
-**Last action:** Completed quick task 260326-w1f: Add install dir selection, clean install, and cancel
-**Next action:** Plan Phase 08 (channel-management-core) — gather context or plan directly
-**Files to review:** `.planning/phases/07-installation-ux-animation-foundation/07-VERIFICATION.md`
+**Last action:** Completed all v1.1 milestone phases (8, 9, 10) autonomously
+**Next action:** Run milestone lifecycle (audit → complete → cleanup)
+**Files to review:** `.planning/phases/10-access-control-activity/10-VERIFICATION.md`
