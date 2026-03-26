@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to plan
-last_updated: "2026-03-26T04:14:26.715Z"
+last_updated: "2026-03-26T04:27:02.058Z"
 progress:
   total_phases: 6
   completed_phases: 5
-  total_plans: 13
-  completed_plans: 13
+  total_plans: 14
+  completed_plans: 14
 ---
 
 # STATE: OpenClaw Desktop
@@ -46,6 +46,7 @@ Plan: Not started
 | Phase 04-configuration-sandboxing P03 | 14min | 2 tasks | 7 files |
 | Phase 05-monitoring P01 | 3min | 1 tasks | 3 files |
 | Phase 05-monitoring P02 | 3min | 2 tasks | 3 files |
+| Phase 05-monitoring P03 | 3min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -91,8 +92,9 @@ Plan: Not started
 - Monitoring commands return empty/unknown on failure (graceful degradation, not errors)
 - Duplicated connect_docker() helper per command module (self-containment over shared code)
 - Adaptive polling for monitoring: 15s when OpenClaw not running, 1min when running, 30s for sessions/containers
-- useContainerLogs placeholder until get_container_logs backend command exists
+- useContainerLogs wired to get_container_logs backend (tail=200, 5s polling)
 - Monitoring dashboard 4-card layout matching docker.tsx visual pattern
+- get_container_logs returns empty string on Docker failure (graceful degradation, consistent with monitoring pattern)
 
 ### Critical Pitfalls (from research)
 
@@ -110,6 +112,6 @@ Plan: Not started
 
 ## Session Continuity
 
-**Last action:** Completed 05-monitoring-02-PLAN.md (3min, 2 tasks, 3 files)
-**Next action:** Phase 05 complete — run verification, then Phase 06 (update-engine) or uninstall-engine
-**Files to review:** `.planning/phases/05-monitoring/05-monitoring-02-SUMMARY.md`
+**Last action:** Completed 05-monitoring-03-PLAN.md (3min, 2 tasks, 4 files) — closed MON-03 gap
+**Next action:** Phase 05 fully complete (3/3 plans). Run verification, then Phase 06 (update-engine) or uninstall-engine
+**Files to review:** `.planning/phases/05-monitoring/05-monitoring-03-SUMMARY.md`
