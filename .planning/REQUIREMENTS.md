@@ -44,8 +44,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [ ] **LIFE-01**: User can update OpenClaw to newer versions with one click
 - [ ] **LIFE-02**: User can update the desktop app itself (auto-updater)
-- [ ] **LIFE-03**: User can uninstall OpenClaw cleanly (binary, config, containers)
-- [ ] **LIFE-04**: User can choose to keep config on uninstall
+- [x] **LIFE-03**: User can uninstall OpenClaw cleanly (binary, config, containers)
+- [x] **LIFE-04**: User can choose to keep config on uninstall
 
 ### Error Handling
 
@@ -133,8 +133,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MON-04 | Phase 5 | Complete |
 | LIFE-01 | Phase 6 | Pending |
 | LIFE-02 | Phase 6 | Pending |
-| LIFE-03 | Phase 6 | Pending |
-| LIFE-04 | Phase 6 | Pending |
+| LIFE-03 | Phase 6 | Complete |
+| LIFE-04 | Phase 6 | Complete |
 
 **Coverage:**
 - v1 requirements: 31 total

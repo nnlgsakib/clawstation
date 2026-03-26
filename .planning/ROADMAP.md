@@ -108,7 +108,7 @@ Plans:
   Plans:
   - [ ] 06-lifecycle-01-PLAN.md — OpenClaw one-click update (backend + frontend)
   - [ ] 06-lifecycle-02-PLAN.md — Desktop app auto-update (tauri-plugin-updater)
-  - [ ] 06-lifecycle-03-PLAN.md — Uninstall engine (clean removal + config preservation)
+  - [x] 06-lifecycle-03-PLAN.md — Uninstall engine (clean removal + config preservation)
   **UI hint**: yes
 
 ## Progress Table
