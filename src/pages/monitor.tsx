@@ -27,6 +27,7 @@ import {
   Loader2,
 } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Link } from "react-router-dom"
 
 export function Monitor() {
@@ -86,9 +87,17 @@ export function Monitor() {
         </CardHeader>
         <CardContent>
           {statusLoading && (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <RefreshCw className="h-4 w-4 animate-spin" />
-              <span className="text-sm">Checking status...</span>
+            <div className="space-y-3">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1">
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-4 w-20" />
+                </div>
+                <div className="space-y-1">
+                  <Skeleton className="h-4 w-10" />
+                  <Skeleton className="h-4 w-12" />
+                </div>
+              </div>
             </div>
           )}
 
@@ -168,9 +177,16 @@ export function Monitor() {
         </CardHeader>
         <CardContent>
           {sessionsLoading && (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <RefreshCw className="h-4 w-4 animate-spin" />
-              <span className="text-sm">Loading sessions...</span>
+            <div className="space-y-3">
+              {Array.from({ length: 2 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between gap-4">
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-24" />
+                  </div>
+                  <Skeleton className="h-5 w-14 rounded-full" />
+                </div>
+              ))}
             </div>
           )}
 
@@ -273,9 +289,19 @@ export function Monitor() {
         </CardHeader>
         <CardContent>
           {containersLoading && (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <RefreshCw className="h-4 w-4 animate-spin" />
-              <span className="text-sm">Loading containers...</span>
+            <div className="space-y-3">
+              {Array.from({ length: 2 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between gap-4">
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <Skeleton className="h-4 w-28" />
+                    <Skeleton className="h-3 w-36" />
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Skeleton className="h-5 w-16 rounded-full" />
+                    <Skeleton className="h-3 w-20" />
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 

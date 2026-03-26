@@ -6,8 +6,9 @@ import { SandboxSection } from "@/components/config/sandbox-section";
 import { ToolsSection } from "@/components/config/tools-section";
 import { AgentsSection } from "@/components/config/agents-section";
 import { invoke } from "@tauri-apps/api/core";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { showError } from "@/lib/toast-errors";
 import { Save, Loader2 } from "lucide-react";
 import { useState } from "react";
@@ -103,23 +104,8 @@ export function Configure() {
         </Button>
       </div>
 
-      {/* Loading state */}
-      {isLoading && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Loading configuration...</CardTitle>
-            <CardDescription>
-              Please wait while we load your configuration
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="text-sm">Loading...</span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Loading state — skeleton matching config sections layout */}
+      {isLoading && <ConfigureSkeleton />}
 
       {/* Configuration sections */}
       {!isLoading && (
@@ -130,6 +116,40 @@ export function Configure() {
           <AgentsSection />
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * Skeleton loading state matching the configuration page layout.
+ * Shows 4 section skeletons matching ProviderSection, SandboxSection,
+ * ToolsSection, and AgentsSection.
+ */
+function ConfigureSkeleton() {
+  return (
+    <div className="space-y-6">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <Card key={i}>
+          <CardHeader>
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="h-4 w-56 mt-1" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-9 w-full" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-9 w-full" />
+            </div>
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-4 w-36" />
+              <Skeleton className="h-5 w-10 rounded-full" />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }
