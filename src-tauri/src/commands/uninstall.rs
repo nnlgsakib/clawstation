@@ -72,7 +72,7 @@ pub async fn uninstall_openclaw(
             Ok(containers) => removed_containers.extend(containers),
             Err(e) => {
                 let msg = format!("Container removal warning: {e}");
-                tracing::warn!("{msg}");
+                eprintln!("WARNING: {msg}");
                 errors.push(msg);
             }
         }
@@ -88,7 +88,7 @@ pub async fn uninstall_openclaw(
             Ok(_) => {}
             Err(e) => {
                 let msg = format!("Image removal warning: {e}");
-                tracing::warn!("{msg}");
+                eprintln!("WARNING: {msg}");
                 errors.push(msg);
             }
         }
@@ -104,7 +104,7 @@ pub async fn uninstall_openclaw(
             Ok(_) => {}
             Err(e) => {
                 let msg = format!("Volume removal warning: {e}");
-                tracing::warn!("{msg}");
+                eprintln!("WARNING: {msg}");
                 errors.push(msg);
             }
         }
@@ -121,7 +121,7 @@ pub async fn uninstall_openclaw(
         Ok(_) => {}
         Err(e) => {
             let msg = format!("Process stop warning: {e}");
-            tracing::warn!("{msg}");
+            eprintln!("WARNING: {msg}");
             errors.push(msg);
         }
     }
@@ -142,7 +142,7 @@ pub async fn uninstall_openclaw(
         Ok(removed) => removed,
         Err(e) => {
             let msg = format!("Config removal warning: {e}");
-            tracing::warn!("{msg}");
+            eprintln!("WARNING: {msg}");
             errors.push(msg);
             false
         }
@@ -208,7 +208,7 @@ async fn remove_openclaw_images() -> Result<(), String> {
     match docker
         .remove_image(
             "ghcr.io/openclaw/openclaw:latest",
-            None::<bollard::image::RemoveImageOptions>,
+            None::<bollard::query_parameters::RemoveImageOptions>,
             None,
         )
         .await

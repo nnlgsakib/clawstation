@@ -1,4 +1,4 @@
-use bollard::container::{ListContainersOptions, LogsOptions};
+use bollard::query_parameters::{ListContainersOptions, LogsOptions};
 use bollard::Docker;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -55,7 +55,7 @@ pub async fn get_openclaw_status() -> Result<OpenClawStatus, AppError> {
 
     let options = ListContainersOptions {
         all: true,
-        filters,
+        filters: Some(filters),
         ..Default::default()
     };
 
@@ -69,9 +69,9 @@ pub async fn get_openclaw_status() -> Result<OpenClawStatus, AppError> {
         None => return Ok(OpenClawStatus::Stopped),
     };
 
-    let state = container.state.as_deref().unwrap_or("unknown");
+    let state = container.state.as_ref().map(|s| s.to_string()).unwrap_or_else(|| "unknown".into());
 
-    match state {
+    match state.as_str() {
         "running" => {
             let version = container
                 .labels
@@ -168,7 +168,7 @@ pub async fn get_sandbox_containers() -> Result<Vec<SandboxContainer>, AppError>
                 .unwrap_or_default()
                 .trim_start_matches('/')
                 .to_string();
-            let state = c.state.unwrap_or_default();
+            let state = c.state.as_ref().map(|s| s.to_string()).unwrap_or_default();
             let status_text = c.status.unwrap_or_default();
             let image = c.image.unwrap_or_default();
             let created = c
@@ -204,7 +204,7 @@ pub async fn get_container_logs(
         Err(_) => return Ok(String::new()),
     };
 
-    let options = LogsOptions::<String> {
+    let options = LogsOptions {
         stdout: true,
         stderr: true,
         tail: tail.unwrap_or(100).to_string(),

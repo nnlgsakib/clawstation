@@ -120,9 +120,9 @@ async fn update_docker(app_handle: &AppHandle) -> Result<UpdateResult, AppError>
 
     use futures_util::StreamExt;
     let mut stream = docker.create_image(
-        Some(bollard::image::CreateImageOptions {
-            from_image: OPENCLAW_IMAGE,
-            tag: OPENCLAW_TAG,
+        Some(bollard::query_parameters::CreateImageOptions {
+            from_image: Some(OPENCLAW_IMAGE.to_string()),
+            tag: Some(OPENCLAW_TAG.to_string()),
             ..Default::default()
         }),
         None,
@@ -132,17 +132,17 @@ async fn update_docker(app_handle: &AppHandle) -> Result<UpdateResult, AppError>
     while let Some(result) = stream.next().await {
         match result {
             Ok(info) => {
-                if let Some(status) = info.get("status").and_then(|s| s.as_str()) {
+                if let Some(status) = &info.status {
                     let detail = info
-                        .get("progressDetail")
-                        .and_then(|d| d.get("current"))
-                        .and_then(|c| c.as_u64())
-                        .unwrap_or(0);
+                        .progress_detail
+                        .as_ref()
+                        .and_then(|d| d.current)
+                        .unwrap_or(0) as u64;
                     let total = info
-                        .get("progressDetail")
-                        .and_then(|d| d.get("total"))
-                        .and_then(|t| t.as_u64())
-                        .unwrap_or(1);
+                        .progress_detail
+                        .as_ref()
+                        .and_then(|d| d.total)
+                        .unwrap_or(1) as u64;
                     let pull_percent = if total > 0 {
                         ((detail as f64 / total as f64) * 50.0) as u8
                     } else {

@@ -4,7 +4,7 @@ use crate::install::InstallResult;
 use crate::install::progress::emit_progress;
 use crate::install::verify::verify_gateway_health;
 
-use tokio::io::AsyncWriteExt;
+
 
 const OPENCLAW_IMAGE: &str = "ghcr.io/openclaw/openclaw:latest";
 const GATEWAY_PORT: u16 = 18789;
@@ -85,9 +85,9 @@ pub async fn docker_install(app_handle: &tauri::AppHandle) -> Result<InstallResu
 
     use futures_util::StreamExt;
     let mut stream = docker.create_image(
-        Some(bollard::image::CreateImageOptions {
-            from_image: "ghcr.io/openclaw/openclaw",
-            tag: "latest",
+        Some(bollard::query_parameters::CreateImageOptions {
+            from_image: Some("ghcr.io/openclaw/openclaw".to_string()),
+            tag: Some("latest".to_string()),
             ..Default::default()
         }),
         None,
@@ -97,18 +97,18 @@ pub async fn docker_install(app_handle: &tauri::AppHandle) -> Result<InstallResu
     while let Some(result) = stream.next().await {
         match result {
             Ok(info) => {
-                if let Some(status) = info.get("status").and_then(|s| s.as_str()) {
+                if let Some(status) = &info.status {
                     // Map pull progress to 20-70% range
                     let detail = info
-                        .get("progressDetail")
-                        .and_then(|d| d.get("current"))
-                        .and_then(|c| c.as_u64())
-                        .unwrap_or(0);
+                        .progress_detail
+                        .as_ref()
+                        .and_then(|d| d.current)
+                        .unwrap_or(0) as u64;
                     let total = info
-                        .get("progressDetail")
-                        .and_then(|d| d.get("total"))
-                        .and_then(|t| t.as_u64())
-                        .unwrap_or(1);
+                        .progress_detail
+                        .as_ref()
+                        .and_then(|d| d.total)
+                        .unwrap_or(1) as u64;
                     let pull_percent = if total > 0 {
                         ((detail as f64 / total as f64) * 50.0) as u8
                     } else {
@@ -276,7 +276,7 @@ fn generate_token() -> String {
     use std::time::{SystemTime, UNIX_EPOCH};
     let mut buf = [0u8; 32];
     // Use system randomness via /dev/urandom (available on Linux and Windows)
-    getrandom::getrandom(&mut buf).unwrap_or_else(|_| {
+    getrandom::fill(&mut buf).unwrap_or_else(|_| {
         // Fallback: seed from time + PID
         let t = SystemTime::now()
             .duration_since(UNIX_EPOCH)

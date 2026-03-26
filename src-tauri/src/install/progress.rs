@@ -1,4 +1,5 @@
 use serde::Serialize;
+use tauri::Emitter;
 
 /// Progress event emitted during installation.
 ///
