@@ -1,4 +1,3 @@
-import * as React from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useDockerLayerProgress } from "@/hooks/use-docker-layer-progress";
 import { Progress } from "@/components/ui/progress";
@@ -18,7 +17,7 @@ const itemVariants = {
     opacity: 1,
     y: 0,
     transition: {
-      type: "spring",
+      type: "spring" as const,
       stiffness: 300,
       damping: 20,
     },

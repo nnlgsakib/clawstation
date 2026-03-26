@@ -43,24 +43,27 @@ const interactionVariants: Variants = {
 }
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onDrag' | 'onDragStart' | 'onDragEnd' | 'onDragOver' | 'onDragEnter' | 'onDragLeave' | 'onDrop'>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : motion.button
+    const classes = cn(buttonVariants({ variant, size, className }))
+    if (asChild) {
+      return <Slot ref={ref} className={classes} {...props} />
+    }
     return (
-      <Comp
+      <motion.button
         ref={ref}
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={classes}
         variants={interactionVariants}
         whileHover="hover"
         whileTap="tap"
         whileFocus="focus"
         transition={springPresets.stable}
-        {...props}
+        {...(props as any)}
       />
     )
   }
