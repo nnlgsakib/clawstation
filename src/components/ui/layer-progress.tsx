@@ -1,12 +1,13 @@
 import { motion, AnimatePresence } from "motion/react";
 import { useDockerLayerProgress } from "@/hooks/use-docker-layer-progress";
 import { Progress } from "@/components/ui/progress";
+import { CheckCircle2, Loader2, Download, HardDrive } from "lucide-react";
 
 const containerVariants = {
   hidden: {},
   visible: {
     transition: {
-      staggerChildren: 0.08,
+      staggerChildren: 0.06,
     },
   },
 };
@@ -24,6 +25,22 @@ const itemVariants = {
   },
 };
 
+function getStatusIcon(description: string) {
+  switch (description) {
+    case "Done":
+    case "Cached":
+      return <CheckCircle2 className="h-3 w-3 text-green-500" />;
+    case "Verifying":
+      return <Loader2 className="h-3 w-3 animate-spin text-blue-500" />;
+    case "Extracting":
+      return <HardDrive className="h-3 w-3 text-amber-500" />;
+    case "Downloaded":
+      return <CheckCircle2 className="h-3 w-3 text-green-400" />;
+    default:
+      return <Download className="h-3 w-3 text-primary" />;
+  }
+}
+
 interface LayerProgressProps {
   className?: string;
 }
@@ -31,7 +48,14 @@ interface LayerProgressProps {
 export function LayerProgress({ className }: LayerProgressProps) {
   const { layers } = useDockerLayerProgress();
 
-  if (layers.length === 0 || layers.every((l) => l.percentage >= 100)) {
+  const activeLayers = layers.filter(
+    (l) => l.description !== "Done" && l.description !== "Cached"
+  );
+  const completedLayers = layers.filter(
+    (l) => l.description === "Done" || l.description === "Cached"
+  );
+
+  if (layers.length === 0) {
     return null;
   }
 
@@ -42,29 +66,45 @@ export function LayerProgress({ className }: LayerProgressProps) {
       initial="hidden"
       animate="visible"
     >
+      <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground">
+        <span className="font-medium">
+          {completedLayers.length}/{layers.length} layers
+        </span>
+      </div>
+
       <AnimatePresence>
-        {layers.map((layer) => (
+        {activeLayers.map((layer) => (
           <motion.div
             key={layer.id}
             variants={itemVariants}
             layout
-            className="mb-2 flex items-center gap-3"
+            className="mb-2 flex items-center gap-2"
           >
-            <span
-              className="w-24 shrink-0 truncate text-xs font-mono text-muted-foreground"
-              title={layer.description}
-            >
-              {layer.description.length > 14
-                ? `${layer.description.slice(0, 14)}…`
-                : layer.description}
+            {getStatusIcon(layer.description)}
+            <span className="w-20 shrink-0 truncate text-xs font-mono text-muted-foreground">
+              {layer.id}
             </span>
-            <Progress value={layer.percentage} max={100} className="flex-1" />
-            <span className="w-10 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
-              {layer.percentage}%
+            <Progress
+              value={layer.layerPercentage}
+              max={100}
+              className="flex-1"
+            />
+            <span className="w-16 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
+              {layer.description === "Downloading"
+                ? `${layer.layerPercentage}%`
+                : layer.description}
             </span>
           </motion.div>
         ))}
       </AnimatePresence>
+
+      {completedLayers.length > 0 && (
+        <div className="mt-1 text-xs text-muted-foreground">
+          <CheckCircle2 className="mr-1 inline h-3 w-3 text-green-500" />
+          {completedLayers.length} layer{completedLayers.length > 1 ? "s" : ""}{" "}
+          complete
+        </div>
+      )}
     </motion.div>
   );
 }

@@ -43,6 +43,52 @@ function getStepIcon(step: string) {
   }
 }
 
+const INSTALL_STEPS = [
+  { key: "checking_docker", label: "Check Docker" },
+  { key: "creating_dirs", label: "Create Dirs" },
+  { key: "pulling_image", label: "Pull Image" },
+  { key: "writing_compose", label: "Write Config" },
+  { key: "writing_env", label: "Generate Token" },
+  { key: "starting_gateway", label: "Start Gateway" },
+  { key: "verifying", label: "Verify" },
+  { key: "complete", label: "Done" },
+];
+
+function InstallProgressBar({
+  step,
+  percent,
+}: {
+  step: string;
+  percent: number;
+}) {
+  const currentIdx = INSTALL_STEPS.findIndex((s) => s.key === step);
+
+  return (
+    <div className="mt-3 space-y-2">
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <span>
+          Step {Math.max(1, currentIdx + 1)} of {INSTALL_STEPS.length}
+        </span>
+        <span className="tabular-nums">{percent}%</span>
+      </div>
+      <div className="flex gap-1">
+        {INSTALL_STEPS.map((s, i) => (
+          <div
+            key={s.key}
+            className={`h-1.5 flex-1 rounded-full transition-colors ${
+              i < currentIdx
+                ? "bg-primary"
+                : i === currentIdx
+                  ? "bg-primary/60"
+                  : "bg-muted"
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 interface StepInstallProps {
   method: InstallMethod;
 }
@@ -147,20 +193,20 @@ export function StepInstall({ method }: StepInstallProps) {
 
       {isInstalling && progress?.step && (
         <Card>
-          <CardHeader>
+          <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
               {getStepIcon(progress.step)}
-              Installation in Progress
+              {progress.message}
             </CardTitle>
+            <InstallProgressBar step={progress.step} percent={progress.percent} />
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-sm font-medium">{progress.message}</p>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <div className="md:col-span-2 h-96">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <div className="h-80">
                 <DockerLogViewer />
               </div>
-              <div className="space-y-2">
-                <LayerProgress className="h-96 overflow-y-auto" />
+              <div className="h-80 overflow-y-auto rounded-lg border p-4">
+                <LayerProgress className="space-y-1" />
               </div>
             </div>
           </CardContent>

@@ -19,15 +19,22 @@ interface DockerLogEvent {
  */
 export function useDockerLogs() {
   const [logs, setLogs] = useState<string>("");
+  const [lineCount, setLineCount] = useState(0);
   const [isAutoScrolling, setIsAutoScrolling] = useState<boolean>(true);
   const containerRef = useRef<HTMLDivElement>(null);
+  const lastOutputRef = useRef<string>("");
 
   useEffect(() => {
     const unlisten = listen<DockerLogEvent>("docker-log-output", (event) => {
       const time = new Date(event.payload.timestamp).toLocaleTimeString();
-      setLogs(
-        (prev) => prev + `[${time}] ${event.payload.output}\n`
-      );
+      const output = event.payload.output;
+
+      // Deduplicate consecutive identical lines
+      if (output === lastOutputRef.current) return;
+      lastOutputRef.current = output;
+
+      setLogs((prev) => prev + `[${time}] ${output}\n`);
+      setLineCount((prev) => prev + 1);
     });
     return () => {
       unlisten.then((fn) => fn());
@@ -56,5 +63,5 @@ export function useDockerLogs() {
     }
   }, [logs, isAutoScrolling]);
 
-  return { logs, containerRef };
+  return { logs, containerRef, lineCount };
 }

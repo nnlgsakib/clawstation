@@ -21,6 +21,7 @@ pub struct DockerLayerProgressEvent {
     pub layer_id: String,
     pub description: String,
     pub percentage: u8,
+    pub layer_percentage: u8,
 }
 
 /// Raw Docker log output event for the terminal viewer.
@@ -145,6 +146,13 @@ pub async fn docker_install(app_handle: &tauri::AppHandle) -> Result<InstallResu
                         &format!("{status}..."),
                     );
 
+                    // Calculate per-layer download percentage
+                    let layer_pct = if total > 0 {
+                        ((detail as f64 / total as f64) * 100.0) as u8
+                    } else {
+                        0
+                    };
+
                     // Emit per-layer progress event for granular visibility
                     if let Some(layer_id) = info.id.as_ref().and_then(|id| {
                         if id.len() >= 12 {
@@ -160,26 +168,40 @@ pub async fn docker_install(app_handle: &tauri::AppHandle) -> Result<InstallResu
                                 layer_id,
                                 description: status.to_string(),
                                 percentage: pull_percent.min(50),
+                                layer_percentage: layer_pct.min(100),
                             },
                         );
                     }
 
-                    // Emit raw Docker log output for the terminal viewer
-                    let _ = tauri::Emitter::emit(
-                        app_handle,
-                        "docker-log-output",
-                        DockerLogEvent {
-                            output: if let Some(id) = &info.id {
-                                format!("[{}] {}", id, status)
-                            } else {
-                                status.clone()
-                            },
-                            timestamp: std::time::SystemTime::now()
-                                .duration_since(std::time::UNIX_EPOCH)
-                                .unwrap_or_default()
-                                .as_millis() as u64,
-                        },
+                    // Only emit log output for meaningful status transitions,
+                    // not the repetitive "Downloading" ticks
+                    let is_meaningful = matches!(
+                        status.as_str(),
+                        "Verifying Checksum"
+                            | "Download complete"
+                            | "Extracting"
+                            | "Pull complete"
+                            | "Already exists"
                     );
+                    if is_meaningful {
+                        let _ = tauri::Emitter::emit(
+                            app_handle,
+                            "docker-log-output",
+                            DockerLogEvent {
+                                output: if let Some(id) = &info.id {
+                                    let short_id: String =
+                                        id.chars().take(8).collect();
+                                    format!("[{short_id}] {status}")
+                                } else {
+                                    status.clone()
+                                },
+                                timestamp: std::time::SystemTime::now()
+                                    .duration_since(std::time::UNIX_EPOCH)
+                                    .unwrap_or_default()
+                                    .as_millis() as u64,
+                            },
+                        );
+                    }
                 }
             }
             Err(e) => {
