@@ -87,7 +87,10 @@ Plans:
   2. User can see a list of currently active agent sessions
   3. User can view streamed agent activity logs in the app
   4. User can see the status of sandbox containers (running, stopped, absent)
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 05-monitoring-01-PLAN.md — Monitoring backend (Rust types, Tauri commands for status/sessions/containers)
+- [ ] 05-monitoring-02-PLAN.md — Monitoring frontend (hooks, dashboard page replacing PageStub)
 **UI hint**: yes
 
 ### Phase 6: Lifecycle
@@ -111,5 +114,5 @@ Plans:
 | 2. Docker Integration | 0/2 | Planning complete | - |
 | 3. Installation Engine | 0/3 | Planning complete | - |
 | 4. Configuration & Sandboxing | 0/3 | Planning complete | - |
-| 5. Monitoring | 0/4 | Not started | - |
+| 5. Monitoring | 0/2 | Planning complete | - |
 | 6. Lifecycle | 0/4 | Not started | - |

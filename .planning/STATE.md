@@ -16,7 +16,7 @@ progress:
 ## Project Reference
 
 **Core Value:** Make OpenClaw installable and manageable by anyone — from download to daily use — without touching a terminal.
-**Current Focus:** Phase 04 — configuration-sandboxing
+**Current Focus:** Phase 05 — monitoring
 **Tech Stack:** Tauri v2 + React 19 + TypeScript + Tailwind v4 + shadcn/ui + bollard (Rust Docker client)
 
 ## Current Position
