@@ -172,12 +172,29 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LIFE-02 | Phase 6 | Complete |
 | LIFE-03 | Phase 6 | Complete |
 | LIFE-04 | Phase 6 | Complete |
+| INST-10 | Phase 7 | Pending |
+| INST-11 | Phase 7 | Pending |
+| INST-12 | Phase 7 | Pending |
+| UI-01 | Phase 7 | Pending |
+| UI-02 | Phase 7 | Pending |
+| UI-03 | Phase 7 | Pending |
+| UI-04 | Phase 7 | Pending |
+| CHAN-01 | Phase 8 | Pending |
+| CHAN-02 | Phase 8 | Pending |
+| CMON-01 | Phase 8 | Pending |
+| CHAN-03 | Phase 9 | Pending |
+| CHAN-04 | Phase 9 | Pending |
+| CHAN-05 | Phase 9 | Pending |
+| ACC-01 | Phase 10 | Pending |
+| ACC-02 | Phase 10 | Pending |
+| ACC-03 | Phase 10 | Pending |
+| CMON-02 | Phase 10 | Pending |
 
 **Coverage:**
 - v1 requirements: 31 total (all complete)
-- v1.1 requirements: 16 total
-- Mapped to phases: 31 (v1) + pending (v1.1)
-- Unmapped: 16 (v1.1 — roadmap pending)
+- v1.1 requirements: 16 total (all mapped)
+- Mapped to phases: 47/47 ✓
+- Unmapped: 0
 
 **Phase distribution (v1):**
 - Phase 1: 3 requirements (PLAT-01, PLAT-02, ERR-01)
@@ -187,6 +204,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 - Phase 5: 4 requirements (MON-01–04)
 - Phase 6: 4 requirements (LIFE-01–04)
 
+**Phase distribution (v1.1):**
+- Phase 7: 7 requirements (INST-10–12, UI-01–04)
+- Phase 8: 3 requirements (CHAN-01–02, CMON-01)
+- Phase 9: 3 requirements (CHAN-03–05)
+- Phase 10: 4 requirements (ACC-01–03, CMON-02)
+
 ---
 *Requirements defined: 2026-03-25*
-*Last updated: 2026-03-26 after v1.1 milestone definition*
+*Last updated: 2026-03-26 after v1.1 roadmap creation*
