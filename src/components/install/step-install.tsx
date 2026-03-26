@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DockerLogViewer } from "@/components/ui/log-viewer";
 import { LayerProgress } from "@/components/ui/layer-progress";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function getStepIcon(step: string) {
   switch (step) {
@@ -108,18 +109,44 @@ export function StepInstall({ method }: StepInstallProps) {
       )}
 
       {/* Installing state — real-time Docker logs with layer progress */}
-      {isInstalling && (
+      {isInstalling && !progress?.step && (
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              {getStepIcon(progress?.step ?? "")}
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              Preparing Installation
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Skeleton className="h-4 w-48" />
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div className="md:col-span-2 space-y-2">
+                <Skeleton className="h-96 w-full" />
+              </div>
+              <div className="space-y-2">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <Skeleton className="h-3 w-20" />
+                    <Skeleton className="h-2 flex-1" />
+                    <Skeleton className="h-3 w-8" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {isInstalling && progress?.step && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              {getStepIcon(progress.step)}
               Installation in Progress
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-sm font-medium">
-              {progress?.message ?? "Preparing..."}
-            </p>
+            <p className="text-sm font-medium">{progress.message}</p>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div className="md:col-span-2 h-96">
                 <DockerLogViewer />
