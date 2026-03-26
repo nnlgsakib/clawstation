@@ -16,10 +16,10 @@ Requirements for v1.1 UX Polish & Channels milestone.
 
 ### UI/UX Polish
 
-- [ ] **UI-01**: All buttons have hover/press micro-interactions with visual feedback
-- [ ] **UI-02**: Loading states show skeleton placeholders instead of blank space
-- [ ] **UI-03**: Page transitions use smooth fade/slide animations
-- [ ] **UI-04**: Spring physics animations for progress bars and status changes
+- [x] **UI-01**: All buttons have hover/press micro-interactions with visual feedback
+- [x] **UI-02**: Loading states show skeleton placeholders instead of blank space
+- [x] **UI-03**: Page transitions use smooth fade/slide animations
+- [x] **UI-04**: Spring physics animations for progress bars and status changes
 
 ### Channel Management
 
@@ -175,10 +175,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INST-10 | Phase 7 | Pending |
 | INST-11 | Phase 7 | Pending |
 | INST-12 | Phase 7 | Pending |
-| UI-01 | Phase 7 | Pending |
-| UI-02 | Phase 7 | Pending |
-| UI-03 | Phase 7 | Pending |
-| UI-04 | Phase 7 | Pending |
+| UI-01 | Phase 7 | Complete |
+| UI-02 | Phase 7 | Complete |
+| UI-03 | Phase 7 | Complete |
+| UI-04 | Phase 7 | Complete |
 | CHAN-01 | Phase 8 | Pending |
 | CHAN-02 | Phase 8 | Pending |
 | CMON-01 | Phase 8 | Pending |
