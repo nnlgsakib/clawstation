@@ -68,6 +68,14 @@ export const errorMessages: Record<string, AppError> = {
     message: "OpenClaw uninstall failed. {reason}",
     suggestion: "Some containers or files may still exist. Try removing them manually via Docker CLI or file manager.",
   },
+  update_failed: {
+    message: "OpenClaw update failed.",
+    suggestion: "Check your internet connection and Docker access. For Docker installs, try: docker compose pull && docker compose up -d. For native installs, try: npm install -g openclaw@latest",
+  },
+  version_check_failed: {
+    message: "Could not check for updates.",
+    suggestion: "Check your internet connection. The GitHub releases API may be temporarily unavailable.",
+  },
   unknown: {
     message: "Something went wrong. Try again, or check the details below for a fix.",
     suggestion: "An unexpected error occurred. Restart the app. If this keeps happening, check the logs.",
@@ -129,6 +137,8 @@ function matchErrorPattern(message: string): AppError | null {
   if (lower.includes("wsl") || lower.includes("wsl2")) return errorMessages.wsl_backend_not_ready
   if (lower.includes("openclaw") && lower.includes("not running")) return errorMessages.openclaw_not_running
   if (lower.includes("openclaw") && lower.includes("api")) return errorMessages.api_unavailable
+  if (lower.includes("update") && (lower.includes("failed") || lower.includes("pull"))) return errorMessages.update_failed
+  if (lower.includes("version check") || lower.includes("releases")) return errorMessages.version_check_failed
   if (lower.includes("docker")) return errorMessages.docker_unavailable
   if (lower.includes("network") || lower.includes("fetch") || lower.includes("connection"))
     return errorMessages.network_error

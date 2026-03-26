@@ -9,17 +9,27 @@ import {
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import { useUninstallOpenClaw } from "@/hooks/use-uninstall";
 import { useAppUpdate } from "@/hooks/use-app-update";
+import { useOpenClawUpdateCheck, useUpdateOpenClaw } from "@/hooks/use-update";
+import { formatError } from "@/lib/errors";
 import { toast } from "sonner";
-import { Loader2, Download, RefreshCw } from "lucide-react";
+import { Loader2, Download, RefreshCw, CheckCircle, AlertCircle, Info } from "lucide-react";
 import { getName, getVersion } from "@tauri-apps/api/app";
+import { listen } from "@tauri-apps/api/event";
+
+interface UpdateProgress {
+  step: string;
+  percent: number;
+  message: string;
+}
 
 export function Settings() {
   const [preserveConfig, setPreserveConfig] = useState(true);
   const uninstall = useUninstallOpenClaw();
 
-  // App update state
+  // App update state (Tauri desktop app)
   const {
     update,
     checking,
@@ -35,6 +45,46 @@ export function Settings() {
     getName().then(setAppName).catch(() => {});
     getVersion().then(setAppVersion).catch(() => {});
   }, []);
+
+  // OpenClaw binary/image update state
+  const {
+    data: updateCheck,
+    isLoading: isLoadingUpdate,
+    refetch: refetchUpdate,
+    isRefetching: isRefetchingUpdate,
+  } = useOpenClawUpdateCheck();
+  const updateMutation = useUpdateOpenClaw();
+  const [openclawProgress, setOpenclawProgress] = useState<UpdateProgress | null>(null);
+
+  // Listen for OpenClaw update progress events
+  useEffect(() => {
+    if (!updateMutation.isPending) {
+      setOpenclawProgress(null);
+      return;
+    }
+    const unlisten = listen<UpdateProgress>("install-progress", (event) => {
+      setOpenclawProgress(event.payload);
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, [updateMutation.isPending]);
+
+  // Show toast on OpenClaw update success/error
+  useEffect(() => {
+    if (updateMutation.isSuccess) {
+      toast.success("OpenClaw updated successfully!", {
+        description: updateMutation.data?.newVersion
+          ? `Now running version ${updateMutation.data.newVersion}`
+          : "Update complete",
+      });
+      refetchUpdate();
+    }
+    if (updateMutation.isError) {
+      const err = formatError(updateMutation.error);
+      toast.error(err.message, { description: err.suggestion });
+    }
+  }, [updateMutation.isSuccess, updateMutation.isError, updateMutation.data, updateMutation.error, refetchUpdate]);
 
   function handleUninstall() {
     const confirmed = window.confirm(
@@ -67,6 +117,99 @@ export function Settings() {
         <p className="text-muted-foreground">Manage your OpenClaw Desktop preferences</p>
       </div>
 
+      {/* OpenClaw Update Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Download className="h-5 w-5" />
+            OpenClaw Update
+          </CardTitle>
+          <CardDescription>
+            Check for and install updates to your OpenClaw installation
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Version info */}
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Current version:</span>
+                <Badge variant="outline">{updateCheck?.currentVersion ?? "—"}</Badge>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Latest version:</span>
+                <Badge variant="outline">{updateCheck?.latestVersion ?? "—"}</Badge>
+              </div>
+              {updateCheck?.installMethod && updateCheck.installMethod !== "unknown" && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">Install method:</span>
+                  <Badge variant="secondary">{updateCheck.installMethod}</Badge>
+                </div>
+              )}
+            </div>
+
+            {/* Status indicator */}
+            {!isLoadingUpdate && updateCheck && (
+              <div className="flex items-center gap-2">
+                {updateCheck.updateAvailable ? (
+                  <Badge className="bg-blue-500 text-white">Update available</Badge>
+                ) : (
+                  <Badge className="bg-green-500 text-white flex items-center gap-1">
+                    <CheckCircle className="h-3 w-3" />
+                    Up to date
+                  </Badge>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Progress bar during update */}
+          {updateMutation.isPending && openclawProgress && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span>{openclawProgress.message}</span>
+                <span>{openclawProgress.percent}%</span>
+              </div>
+              <Progress value={openclawProgress.percent} />
+            </div>
+          )}
+
+          {/* Action buttons */}
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => refetchUpdate()}
+              disabled={isRefetchingUpdate || updateMutation.isPending}
+            >
+              <RefreshCw className={`mr-2 h-4 w-4 ${isRefetchingUpdate ? "animate-spin" : ""}`} />
+              Check for Updates
+            </Button>
+
+            {updateCheck?.updateAvailable && (
+              <Button
+                onClick={() => updateMutation.mutate()}
+                disabled={updateMutation.isPending || updateCheck.installMethod === "unknown"}
+              >
+                {updateMutation.isPending ? (
+                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="mr-2 h-4 w-4" />
+                )}
+                Update Now
+              </Button>
+            )}
+          </div>
+
+          {/* Not installed warning */}
+          {updateCheck?.installMethod === "unknown" && !isLoadingUpdate && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <AlertCircle className="h-4 w-4" />
+              OpenClaw is not installed. Visit the Install page to get started.
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Desktop App Update */}
       <Card>
         <CardHeader>
@@ -82,7 +225,7 @@ export function Settings() {
               <span className="font-mono font-medium">{appVersion}</span>
               {update && (
                 <>
-                  <span className="text-muted-foreground"> → </span>
+                  <span className="text-muted-foreground"> &rarr; </span>
                   <span className="font-mono font-medium text-primary">
                     v{update.version}
                   </span>
@@ -132,6 +275,27 @@ export function Settings() {
                 Install Update
               </Button>
             )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* About Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Info className="h-5 w-5" />
+            About
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="font-medium">{appName}</span>
+              <Badge variant="outline">{appVersion}</Badge>
+            </div>
+            <p className="text-muted-foreground">
+              A desktop application for managing your OpenClaw AI agent platform.
+            </p>
           </div>
         </CardContent>
       </Card>
