@@ -24,7 +24,7 @@ Make OpenClaw installable and manageable by anyone — from download to daily us
 
 ### Active
 
-- [ ] User can monitor OpenClaw agent status and activity
+- [ ] User can monitor OpenClaw agent status and activity (3/4 sub-requirements met — log streaming placeholder pending)
 - [ ] User can update OpenClaw to newer versions
 - [ ] User can uninstall OpenClaw cleanly
 
@@ -79,4 +79,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-26 after Phase 4: Configuration & Sandboxing*
+*Last updated: 2026-03-26 after Phase 5: Monitoring (3/4 verified, log streaming pending)*
