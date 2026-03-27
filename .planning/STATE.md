@@ -155,9 +155,10 @@ Last activity: 2026-03-26
 | 260326-w1f | Add install dir selection, clean install support, and cancel/pause installation | 2026-03-26 | c9c2948 | [260326-w1f-add-install-dir-selection-clean-install-](./quick/260326-w1f-add-install-dir-selection-clean-install-/) |
 | 260327-bde | Optimize OpenClaw repo clone with --depth 1 shallow clone | 2026-03-27 | 59caa7a | [260327-bde-optimize-openclaw-repo-clone-to-skip-ful](./quick/260327-bde-optimize-openclaw-repo-clone-to-skip-ful/) |
 | 260327-bj5 | Stream git clone/pull progress in real-time | 2026-03-27 | 64a98de | [260327-bj5-stream-git-clone-progress-in-real-time-t](./quick/260327-bj5-stream-git-clone-progress-in-real-time-t/) |
+| 260327-bu3 | Fix Docker installation to use pre-built image and correct setup flow | 2026-03-27 | f838e0a | [260327-bu3-fix-docker-installation-read-openclaw-do](./quick/260327-bu3-fix-docker-installation-read-openclaw-do/) |
 
 ## Session Continuity
 
-**Last action:** 2026-03-27 - Completed quick task 260327-bj5: Stream git clone/pull progress in real-time
+**Last action:** 2026-03-27 - Completed quick task 260327-bu3: Fix Docker installation to use pre-built image and correct setup flow
 **Next action:** Run milestone lifecycle (audit → complete → cleanup)
 **Files to review:** `.planning/phases/10-access-control-activity/10-VERIFICATION.md`
