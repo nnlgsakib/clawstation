@@ -1,8 +1,41 @@
 # Requirements: OpenClaw Desktop
 
 **Defined:** 2026-03-25
-**Updated:** 2026-03-26 (v1.1 milestone)
+**Updated:** 2026-03-27 (v2.0 milestone)
 **Core Value:** Make OpenClaw installable and manageable by anyone — from download to daily use — without touching a terminal.
+
+## v2.0 Requirements
+
+Requirements for v2.0 Gateway Integration & Setup Wizard milestone.
+
+### Setup Wizard
+
+- [ ] **GW-01**: Users see a multi-step setup wizard on first launch (before any installation)
+- [ ] **GW-02**: Users can select model provider (Anthropic, OpenAI, Google, OpenRouter) with visual cards
+- [ ] **GW-03**: Users can enter and validate API key for selected provider
+- [ ] **GW-04**: Users can configure sandbox settings (mode, scope, workspace access)
+- [ ] **GW-05**: Users can select channels to enable (WhatsApp, Telegram, Discord, Slack)
+
+### Installation & Prerequisites
+
+- [ ] **GW-06**: App detects Node.js 22+ and reports version, guides installation if missing
+- [ ] **GW-07**: App can install OpenClaw via npm (npm install -g openclaw@latest) with progress
+- [ ] **GW-08**: App builds Docker sandbox image during setup if sandboxing enabled
+
+### Gateway Integration
+
+- [ ] **GW-09**: App can start the OpenClaw Gateway process (openclaw gateway)
+- [ ] **GW-10**: App can stop the Gateway process cleanly
+- [ ] **GW-11**: App connects to Gateway WebSocket (ws://127.0.0.1:18789) for real-time communication
+- [ ] **GW-12**: Dashboard shows live Gateway status via WebSocket (not polling)
+- [ ] **GW-13**: Config changes apply via Gateway hot-reload (config.patch)
+
+### Channel Management via Gateway
+
+- [ ] **GW-14**: Channels page shows real channel status from Gateway (not mock data)
+- [ ] **GW-15**: Users can configure channel settings (bot token, allowFrom, dmPolicy) from the UI
+- [ ] **GW-16**: Channel config changes are applied via Gateway config.patch (hot-reload)
+- [ ] **GW-17**: Channel pairing dialogs guide users through provider-specific setup
 
 ## v1.1 Requirements
 

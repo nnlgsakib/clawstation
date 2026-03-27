@@ -7,6 +7,7 @@
 
 - ✅ **v1.0 MVP** — Phases 1-6 (shipped 2026-03-26)
 - ✅ **v1.1 UX Polish & Channels** — Phases 7-10 (complete 2026-03-26)
+- 🔲 **v2.0 Gateway Integration & Setup Wizard** — Phase 12 (config-first flow, Gateway WebSocket, real management)
 - 🔲 **v1.2 OpenClaw Branding** — Phase 11 (theme redesign)
 
 ## Phases
@@ -94,6 +95,32 @@ Plans:
 
 </details>
 
+### Phase 12: Gateway Integration & Setup Wizard
+
+**Goal:** Make OpenClaw Desktop actually work by connecting to the OpenClaw Gateway, providing a config-first setup wizard, and exposing real management APIs. The current app only manages Docker installation — this phase delivers actual Gateway integration.
+
+**Requirements:** GW-01, GW-02, GW-03, GW-04, GW-05, GW-06, GW-07, GW-08, GW-09, GW-10, GW-11, GW-12, GW-13, GW-14, GW-15, GW-16, GW-17
+
+**Success Criteria:**
+1. Users see a setup wizard on first launch — configure model, API keys, sandbox, channels before installation
+2. App detects Node.js 22+ and installs OpenClaw via npm
+3. App starts/stops the OpenClaw Gateway process
+4. App connects to Gateway WebSocket for real-time status and config management
+5. Dashboard shows live Gateway data (sessions, channels, status)
+6. Config changes apply via Gateway hot-reload
+7. Channel management uses real Gateway API (not mock data)
+
+**Plans:** 5 plans in 4 waves
+
+Plans:
+- [ ] 12-01-PLAN.md — Setup Wizard: Config-first multi-step wizard UI (Welcome → Model → API Keys → Sandbox → Channels → Review)
+- [ ] 12-02-PLAN.md — Gateway Process Manager: Start/stop Gateway, Node.js detection, npm install
+- [ ] 12-03-PLAN.md — Gateway WebSocket Client: Connect to Gateway API, React hooks for real-time data
+- [ ] 12-04-PLAN.md — Live Dashboard & Status: Real-time dashboard, Gateway startup page, sidebar indicator
+- [ ] 12-05-PLAN.md — Channel Management via Gateway: Real channel config, pairing dialogs, status monitoring
+
+---
+
 ### Phase 11: OpenClaw Theme Redesign
 
 **Goal:** Replace the current light blue/slate color palette with OpenClaw's official dark theme — deep black backgrounds with signature red (#ff5c5c) accents.
@@ -121,11 +148,12 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
+| 12. Gateway Integration & Setup | v2.0 | 0/5 | 🔲 | — |
+| 11. OpenClaw Theme Redesign | v1.2 | 0/3 | 🔲 | — |
 | 7. Installation UX & Animation | v1.1 | 9/9 | ✅ | 2026-03-26 |
 | 8. Channel Management Core | v1.1 | 1/1 | ✅ | 2026-03-26 |
 | 9. Channel Pairing Flows | v1.1 | 1/1 | ✅ | 2026-03-26 |
 | 10. Access Control & Activity | v1.1 | 1/1 | ✅ | 2026-03-26 |
-| 11. OpenClaw Theme Redesign | v1.2 | 0/3 | 🔲 | — |
 
 ## v1.1 Traceability
 
@@ -150,6 +178,30 @@ Plans:
 | CMON-02 | Phase 10 | ✅ |
 
 **Coverage:** 17/17 v1.1 requirements complete ✓
+
+## v2.0 Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| GW-01 | Phase 12 | 🔲 |
+| GW-02 | Phase 12 | 🔲 |
+| GW-03 | Phase 12 | 🔲 |
+| GW-04 | Phase 12 | 🔲 |
+| GW-05 | Phase 12 | 🔲 |
+| GW-06 | Phase 12 | 🔲 |
+| GW-07 | Phase 12 | 🔲 |
+| GW-08 | Phase 12 | 🔲 |
+| GW-09 | Phase 12 | 🔲 |
+| GW-10 | Phase 12 | 🔲 |
+| GW-11 | Phase 12 | 🔲 |
+| GW-12 | Phase 12 | 🔲 |
+| GW-13 | Phase 12 | 🔲 |
+| GW-14 | Phase 12 | 🔲 |
+| GW-15 | Phase 12 | 🔲 |
+| GW-16 | Phase 12 | 🔲 |
+| GW-17 | Phase 12 | 🔲 |
+
+**Coverage:** 0/17 v2.0 requirements planned ✓
 
 ---
 

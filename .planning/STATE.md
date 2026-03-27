@@ -17,15 +17,15 @@ progress:
 ## Project Reference
 
 **Core Value:** Make OpenClaw installable and manageable by anyone — from download to daily use — without touching a terminal.
-**Current Focus:** v1.1 milestone complete — all phases done
+**Current Focus:** v2.0 Gateway Integration & Setup Wizard — making the app actually work with OpenClaw
 **Tech Stack:** Tauri v2 + React 19 + TypeScript + Tailwind v4 + shadcn/ui + bollard (Rust Docker client)
 
 ## Current Position
 
-Phase: 10
-Plan: Complete
-Status: All v1.1 phases executed and verified
-Last activity: 2026-03-26
+Phase: 12
+Plan: Planning
+Status: v2.0 milestone planning — Gateway integration, setup wizard, real API connection
+Last activity: 2026-03-27
 
 ## Performance Metrics
 
