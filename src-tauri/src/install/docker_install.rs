@@ -138,6 +138,7 @@ pub async fn docker_install(
         let output = tokio::process::Command::new("git")
             .args([
                 "clone",
+                "--depth", "1",
                 "--progress",
                 OPENCLAW_REPO,
                 repo_dir.to_str().unwrap(),
