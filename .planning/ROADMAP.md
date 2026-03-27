@@ -7,6 +7,7 @@
 
 - ✅ **v1.0 MVP** — Phases 1-6 (shipped 2026-03-26)
 - ✅ **v1.1 UX Polish & Channels** — Phases 7-10 (complete 2026-03-26)
+- 🔲 **v1.2 OpenClaw Branding** — Phase 11 (theme redesign)
 
 ## Phases
 
@@ -93,6 +94,29 @@ Plans:
 
 </details>
 
+### Phase 11: OpenClaw Theme Redesign
+
+**Goal:** Replace the current light blue/slate color palette with OpenClaw's official dark theme — deep black backgrounds with signature red (#ff5c5c) accents.
+
+**Requirements:** UI-THEME-01, UI-THEME-02, UI-THEME-03
+
+**Success Criteria:**
+1. App background is dark (#0e1015) with layered depth surfaces
+2. Primary accent is OpenClaw red (#ff5c5c) — buttons, links, focus rings
+3. All text meets WCAG AA contrast ratios on dark backgrounds
+4. All shadcn/ui components render correctly with new palette
+5. Sidebar, cards, dialogs, badges all use dark theme tokens
+6. No hardcoded light-theme colors remain in components
+
+**Plans:** 3 plans
+
+Plans:
+- [ ] 11-openclaw-theme-redesign-01-PLAN.md — Update core CSS theme tokens and body/base styles
+- [ ] 11-openclaw-theme-redesign-02-PLAN.md — Audit and fix components with hardcoded colors
+- [ ] 11-openclaw-theme-redesign-03-PLAN.md — Visual verification and contrast audit
+
+---
+
 ## Progress Table
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -101,6 +125,7 @@ Plans:
 | 8. Channel Management Core | v1.1 | 1/1 | ✅ | 2026-03-26 |
 | 9. Channel Pairing Flows | v1.1 | 1/1 | ✅ | 2026-03-26 |
 | 10. Access Control & Activity | v1.1 | 1/1 | ✅ | 2026-03-26 |
+| 11. OpenClaw Theme Redesign | v1.2 | 0/3 | 🔲 | — |
 
 ## v1.1 Traceability
 

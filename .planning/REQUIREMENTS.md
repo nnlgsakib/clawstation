@@ -96,6 +96,16 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **PLAT-02**: App works on Linux (native + Docker)
 - [x] **PLAT-03**: App detects platform and adjusts install flow accordingly
 
+## v1.2 Requirements
+
+Requirements for OpenClaw branding/theme redesign.
+
+### Theme
+
+- **UI-THEME-01**: App uses OpenClaw's official dark color palette (deep black backgrounds, red accents)
+- **UI-THEME-02**: All UI components render correctly with the dark theme (no broken contrast or invisible elements)
+- **UI-THEME-03**: All text meets WCAG 2.1 AA contrast ratios (4.5:1 body text, 3:1 large text/graphics)
+
 ## v2 Requirements
 
 Deferred to future release. Tracked but not in current roadmap.
@@ -189,6 +199,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ACC-02 | Phase 10 | Pending |
 | ACC-03 | Phase 10 | Pending |
 | CMON-02 | Phase 10 | Pending |
+| UI-THEME-01 | Phase 11 | Pending |
+| UI-THEME-02 | Phase 11 | Pending |
+| UI-THEME-03 | Phase 11 | Pending |
 
 **Coverage:**
 - v1 requirements: 31 total (all complete)
