@@ -100,7 +100,7 @@ export function SandboxStep() {
         setWorkspacePath(dir);
         toast.success("Workspace directory selected");
       }
-    } catch (err) {
+    } catch {
       toast.error("Failed to open directory picker");
     }
   };

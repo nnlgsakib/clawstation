@@ -44,6 +44,7 @@ export function Install() {
     } else if (prereqs) {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Listen for install output
@@ -54,6 +55,7 @@ export function Install() {
     return () => {
       unlisten.then((fn) => fn());
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Listen for gateway output
@@ -75,6 +77,7 @@ export function Install() {
     return () => {
       unlisten.then((fn) => fn());
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
   // Auto-scroll logs

@@ -69,7 +69,7 @@ export function SandboxSection() {
   const sandbox: SandboxConfig = {
     ...DEFAULT_SANDBOX,
     ...(config.sandbox as Partial<SandboxConfig> | undefined),
-    bindMounts: ((config.sandbox as any)?.bindMounts ?? DEFAULT_SANDBOX.bindMounts) as BindMount[],
+    bindMounts: ((config.sandbox as Record<string, unknown> | undefined)?.bindMounts ?? DEFAULT_SANDBOX.bindMounts) as BindMount[],
   };
 
   // Handle sandbox toggle

@@ -63,6 +63,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         whileTap="tap"
         whileFocus="focus"
         transition={springPresets.stable}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         {...(props as any)}
       />
     )
@@ -70,4 +71,5 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 )
 Button.displayName = "Button"
 
+// eslint-disable-next-line react-refresh/only-export-components
 export { Button, buttonVariants }

@@ -178,7 +178,7 @@ export function useGatewayCall<T>(
         method,
         params: params ?? {},
       });
-      return (response as any).result ?? response;
+      return (response as { result: T }).result ?? (response as T);
     },
     enabled: connected && (options?.enabled ?? true),
     staleTime: options?.staleTime ?? 30000,

@@ -44,7 +44,7 @@ export function Channels() {
   const { data: channels, isLoading, refetch } = useChannels();
   const { data: gatewayConfig } = useGatewayConfig();
 
-  const baseHash = (gatewayConfig as any)?.baseHash ?? "";
+  const baseHash = (gatewayConfig as Record<string, unknown> | undefined)?.baseHash as string ?? "";
 
   const handleRefresh = () => {
     refetch();

@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useConfig, useSaveConfig, useValidateConfig } from "@/hooks/use-config";
 import { useGatewayConfig, useGatewayConfigPatch } from "@/hooks/use-gateway";
 import { useGatewayStore } from "@/stores/use-gateway-store";
-import { useConfigStore } from "@/stores/use-config-store";
+import { useConfigStore, type OpenClawConfig } from "@/stores/use-config-store";
 import { ProviderSection } from "@/components/config/provider-section";
 import { SandboxSection } from "@/components/config/sandbox-section";
 import { ToolsSection } from "@/components/config/tools-section";
@@ -26,12 +26,12 @@ export function Configure() {
   const { config: storeConfig, isDirty, setConfig, markClean } = useConfigStore();
   const [isSaving, setIsSaving] = useState(false);
 
-  const baseHash = (gatewayConfig as any)?.baseHash ?? "";
+  const baseHash = (gatewayConfig as Record<string, unknown> | undefined)?.baseHash as string ?? "";
 
   // Load config into store on mount — prefer Gateway config over file config
   useEffect(() => {
     if (gatewayConnected && gatewayConfig) {
-      const gwConf = (gatewayConfig as any)?.config ?? gatewayConfig;
+      const gwConf = ((gatewayConfig as Record<string, unknown> | undefined)?.config ?? gatewayConfig) as unknown as OpenClawConfig;
       setConfig(gwConf);
     } else if (config) {
       setConfig(config);

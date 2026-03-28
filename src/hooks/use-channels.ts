@@ -96,20 +96,20 @@ export function useChannels() {
   return useQuery<ChannelInfo[]>({
     queryKey: ["channels"],
     queryFn: async () => {
-      const response = await invoke<any>("gateway_ws_call", {
+      const response = await invoke<unknown>("gateway_ws_call", {
         method: "config.get",
         params: {},
-      });
+      }) as { result?: { config?: Record<string, unknown> }; config?: Record<string, unknown> };
       const config = response?.result?.config ?? response?.config ?? {};
-      const channelsConfig = config.channels ?? {};
+      const channelsConfig = (config as Record<string, Record<string, unknown>>).channels ?? {} as Record<string, unknown>;
 
       return CHANNEL_PROVIDERS.map((provider) => {
-        const providerConfig = channelsConfig[provider.provider] ?? {};
+        const providerConfig = channelsConfig[provider.provider] ?? {} as Record<string, unknown>;
         return {
           ...provider,
-          enabled: providerConfig.enabled ?? Object.keys(providerConfig).length > 0,
+          enabled: (providerConfig as Record<string, unknown>).enabled ?? Object.keys(providerConfig).length > 0,
           config: providerConfig,
-        };
+        } as ChannelInfo;
       });
     },
     enabled: connected,

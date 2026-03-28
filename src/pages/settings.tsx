@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Card,
   CardContent,
@@ -57,11 +57,16 @@ export function Settings() {
   const [openclawProgress, setOpenclawProgress] = useState<UpdateProgress | null>(null);
 
   // Listen for OpenClaw update progress events
+  const prevIsPending = useRef(updateMutation.isPending);
   useEffect(() => {
-    if (!updateMutation.isPending) {
+    const wasPending = prevIsPending.current;
+    prevIsPending.current = updateMutation.isPending;
+    if (!updateMutation.isPending && wasPending) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Reset stale progress when mutation finishes
       setOpenclawProgress(null);
       return;
     }
+    if (!updateMutation.isPending) return;
     const unlisten = listen<UpdateProgress>("install-progress", (event) => {
       setOpenclawProgress(event.payload);
     });
