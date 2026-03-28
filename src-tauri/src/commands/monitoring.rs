@@ -152,9 +152,10 @@ pub async fn get_sandbox_containers() -> Result<Vec<SandboxContainer>, AppError>
     let sandbox_containers: Vec<SandboxContainer> = containers
         .into_iter()
         .filter(|c| {
-            let name_matches = c.names.as_ref().is_some_and(|names| {
-                names.iter().any(|n| n.contains("openclaw-sandbox"))
-            });
+            let name_matches = c
+                .names
+                .as_ref()
+                .is_some_and(|names| names.iter().any(|n| n.contains("openclaw-sandbox")));
 
             let label_matches = c.labels.as_ref().is_some_and(|labels| {
                 labels
@@ -175,10 +176,7 @@ pub async fn get_sandbox_containers() -> Result<Vec<SandboxContainer>, AppError>
             let state = c.state.as_ref().map(|s| s.to_string()).unwrap_or_default();
             let status_text = c.status.unwrap_or_default();
             let image = c.image.unwrap_or_default();
-            let created = c
-                .created
-                .map(unix_timestamp_to_iso)
-                .unwrap_or_default();
+            let created = c.created.map(unix_timestamp_to_iso).unwrap_or_default();
 
             SandboxContainer {
                 id,
@@ -245,11 +243,12 @@ fn unix_timestamp_to_iso(timestamp: i64) -> String {
     let mut year = 1970u64;
     let mut remaining_days = days;
     loop {
-        let days_in_year = if year.is_multiple_of(4) && (!year.is_multiple_of(100) || year.is_multiple_of(400)) {
-            366
-        } else {
-            365
-        };
+        let days_in_year =
+            if year.is_multiple_of(4) && (!year.is_multiple_of(100) || year.is_multiple_of(400)) {
+                366
+            } else {
+                365
+            };
         if remaining_days < days_in_year {
             break;
         }

@@ -94,5 +94,7 @@ fn get_available_ram_gb() -> u64 {
 
 /// Check if a TCP port is free by attempting to bind to it.
 async fn is_port_free(port: u16) -> bool {
-    tokio::net::TcpListener::bind(("127.0.0.1", port)).await.is_ok()
+    tokio::net::TcpListener::bind(("127.0.0.1", port))
+        .await
+        .is_ok()
 }
