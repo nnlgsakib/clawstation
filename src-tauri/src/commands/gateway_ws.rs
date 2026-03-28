@@ -1,12 +1,12 @@
+use futures::{SinkExt, StreamExt};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
+use std::sync::Mutex as StdMutex;
 use tauri::Emitter;
 use tokio::net::TcpStream;
 use tokio::sync::{oneshot, Mutex as AsyncMutex};
 use tokio_tungstenite::{connect_async, tungstenite::Message, MaybeTlsStream, WebSocketStream};
-use futures::{SinkExt, StreamExt};
-use std::sync::Mutex as StdMutex;
 
 use crate::state::AppState;
 

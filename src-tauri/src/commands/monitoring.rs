@@ -69,7 +69,11 @@ pub async fn get_openclaw_status() -> Result<OpenClawStatus, AppError> {
         None => return Ok(OpenClawStatus::Stopped),
     };
 
-    let state = container.state.as_ref().map(|s| s.to_string()).unwrap_or_else(|| "unknown".into());
+    let state = container
+        .state
+        .as_ref()
+        .map(|s| s.to_string())
+        .unwrap_or_else(|| "unknown".into());
 
     match state.as_str() {
         "running" => {

@@ -47,10 +47,7 @@ pub async fn start_gateway(
             "gateway-output",
             serde_json::json!({ "line": "Gateway already running on port, connecting...", "stream": "stdout" }),
         );
-        let _ = app.emit(
-            "gateway-status",
-            serde_json::json!({ "connected": true }),
-        );
+        let _ = app.emit("gateway-status", serde_json::json!({ "connected": true }));
         return Ok(GatewayStatus {
             running: true,
             port,
@@ -70,9 +67,33 @@ pub async fn start_gateway(
     // Try multiple ways to start openclaw on Windows
     let mut child = if cfg!(target_os = "windows") {
         let attempts: Vec<Vec<&str>> = vec![
-            vec!["/c", "pnpm", "exec", "openclaw", "gateway", "--verbose", "--port", &port_str],
-            vec!["/c", "npx", "openclaw", "gateway", "--verbose", "--port", &port_str],
-            vec!["/c", "openclaw", "gateway", "--verbose", "--port", &port_str],
+            vec![
+                "/c",
+                "pnpm",
+                "exec",
+                "openclaw",
+                "gateway",
+                "--verbose",
+                "--port",
+                &port_str,
+            ],
+            vec![
+                "/c",
+                "npx",
+                "openclaw",
+                "gateway",
+                "--verbose",
+                "--port",
+                &port_str,
+            ],
+            vec![
+                "/c",
+                "openclaw",
+                "gateway",
+                "--verbose",
+                "--port",
+                &port_str,
+            ],
         ];
 
         let mut last_err = String::new();
@@ -85,11 +106,20 @@ pub async fn start_gateway(
                 .stderr(std::process::Stdio::piped())
                 .spawn()
             {
-                Ok(c) => { spawned = Some(c); break; }
-                Err(e) => { last_err = format!("{e}"); }
+                Ok(c) => {
+                    spawned = Some(c);
+                    break;
+                }
+                Err(e) => {
+                    last_err = format!("{e}");
+                }
             }
         }
-        spawned.ok_or_else(|| format!("Failed to start Gateway: {last_err}. Tried pnpm exec, npx, and direct openclaw."))?
+        spawned.ok_or_else(|| {
+            format!(
+                "Failed to start Gateway: {last_err}. Tried pnpm exec, npx, and direct openclaw."
+            )
+        })?
     } else {
         tokio::process::Command::new("openclaw")
             .args(["gateway", "--verbose", "--port", &port_str])

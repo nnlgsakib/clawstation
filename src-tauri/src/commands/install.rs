@@ -46,15 +46,12 @@ pub async fn install_openclaw(
 pub async fn clean_install_dir(path: String) -> Result<(), AppError> {
     let dir = std::path::Path::new(&path);
     if dir.exists() {
-        tokio::fs::remove_dir_all(dir).await.map_err(|e| {
-            AppError::InstallationFailed {
+        tokio::fs::remove_dir_all(dir)
+            .await
+            .map_err(|e| AppError::InstallationFailed {
                 reason: format!("Failed to clean install directory: {e}"),
-                suggestion: format!(
-                    "Check permissions for {}. Try removing it manually.",
-                    path
-                ),
-            }
-        })?;
+                suggestion: format!("Check permissions for {}. Try removing it manually.", path),
+            })?;
     }
     Ok(())
 }
@@ -105,7 +102,8 @@ mod tests {
 
     #[test]
     fn install_request_deserializes() {
-        let json = r#"{"method":"docker","workspacePath":"/tmp/test","installDir":"/opt/openclaw"}"#;
+        let json =
+            r#"{"method":"docker","workspacePath":"/tmp/test","installDir":"/opt/openclaw"}"#;
         let req: InstallRequest = serde_json::from_str(json).unwrap();
         assert!(matches!(req.method, InstallMethod::Docker));
         assert_eq!(req.workspace_path, Some("/tmp/test".into()));

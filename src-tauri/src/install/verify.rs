@@ -13,26 +13,17 @@ pub async fn verify_gateway_health(timeout_secs: u64) -> Result<(), AppError> {
         if tokio::time::Instant::now() > deadline {
             return Err(AppError::VerificationFailed {
                 reason: "Gateway did not become healthy within timeout".into(),
-                suggestion:
-                    "Check Docker logs: docker compose logs openclaw-gateway. \
+                suggestion: "Check Docker logs: docker compose logs openclaw-gateway. \
                      Run: openclaw doctor --fix"
-                        .into(),
+                    .into(),
             });
         }
 
         // Liveness check — no auth required
-        if let Ok(resp) = client
-            .get("http://127.0.0.1:18789/healthz")
-            .send()
-            .await
-        {
+        if let Ok(resp) = client.get("http://127.0.0.1:18789/healthz").send().await {
             if resp.status().is_success() {
                 // Also check readiness
-                if let Ok(ready) = client
-                    .get("http://127.0.0.1:18789/readyz")
-                    .send()
-                    .await
-                {
+                if let Ok(ready) = client.get("http://127.0.0.1:18789/readyz").send().await {
                     if ready.status().is_success() {
                         return Ok(());
                     }

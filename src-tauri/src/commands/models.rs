@@ -118,9 +118,7 @@ async fn fetch_openai_compatible_models(
 }
 
 /// Fetch models from OpenRouter.
-async fn fetch_openrouter_models(
-    api_key: Option<String>,
-) -> Result<Vec<ModelEntry>, String> {
+async fn fetch_openrouter_models(api_key: Option<String>) -> Result<Vec<ModelEntry>, String> {
     let client = reqwest::Client::new();
     let mut req = client.get("https://openrouter.ai/api/v1/models");
 
@@ -215,19 +213,47 @@ fn get_default_base_url(provider_id: &str) -> &'static str {
 /// Static model list for Anthropic (no public models API).
 fn get_anthropic_models() -> Vec<ModelEntry> {
     vec![
-        ModelEntry { id: "anthropic/claude-opus-4-6".into(), name: Some("Claude Opus 4.6".into()), provider: "anthropic".into() },
-        ModelEntry { id: "anthropic/claude-sonnet-4-6".into(), name: Some("Claude Sonnet 4.6".into()), provider: "anthropic".into() },
-        ModelEntry { id: "anthropic/claude-haiku-3-5".into(), name: Some("Claude 3.5 Haiku".into()), provider: "anthropic".into() },
+        ModelEntry {
+            id: "anthropic/claude-opus-4-6".into(),
+            name: Some("Claude Opus 4.6".into()),
+            provider: "anthropic".into(),
+        },
+        ModelEntry {
+            id: "anthropic/claude-sonnet-4-6".into(),
+            name: Some("Claude Sonnet 4.6".into()),
+            provider: "anthropic".into(),
+        },
+        ModelEntry {
+            id: "anthropic/claude-haiku-3-5".into(),
+            name: Some("Claude 3.5 Haiku".into()),
+            provider: "anthropic".into(),
+        },
     ]
 }
 
 /// Static model list for Google (uses different API format).
 fn get_google_models() -> Vec<ModelEntry> {
     vec![
-        ModelEntry { id: "google/gemini-3.1-pro-preview".into(), name: Some("Gemini 3.1 Pro Preview".into()), provider: "google".into() },
-        ModelEntry { id: "google/gemini-3-flash-preview".into(), name: Some("Gemini 3 Flash Preview".into()), provider: "google".into() },
-        ModelEntry { id: "google/gemini-2.5-pro".into(), name: Some("Gemini 2.5 Pro".into()), provider: "google".into() },
-        ModelEntry { id: "google/gemini-2.5-flash".into(), name: Some("Gemini 2.5 Flash".into()), provider: "google".into() },
+        ModelEntry {
+            id: "google/gemini-3.1-pro-preview".into(),
+            name: Some("Gemini 3.1 Pro Preview".into()),
+            provider: "google".into(),
+        },
+        ModelEntry {
+            id: "google/gemini-3-flash-preview".into(),
+            name: Some("Gemini 3 Flash Preview".into()),
+            provider: "google".into(),
+        },
+        ModelEntry {
+            id: "google/gemini-2.5-pro".into(),
+            name: Some("Gemini 2.5 Pro".into()),
+            provider: "google".into(),
+        },
+        ModelEntry {
+            id: "google/gemini-2.5-flash".into(),
+            name: Some("Gemini 2.5 Flash".into()),
+            provider: "google".into(),
+        },
     ]
 }
 
@@ -235,12 +261,28 @@ fn get_google_models() -> Vec<ModelEntry> {
 fn get_static_models(provider_id: &str) -> Vec<ModelEntry> {
     match provider_id {
         "openai-codex" => vec![
-            ModelEntry { id: "openai-codex/gpt-5.4".into(), name: Some("GPT-5.4 (Codex)".into()), provider: "openai-codex".into() },
-            ModelEntry { id: "openai-codex/gpt-5.3-codex-spark".into(), name: Some("Codex Spark".into()), provider: "openai-codex".into() },
+            ModelEntry {
+                id: "openai-codex/gpt-5.4".into(),
+                name: Some("GPT-5.4 (Codex)".into()),
+                provider: "openai-codex".into(),
+            },
+            ModelEntry {
+                id: "openai-codex/gpt-5.3-codex-spark".into(),
+                name: Some("Codex Spark".into()),
+                provider: "openai-codex".into(),
+            },
         ],
         "github-copilot" => vec![
-            ModelEntry { id: "github-copilot/gpt-5.4".into(), name: Some("GPT-5.4 (Copilot)".into()), provider: "github-copilot".into() },
-            ModelEntry { id: "github-copilot/claude-opus-4-6".into(), name: Some("Claude Opus (Copilot)".into()), provider: "github-copilot".into() },
+            ModelEntry {
+                id: "github-copilot/gpt-5.4".into(),
+                name: Some("GPT-5.4 (Copilot)".into()),
+                provider: "github-copilot".into(),
+            },
+            ModelEntry {
+                id: "github-copilot/claude-opus-4-6".into(),
+                name: Some("Claude Opus (Copilot)".into()),
+                provider: "github-copilot".into(),
+            },
         ],
         _ => vec![],
     }
