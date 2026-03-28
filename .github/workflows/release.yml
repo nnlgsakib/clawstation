@@ -124,7 +124,7 @@ jobs:
           find artifacts -type f \( \
             -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" \
             -o -name "*.msi" -o -name "*.exe" \
-            -name "*.sig" -o -name "*.sha256" \
+            -o -name "*.sig" -o -name "*.sha256" \
           \) -exec cp -v {} release/ \;
           echo "--- Release files ---"
           ls -la release/
