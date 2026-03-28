@@ -165,6 +165,26 @@ Plans:
 
 ---
 
+### Phase 15: Production Build Fixes
+
+**Goal:** Fix two critical Windows production build bugs — CMD windows flashing when executing internal commands, and installation verification hanging after package manager install.
+
+**Requirements:** PROD-01, PROD-02
+
+**Success Criteria:**
+1. No visible CMD/console windows flash when the app executes internal commands on Windows production build
+2. Installation verification (openclaw --version) completes within 30 seconds without hanging
+3. All shell command execution paths use CREATE_NO_WINDOW flag (0x08000000) on Windows
+4. Commands that exceed timeout return a clear error instead of hanging indefinitely
+5. All existing tests pass with zero regressions
+
+**Plans:** 1 plan
+
+Plans:
+- [ ] 15-01-PLAN.md — Create CREATE_NO_WINDOW helper module and migrate all 12 command/install files
+
+---
+
 ### Phase 14: GitHub Workflows & CI/CD
 
 **Goal:** Add professional GitHub Actions workflows for format checking, CI testing, cross-platform release builds with checksums, and dependency management. Ship installers for Linux (x64/arm64), Windows (x64), and macOS (Intel/Apple Silicon) via tagged releases.
@@ -192,6 +212,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
+| 15. Production Build Fixes | — | 0/1 | In Progress | — |
 | 14. GitHub Workflows & CI/CD | — | 2/3 | In Progress | — |
 | 13. Documentation & README | — | 0/1 | 🔲 | — |
 | 12. Gateway Integration & Setup | v2.0 | 0/5 | 🔲 | — |
@@ -265,6 +286,15 @@ Plans:
 | DEP-01 | Phase 14 | 🔲 |
 
 **Coverage:** 0/10 CI/CD requirements planned ✓
+
+## Production Build Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| PROD-01 | Phase 15 | 🔲 |
+| PROD-02 | Phase 15 | 🔲 |
+
+**Coverage:** 0/2 production build requirements planned ✓
 
 ---
 
