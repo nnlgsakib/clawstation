@@ -79,8 +79,7 @@ async fn check_nodejs() -> (bool, Option<String>) {
 
 /// Get free disk space in GB for the system root.
 fn get_free_disk_gb() -> u64 {
-    let mut disks = sysinfo::Disks::new();
-    disks.refresh(false);
+    let disks = sysinfo::Disks::new_with_refreshed_list();
 
     // Use the first disk (root filesystem)
     disks
