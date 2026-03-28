@@ -21,7 +21,7 @@ jobs:
           - platform: ubuntu-22.04
             rust_target: x86_64-unknown-linux-gnu
             label: linux-x86_64
-          - platform: ubuntu-22.04-arm
+          - platform: ubuntu-22.04
             rust_target: aarch64-unknown-linux-gnu
             label: linux-aarch64
           - platform: windows-latest
@@ -58,6 +58,14 @@ jobs:
             librsvg2-dev \
             patchelf
 
+      - name: Install cross-compilation tools (aarch64)
+        if: matrix.rust_target == 'aarch64-unknown-linux-gnu'
+        run: |
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
+          echo "CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
+          echo "CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++" >> $GITHUB_ENV
+
       - run: pnpm install --frozen-lockfile
 
       - name: Build Tauri app
@@ -72,13 +80,11 @@ jobs:
           BUNDLE_DIR="src-tauri/target/${{ matrix.rust_target }}/release/bundle"
           mkdir -p release-artifacts
           echo "Collecting bundles from: $BUNDLE_DIR"
-          # Copy all installers and signatures into flat directory
           find "$BUNDLE_DIR" -type f \( \
             -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" \
             -o -name "*.msi" -o -name "*.exe" \
             -o -name "*.sig" \
           \) -exec cp -v {} release-artifacts/ \;
-          # Generate SHA-256 checksums
           cd release-artifacts
           shopt -s nullglob
           for f in *.AppImage *.deb *.rpm *.msi *.exe; do
@@ -114,14 +120,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: build-*
-          path: artifacts
           merge-multiple: true
 
       - name: Prepare release files
         run: |
           mkdir -p release
-          # Flatten: copy all files from artifact subdirectories
-          find artifacts -type f \( \
+          find . -maxdepth 2 -type f \( \
             -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" \
             -o -name "*.msi" -o -name "*.exe" \
             -o -name "*.sig" -o -name "*.sha256" \
@@ -134,7 +138,7 @@ jobs:
           ARTIFACT_COUNT=$(find release -type f ! -name "*.sha256" ! -name "*.sig" | wc -l)
           echo "Found $ARTIFACT_COUNT installer artifacts"
           if [ "$ARTIFACT_COUNT" -eq 0 ]; then
-            echo "::error::No installer artifacts found! Build may have failed."
+            echo "::error::No installer artifacts found!"
             exit 1
           fi
 
