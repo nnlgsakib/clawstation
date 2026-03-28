@@ -103,21 +103,22 @@ Plans:
 
 **Success Criteria:**
 1. Users see a setup wizard on first launch — configure model, API keys, sandbox, channels before installation
-2. App detects Node.js 22+ and installs OpenClaw via npm
+2. App detects Node.js 24+ (recommended) or 22.14+ (minimum) and installs OpenClaw via platform-specific install script
 3. App starts/stops the OpenClaw Gateway process
-4. App connects to Gateway WebSocket for real-time status and config management
+4. App connects to Gateway WebSocket (JSON-RPC) for real-time status and config management
 5. Dashboard shows live Gateway data (sessions, channels, status)
-6. Config changes apply via Gateway hot-reload
+6. Config changes apply via Gateway hot-reload (config.patch with baseHash)
 7. Channel management uses real Gateway API (not mock data)
+8. OpenClaw Control UI accessible from webapp page when Gateway is running
 
 **Plans:** 5 plans in 4 waves
 
 Plans:
 - [ ] 12-01-PLAN.md — Setup Wizard: Config-first multi-step wizard UI (Welcome → Model → API Keys → Sandbox → Channels → Review)
-- [ ] 12-02-PLAN.md — Gateway Process Manager: Start/stop Gateway, Node.js detection, npm install
-- [ ] 12-03-PLAN.md — Gateway WebSocket Client: Connect to Gateway API, React hooks for real-time data
-- [ ] 12-04-PLAN.md — Live Dashboard & Status: Real-time dashboard, Gateway startup page, sidebar indicator
-- [ ] 12-05-PLAN.md — Channel Management via Gateway: Real channel config, pairing dialogs, status monitoring
+- [ ] 12-02-PLAN.md — Gateway Process Manager: Start/stop Gateway, Node.js detection, install script
+- [ ] 12-03-PLAN.md — Gateway WebSocket Client: Connect to Gateway API (JSON-RPC), React hooks for real-time data
+- [ ] 12-04-PLAN.md — Live Dashboard, Install Flow & Webapp: Real-time dashboard, Gateway startup page, OpenClaw UI page, sidebar indicator
+- [ ] 12-05-PLAN.md — Channel Management via Gateway: Real channel config (correct field names), pairing dialogs, status monitoring
 
 ---
 
