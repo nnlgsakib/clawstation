@@ -167,7 +167,7 @@ Plans:
 
 ### Phase 15: Production Build Fixes
 
-**Goal:** Fix two critical Windows production build bugs — CMD windows flashing when executing internal commands, and installation verification hanging after package manager install.
+**Goal:** Fix three critical Windows production build bugs — CMD windows flashing when executing internal commands, installation verification hanging after package manager install, and PATH not containing Node.js global bin directories (causing "command not found" for npm/pnpm/yarn/openclaw).
 
 **Requirements:** PROD-01, PROD-02
 
@@ -176,14 +176,16 @@ Plans:
 2. Installation verification (openclaw --version) completes within 30 seconds without hanging
 3. All shell command execution paths use CREATE_NO_WINDOW flag (0x08000000) on Windows
 4. Commands that exceed timeout return a clear error instead of hanging indefinitely
-5. All existing tests pass with zero regressions
+5. Production build can find npm, pnpm, yarn, and openclaw binaries (PATH augmented with global bin dirs)
+6. All existing tests pass with zero regressions
 
-**Plans:** 3 plans in 2 waves
+**Plans:** 4 plans in 3 waves
 
 Plans:
 - [x] 15-01-PLAN.md — Create CREATE_NO_WINDOW helper module and migrate all 12 command/install files
 - [ ] 15-02-PLAN.md — Fix 8 compilation errors (E0716 borrow checker) and warning in migrated files
 - [ ] 15-03-PLAN.md — Migrate 3 install files (native_install, verify, docker_install) to use silent_cmd
+- [ ] 15-04-PLAN.md — Fix production PATH: augment silent_cmd with Node.js global bin dirs + binary fallback lookup
 
 ---
 
@@ -214,7 +216,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 15. Production Build Fixes | — | 1/3 | In Progress | — |
+| 15. Production Build Fixes | — | 1/4 | In Progress | — |
 | 14. GitHub Workflows & CI/CD | — | 2/3 | In Progress | — |
 | 13. Documentation & README | — | 0/1 | 🔲 | — |
 | 12. Gateway Integration & Setup | v2.0 | 0/5 | 🔲 | — |
