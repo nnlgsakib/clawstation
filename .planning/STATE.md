@@ -17,13 +17,13 @@ progress:
 ## Project Reference
 
 **Core Value:** Make OpenClaw installable and manageable by anyone — from download to daily use — without touching a terminal.
-**Current Focus:** Phase 14 — github-workflows-ci-cd
+**Current Focus:** Phase 15 — production-build-fixes
 **Tech Stack:** Tauri v2 + React 19 + TypeScript + Tailwind v4 + shadcn/ui + bollard (Rust Docker client)
 
 ## Current Position
 
-Phase: 14 (github-workflows-ci-cd) — EXECUTING
-Plan: 2 of 2
+Phase: 15 (production-build-fixes) — PLANNED
+Plan: 1 of 1
 Status: Ready to execute
 Last activity: 2026-03-28
 
