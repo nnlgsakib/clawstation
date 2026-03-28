@@ -8,6 +8,7 @@ mod state;
 
 use state::AppState;
 use std::sync::Mutex;
+use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -22,8 +23,10 @@ pub fn run() {
         .manage(Mutex::new(AppState::default()))
         .setup(|app| {
             let window = app.get_webview_window("main").unwrap();
-            let icon_bytes = include_bytes!("../icons/128x128.png");
-            let icon = tauri::image::Image::from_bytes(icon_bytes).unwrap();
+            let img = image::load_from_memory(include_bytes!("../icons/128x128.png")).unwrap();
+            let rgba = img.to_rgba8();
+            let (w, h) = rgba.dimensions();
+            let icon = tauri::image::Image::new_owned(rgba.into_raw(), w, h);
             window.set_icon(icon).unwrap();
             Ok(())
         })
