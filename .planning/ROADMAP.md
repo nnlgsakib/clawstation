@@ -179,11 +179,11 @@ Plans:
 5. All artifacts auto-publish to GitHub Release with changelog
 6. Dependabot manages weekly Rust and npm dependency updates
 
-**Plans:** 2 plans in 2 waves
+**Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 14-01-PLAN.md — CI workflows: lint checks (Rust + TypeScript) and build-test matrix
-- [ ] 14-02-PLAN.md — Release workflow: cross-platform builds, checksums, GitHub Release, dependabot
+- [x] 14-01-PLAN.md — CI workflows: lint checks (Rust + TypeScript) and build-test matrix
+- [x] 14-02-PLAN.md — Release workflow: cross-platform builds, checksums, GitHub Release, dependabot
 
 ---
 
@@ -191,7 +191,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 14. GitHub Workflows & CI/CD | — | 0/2 | 🔲 | — |
+| 14. GitHub Workflows & CI/CD | — | 2/2 | Complete   | 2026-03-28 |
 | 13. Documentation & README | — | 0/1 | 🔲 | — |
 | 12. Gateway Integration & Setup | v2.0 | 0/5 | 🔲 | — |
 | 11. OpenClaw Theme Redesign | v1.2 | 0/3 | 🔲 | — |

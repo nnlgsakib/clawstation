@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: UX Polish & Channels
-status: ready
-last_updated: "2026-03-27T02:21:19.000Z"
-last_activity: 2026-03-27
+status: executing
+last_updated: "2026-03-28T07:17:20.297Z"
+last_activity: 2026-03-28
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 12
-  completed_plans: 12
+  total_phases: 8
+  completed_phases: 5
+  total_plans: 23
+  completed_plans: 14
 ---
 
 # STATE: ClawStation
@@ -17,15 +17,15 @@ progress:
 ## Project Reference
 
 **Core Value:** Make OpenClaw installable and manageable by anyone — from download to daily use — without touching a terminal.
-**Current Focus:** v2.0 Gateway Integration & Setup Wizard — making the app actually work with OpenClaw
+**Current Focus:** Phase 14 — github-workflows-ci-cd
 **Tech Stack:** Tauri v2 + React 19 + TypeScript + Tailwind v4 + shadcn/ui + bollard (Rust Docker client)
 
 ## Current Position
 
-Phase: 12
-Plan: Planning
-Status: v2.0 milestone planning — Gateway integration, setup wizard, real API connection
-Last activity: 2026-03-27
+Phase: 14 (github-workflows-ci-cd) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
+Last activity: 2026-03-28
 
 ## Performance Metrics
 
@@ -63,6 +63,8 @@ Last activity: 2026-03-27
 | Phase 07-installation-ux-animation-foundation P07 | 1min | 1 tasks | 1 files |
 | Phase 07-installation-ux-animation-foundation P08 | 2min | 1 tasks | 1 files |
 | Phase 07-installation-ux-animation-foundation P09 | 5min | 2 tasks | 3 files |
+| Phase 14-github-workflows-ci-cd P01 | 3min | 2 tasks | 2 files |
+| Phase 14-github-workflows-ci-cd P02 | 5min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -128,6 +130,11 @@ Last activity: 2026-03-27
 - Contact states: approved/pending/blocked with inline action buttons (Phase 10)
 - Activity feed: 30s polling, sender + channel icon + preview + timestamp (Phase 10)
 - Tab system on channels page: Channels | Contacts | Activity (Phase 10)
+- Separate release.yml from ci.yml (different triggers/permissions — Phase 14)
+- Release concurrency cancel-in-progress: false (tags are intentional — Phase 14)
+- Dependabot groups Tauri/React packages, minor/patch grouped (Phase 14)
+- Windows ARM64 cross-compiled, no dedicated ARM runner (Phase 14)
+- Unified CI: lint -> test -> build sequential jobs in single workflow (Phase 14)
 
 ### Critical Pitfalls (from research)
 
@@ -163,6 +170,6 @@ Last activity: 2026-03-27
 
 ## Session Continuity
 
-**Last action:** 2026-03-28 - Completed quick task 260328-hxf: Fix custom icon not showing in Tauri dev mode
-**Next action:** Execute Phase 14 (CI/CD & release workflows) or continue with v2.0 phases
-**Files to review:** `.planning/phases/10-access-control-activity/10-VERIFICATION.md`
+**Last action:** 2026-03-28 - Completed Phase 14 (GitHub Workflows CI/CD): ci.yml, release.yml, dependabot.yml
+**Next action:** Continue with v2.0 phases or review CI/CD setup
+**Files to review:** `.planning/phases/14-github-workflows-ci-cd/PHASE-LOG.md`
