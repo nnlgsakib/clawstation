@@ -27,12 +27,6 @@ jobs:
           - platform: windows-latest
             rust_target: x86_64-pc-windows-msvc
             label: windows-x86_64
-          - platform: macos-13
-            rust_target: x86_64-apple-darwin
-            label: macos-x86_64
-          - platform: macos-latest
-            rust_target: aarch64-apple-darwin
-            label: macos-aarch64
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
@@ -64,10 +58,6 @@ jobs:
             librsvg2-dev \
             patchelf
 
-      - name: Add Windows ARM64 target
-        if: matrix.rust_target == 'aarch64-pc-windows-msvc'
-        run: rustup target add aarch64-pc-windows-msvc
-
       - run: pnpm install --frozen-lockfile
 
       - name: Build Tauri app
@@ -76,23 +66,22 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
-      - name: Prepare release assets
+      - name: Collect artifacts
         shell: bash
         run: |
           BUNDLE_DIR="src-tauri/target/${{ matrix.rust_target }}/release/bundle"
           mkdir -p release-artifacts
-          echo "Looking for bundles in: $BUNDLE_DIR"
-          ls -la "$BUNDLE_DIR" || true
-          # Copy all installers into flat directory
+          echo "Collecting bundles from: $BUNDLE_DIR"
+          # Copy all installers and signatures into flat directory
           find "$BUNDLE_DIR" -type f \( \
             -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" \
-            -o -name "*.msi" -o -name "*.exe" -o -name "*.dmg" \
-            -o -name "*.zip" -o -name "*.sig" \
-          \) -exec cp {} release-artifacts/ \;
-          # Generate checksums
+            -o -name "*.msi" -o -name "*.exe" \
+            -o -name "*.sig" \
+          \) -exec cp -v {} release-artifacts/ \;
+          # Generate SHA-256 checksums
           cd release-artifacts
           shopt -s nullglob
-          for f in *.AppImage *.deb *.rpm *.msi *.exe *.dmg *.zip; do
+          for f in *.AppImage *.deb *.rpm *.msi *.exe; do
             if command -v sha256sum &> /dev/null; then
               sha256sum "$f" > "$f.sha256"
             else
@@ -101,18 +90,19 @@ jobs:
             echo "Checksummed: $f"
           done
           shopt -u nullglob
-          echo "--- release-artifacts contents ---"
+          echo "--- Collected artifacts ---"
           ls -la
 
-      - name: Upload artifacts
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: release-${{ matrix.label }}
+          name: build-${{ matrix.label }}
           path: release-artifacts/
-          retention-days: 5
+          if-no-files-found: warn
+          retention-days: 1
 
   release:
-    name: Create Release
+    name: Create GitHub Release
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -120,65 +110,72 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Download all artifacts
+      - name: Download all build artifacts
         uses: actions/download-artifact@v4
         with:
-          path: downloaded-artifacts
+          pattern: build-*
+          path: artifacts
+          merge-multiple: true
 
-      - name: Collect release files
+      - name: Prepare release files
         run: |
-          mkdir -p release-files
-          find downloaded-artifacts -type f \( \
+          mkdir -p release
+          # Flatten: copy all files from artifact subdirectories
+          find artifacts -type f \( \
             -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" \
-            -o -name "*.msi" -o -name "*.exe" -o -name "*.dmg" \
-            -o -name "*.zip" -o -name "*.sig" -o -name "*.sha256" \
-          \) -exec cp {} release-files/ \;
+            -o -name "*.msi" -o -name "*.exe" \
+            -name "*.sig" -o -name "*.sha256" \
+          \) -exec cp -v {} release/ \;
           echo "--- Release files ---"
-          ls -la release-files/
+          ls -la release/
 
       - name: Verify artifacts exist
         run: |
-          ARTIFACT_COUNT=$(find release-files -type f ! -name "*.sha256" | wc -l)
+          ARTIFACT_COUNT=$(find release -type f ! -name "*.sha256" ! -name "*.sig" | wc -l)
           echo "Found $ARTIFACT_COUNT installer artifacts"
           if [ "$ARTIFACT_COUNT" -eq 0 ]; then
-            echo "::error::No installer artifacts found!"
+            echo "::error::No installer artifacts found! Build may have failed."
             exit 1
           fi
-          CHECKSUM_COUNT=$(find release-files -name "*.sha256" | wc -l)
-          echo "Found $CHECKSUM_COUNT checksum files"
 
-      - name: Create release body
+      - name: Generate release notes
+        id: notes
         run: |
+          TAG="${{ github.ref_name }}"
           {
-            echo "## ClawStation ${{ github.ref_name }}"
+            echo "notes<<EOF"
+            echo "## ClawStation ${TAG}"
             echo ""
             echo "### Downloads"
             echo ""
             echo "| File | SHA-256 |"
             echo "|------|---------|"
-            for f in release-files/*.sha256; do
+            for f in release/*.sha256; do
               [ -f "$f" ] || continue
               fname=$(basename "$f" .sha256)
-              hash=$(awk '{print $1}' "$f")
-              echo "| \`$fname\` | \`${hash:0:16}...\` |"
+              hash=$(cut -d' ' -f1 "$f")
+              echo "| \`${fname}\` | \`${hash:0:16}...\` |"
             done
             echo ""
-            echo "<details><summary>Full checksums</summary>"
+            echo "<details>"
+            echo "<summary>Full checksums</summary>"
             echo ""
             echo '```'
-            cat release-files/*.sha256 2>/dev/null || echo "No checksums"
+            cat release/*.sha256 2>/dev/null || echo "No checksums"
             echo '```'
             echo ""
             echo "</details>"
-          } > release-body.md
-          cat release-body.md
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: release-files/*
-          body_path: release-body.md
-          generate_release_notes: true
-          draft: false
-          prerelease: ${{ contains(github.ref, '-beta') || contains(github.ref, '-rc') }}
           tag_name: ${{ github.ref_name }}
+          name: ClawStation ${{ github.ref_name }}
+          body: ${{ steps.notes.outputs.notes }}
+          files: release/*
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc') || contains(github.ref_name, '-alpha') }}
+          generate_release_notes: true
+          fail_on_unmatched_files: false
