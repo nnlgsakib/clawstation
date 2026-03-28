@@ -30,3 +30,6 @@ src-tauri/target/
 .opencode/
 .gemini/
 .claude/
+
+# Tauri signing key (NEVER commit)
+src-tauri/tauri.key

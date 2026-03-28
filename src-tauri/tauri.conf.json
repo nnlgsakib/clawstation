@@ -38,7 +38,7 @@
       "endpoints": [
         "https://raw.githubusercontent.com/openclaw/clawstation/main/latest.json"
       ],
-      "pubkey": "GENERATE_WITH_tauri_signer_generate"
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDExNzU1OUZBQjBBMzcyMEIKUldRTGNxT3crbGwxRWRreWNSeUpMSG1uT2FGWjl6b29RdXgvbHAxNXVFKzFLVVZndTIyTGZaelIK"
     }
   }
 }
