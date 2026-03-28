@@ -294,6 +294,18 @@ async fn detect_install_method() -> (String, String) {
         }
     }
 
+    // Fallback: npx openclaw --version
+    if cfg!(target_os = "windows") {
+        let mut cmd = silent_cmd("cmd");
+        cmd.args(["/c", "npx", "openclaw", "--version"]);
+        if let Ok(output) = run_with_timeout(&mut cmd, QUICK_TIMEOUT).await {
+            if output.status.success() {
+                let version = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                return ("native".into(), version);
+            }
+        }
+    }
+
     ("unknown".into(), "unknown".into())
 }
 

@@ -68,27 +68,19 @@ pub async fn start_gateway(
     // Try multiple ways to start openclaw on Windows
     let mut child = if cfg!(target_os = "windows") {
         let attempts: Vec<Vec<&str>> = vec![
+            // Direct openclaw call first (most reliable)
             vec![
                 "/c",
-                "pnpm",
-                "exec",
                 "openclaw",
                 "gateway",
                 "--verbose",
                 "--port",
                 &port_str,
             ],
+            // npx fallback (downloads if needed)
             vec![
                 "/c",
                 "npx",
-                "openclaw",
-                "gateway",
-                "--verbose",
-                "--port",
-                &port_str,
-            ],
-            vec![
-                "/c",
                 "openclaw",
                 "gateway",
                 "--verbose",
@@ -116,9 +108,10 @@ pub async fn start_gateway(
                 }
             }
         }
+
         spawned.ok_or_else(|| {
             format!(
-                "Failed to start Gateway: {last_err}. Tried pnpm exec, npx, and direct openclaw."
+                "Failed to start Gateway: {last_err}. Tried openclaw and npx."
             )
         })?
     } else {

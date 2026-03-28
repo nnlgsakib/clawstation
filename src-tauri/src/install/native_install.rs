@@ -126,8 +126,16 @@ async fn get_node_version() -> Result<String, AppError> {
 
 /// Get the installed OpenClaw version string.
 async fn get_openclaw_version() -> Result<String, AppError> {
-    let mut cmd = silent_cmd("openclaw");
-    cmd.arg("--version");
+    let mut cmd = if cfg!(target_os = "windows") {
+        let mut c = silent_cmd("cmd");
+        c.args(["/c", "npx", "openclaw", "--version"]);
+        c
+    } else {
+        let mut c = silent_cmd("openclaw");
+        c.arg("--version");
+        c
+    };
+
     let output = run_with_timeout(&mut cmd, QUICK_TIMEOUT)
         .await
         .map_err(|e| AppError::InstallationFailed {

@@ -67,31 +67,46 @@ pub async fn check_nodejs() -> Result<NodeJsInfo, String> {
     }
 }
 
-/// Check if OpenClaw is installed by running `openclaw --version`.
+/// Check if OpenClaw is installed.
 ///
 /// Tries multiple methods:
 /// 1. `openclaw --version` (global install)
 /// 2. `npx openclaw --version` (npx fallback)
-/// 3. `pnpm exec openclaw --version` (pnpm global)
+/// 3. Filesystem search for openclaw binary
 #[tauri::command]
 pub async fn check_openclaw() -> Result<OpenClawInfo, String> {
     let attempts: Vec<(&str, Vec<&str>)> = if cfg!(target_os = "windows") {
         vec![
             ("cmd", vec!["/c", "openclaw", "--version"]),
             ("cmd", vec!["/c", "npx", "openclaw", "--version"]),
-            ("cmd", vec!["/c", "pnpm", "exec", "openclaw", "--version"]),
         ]
     } else {
         vec![
             ("openclaw", vec!["--version"]),
             ("npx", vec!["openclaw", "--version"]),
-            ("pnpm", vec!["exec", "openclaw", "--version"]),
         ]
     };
 
     for (cmd_name, args) in &attempts {
         let mut cmd = silent_cmd(cmd_name);
         cmd.args(args);
+        if let Ok(out) = run_with_timeout(&mut cmd, QUICK_TIMEOUT).await {
+            if out.status.success() {
+                let version = String::from_utf8_lossy(&out.stdout).trim().to_string();
+                if !version.is_empty() {
+                    return Ok(OpenClawInfo {
+                        installed: true,
+                        version: Some(version),
+                    });
+                }
+            }
+        }
+    }
+
+    // Fallback: direct filesystem search for the openclaw binary
+    if let Some(binary_path) = find_openclaw_binary() {
+        let mut cmd = silent_cmd(&binary_path);
+        cmd.arg("--version");
         if let Ok(out) = run_with_timeout(&mut cmd, QUICK_TIMEOUT).await {
             if out.status.success() {
                 let version = String::from_utf8_lossy(&out.stdout).trim().to_string();
@@ -392,4 +407,86 @@ fn parse_node_version(version: &str) -> (bool, bool) {
     let meets_recommended = major >= 24;
 
     (meets_minimum, meets_recommended)
+}
+
+/// Search common installation directories for the `openclaw` binary.
+///
+/// This is a fallback for production builds where PATH augmentation alone
+/// may not be enough (e.g., non-standard install locations).
+/// Returns the full path to the binary if found.
+pub fn find_openclaw_binary() -> Option<String> {
+    let candidates: Vec<std::path::PathBuf> = if cfg!(target_os = "windows") {
+        let mut paths = Vec::new();
+        if let Ok(appdata) = std::env::var("APPDATA") {
+            let base = std::path::PathBuf::from(&appdata);
+            paths.push(base.join("npm").join("openclaw.cmd"));
+            paths.push(base.join("npm").join("openclaw"));
+            paths.push(base.join("nvm").join("openclaw.cmd"));
+        }
+        if let Ok(localappdata) = std::env::var("LOCALAPPDATA") {
+            paths.push(std::path::PathBuf::from(&localappdata).join("pnpm").join("openclaw.cmd"));
+            paths.push(std::path::PathBuf::from(&localappdata).join("pnpm").join("openclaw"));
+        }
+        if let Ok(userprofile) = std::env::var("USERPROFILE") {
+            paths.push(std::path::PathBuf::from(&userprofile).join(".yarn").join("bin").join("openclaw.cmd"));
+        }
+        if let Ok(program_files) = std::env::var("ProgramFiles") {
+            paths.push(std::path::PathBuf::from(program_files).join("nodejs").join("openclaw.cmd"));
+        }
+        // NVM_HOME — nvm-windows custom install
+        if let Ok(nvm_home) = std::env::var("NVM_HOME") {
+            paths.push(std::path::PathBuf::from(&nvm_home).join("openclaw.cmd"));
+        }
+        // Scan common non-standard nvm locations (e.g., D:\soft\nvm)
+        for drive in &["C", "D", "E", "F"] {
+            for base in &["soft", "tools", "dev", "opt", "programs"] {
+                let nvm_root = format!("{drive}:\\{base}\\nvm");
+                let nvm_path = std::path::PathBuf::from(&nvm_root);
+                if nvm_path.exists() {
+                    paths.push(nvm_path.join("nodejs").join("openclaw.cmd"));
+                    let pnpm_global = nvm_path.join("pnpm-global");
+                    if pnpm_global.exists() {
+                        paths.push(pnpm_global.join("openclaw.cmd"));
+                        paths.push(pnpm_global.join("openclaw"));
+                    }
+                }
+            }
+        }
+        paths
+    } else {
+        let mut paths = Vec::new();
+        if let Ok(home) = std::env::var("HOME") {
+            let home_path = std::path::PathBuf::from(&home);
+            paths.push(home_path.join(".local").join("bin").join("openclaw"));
+            paths.push(home_path.join(".npm").join("bin").join("openclaw"));
+            paths.push(home_path.join(".pnpm").join("openclaw"));
+        }
+        paths.push(std::path::PathBuf::from("/usr/local/bin/openclaw"));
+        paths.push(std::path::PathBuf::from("/usr/bin/openclaw"));
+        paths
+    };
+
+    for path in &candidates {
+        if path.exists() {
+            return Some(path.to_string_lossy().to_string());
+        }
+    }
+    None
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_node_version_detects_minimum() {
+        assert!(parse_node_version("22.14.0").0);
+        assert!(!parse_node_version("22.13.0").0);
+    }
+
+    #[test]
+    fn parse_node_version_detects_recommended() {
+        assert!(parse_node_version("24.0.0").1);
+        assert!(!parse_node_version("23.9.9").1);
+    }
 }
