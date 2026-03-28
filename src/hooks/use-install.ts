@@ -24,6 +24,15 @@ interface InstallRequest {
   installDir?: string;
 }
 
+interface DesktopConfig {
+  workspacePath?: string | null;
+  gatewayPort?: number | null;
+  apiKey?: string | null;
+  apiKeyEnv?: string | null;
+  selectedProvider?: string | null;
+  selectedModel?: string | null;
+}
+
 /**
  * Hook for managing OpenClaw installation.
  *
@@ -33,6 +42,20 @@ interface InstallRequest {
  */
 export function useInstallOpenClaw() {
   const [progress, setProgress] = useState<InstallProgress | null>(null);
+  const [workspacePath, setWorkspacePath] = useState<string | undefined>();
+
+  // Load workspace path from desktop config on mount
+  useEffect(() => {
+    invoke<DesktopConfig>("read_desktop_config")
+      .then((config) => {
+        if (config.workspacePath) {
+          setWorkspacePath(config.workspacePath);
+        }
+      })
+      .catch(() => {
+        // Config may not exist yet — fine, install will use default
+      });
+  }, []);
 
   useEffect(() => {
     const unlisten = listen<InstallProgress>("install-progress", (event) => {
@@ -52,6 +75,7 @@ export function useInstallOpenClaw() {
   return {
     ...mutation,
     progress,
+    workspacePath,
   };
 }
 

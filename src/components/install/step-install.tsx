@@ -104,7 +104,7 @@ interface StepInstallProps {
 }
 
 export function StepInstall({ method }: StepInstallProps) {
-  const { progress, mutate, isPending, isSuccess, isError, error, data } =
+  const { progress, mutate, isPending, isSuccess, isError, error, data, workspacePath } =
     useInstallOpenClaw();
   const {
     transitionToVerify,
@@ -153,7 +153,7 @@ export function StepInstall({ method }: StepInstallProps) {
   const handleStartInstall = useCallback(() => {
     setIsInstalling(true);
     mutate(
-      { method, installDir },
+      { method, installDir, workspacePath },
       {
         onSuccess: () => {
           setIsInstalling(false);
@@ -165,7 +165,7 @@ export function StepInstall({ method }: StepInstallProps) {
         },
       }
     );
-  }, [method, installDir, mutate, transitionToVerify, transitionToError, setIsInstalling]);
+  }, [method, installDir, workspacePath, mutate, transitionToVerify, transitionToError, setIsInstalling]);
 
   const handleCancel = useCallback(async () => {
     try {

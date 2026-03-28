@@ -50,6 +50,7 @@ pub struct DockerLogEvent {
 pub async fn docker_install(
     app_handle: &tauri::AppHandle,
     install_dir: Option<&str>,
+    workspace_path: Option<&str>,
 ) -> Result<InstallResult, AppError> {
     // Step 1: Verify Docker is available
     emit_progress(
@@ -89,7 +90,10 @@ pub async fn docker_install(
             })?
             .join(".openclaw"),
     };
-    let workspace_dir = config_dir.join("workspace");
+    let workspace_dir = match workspace_path {
+        Some(path) => std::path::PathBuf::from(path),
+        None => config_dir.join("workspace"),
+    };
     let repo_dir = config_dir.join("repo");
 
     tokio::fs::create_dir_all(&config_dir)
@@ -231,11 +235,13 @@ pub async fn docker_install(
         "OPENCLAW_IMAGE={OPENCLAW_IMAGE}\n\
          OPENCLAW_CONFIG_DIR={}\n\
          OPENCLAW_WORKSPACE_DIR={}\n\
+         OPENCLAW_WORKSPACE={}\n\
          OPENCLAW_GATEWAY_TOKEN={gateway_token}\n\
          OPENCLAW_GATEWAY_PORT={GATEWAY_PORT}\n\
          OPENCLAW_BRIDGE_PORT={BRIDGE_PORT}\n\
          OPENCLAW_GATEWAY_BIND=lan\n",
         config_dir.display(),
+        workspace_dir.display(),
         workspace_dir.display(),
     );
     let env_path = repo_dir.join(".env");

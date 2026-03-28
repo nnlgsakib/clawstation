@@ -424,14 +424,31 @@ pub fn find_openclaw_binary() -> Option<String> {
             paths.push(base.join("nvm").join("openclaw.cmd"));
         }
         if let Ok(localappdata) = std::env::var("LOCALAPPDATA") {
-            paths.push(std::path::PathBuf::from(&localappdata).join("pnpm").join("openclaw.cmd"));
-            paths.push(std::path::PathBuf::from(&localappdata).join("pnpm").join("openclaw"));
+            paths.push(
+                std::path::PathBuf::from(&localappdata)
+                    .join("pnpm")
+                    .join("openclaw.cmd"),
+            );
+            paths.push(
+                std::path::PathBuf::from(&localappdata)
+                    .join("pnpm")
+                    .join("openclaw"),
+            );
         }
         if let Ok(userprofile) = std::env::var("USERPROFILE") {
-            paths.push(std::path::PathBuf::from(&userprofile).join(".yarn").join("bin").join("openclaw.cmd"));
+            paths.push(
+                std::path::PathBuf::from(&userprofile)
+                    .join(".yarn")
+                    .join("bin")
+                    .join("openclaw.cmd"),
+            );
         }
         if let Ok(program_files) = std::env::var("ProgramFiles") {
-            paths.push(std::path::PathBuf::from(program_files).join("nodejs").join("openclaw.cmd"));
+            paths.push(
+                std::path::PathBuf::from(program_files)
+                    .join("nodejs")
+                    .join("openclaw.cmd"),
+            );
         }
         // NVM_HOME — nvm-windows custom install
         if let Ok(nvm_home) = std::env::var("NVM_HOME") {

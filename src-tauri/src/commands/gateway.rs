@@ -110,9 +110,7 @@ pub async fn start_gateway(
         }
 
         spawned.ok_or_else(|| {
-            format!(
-                "Failed to start Gateway: {last_err}. Tried openclaw and npx."
-            )
+            format!("Failed to start Gateway: {last_err}. Tried openclaw and npx.")
         })?
     } else {
         silent_cmd("openclaw")

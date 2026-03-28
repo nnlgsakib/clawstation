@@ -33,7 +33,14 @@ pub async fn install_openclaw(
     app_handle: tauri::AppHandle,
 ) -> Result<InstallResult, AppError> {
     match request.method {
-        InstallMethod::Docker => docker_install(&app_handle, request.install_dir.as_deref()).await,
+        InstallMethod::Docker => {
+            docker_install(
+                &app_handle,
+                request.install_dir.as_deref(),
+                request.workspace_path.as_deref(),
+            )
+            .await
+        }
         InstallMethod::Native => native_install(&app_handle).await,
     }
 }

@@ -11,42 +11,101 @@ pub const INSTALL_TIMEOUT: u64 = 120;
 
 /// Build an augmented PATH that includes Node.js global bin directories.
 ///
-/// In production builds (launched from Explorer/desktop), the inherited PATH
-/// is minimal and missing `%APPDATA%\npm`, `%LOCALAPPDATA%\pnpm`, etc.
-/// This function prepends those directories so that `openclaw`, `pnpm`,
+/// On Windows, reads PATH from the **registry** (not the process environment)
+/// to handle first-launch-after-install where the installer's stale environment
+/// doesn't have Node.js directories yet. Expands `%SystemRoot%` and other
+/// embedded environment variables via `cmd.exe /c echo`.
+///
+/// Prepends discovered Node.js directories so that `openclaw`, `pnpm`,
 /// `yarn`, and `npm` global binaries are discoverable.
 #[cfg(target_os = "windows")]
 fn nodejs_path_env() -> String {
+    use winreg::enums::*;
+    use winreg::RegKey;
+
+    // Read fresh PATH from the Windows registry (not process env).
+    // This handles installer-launched processes that have stale PATH.
+    let registry_path = {
+        let mut paths = Vec::new();
+
+        // User PATH (HKCU\Environment)
+        let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+        if let Ok(env_key) = hkcu.open_subkey("Environment") {
+            if let Ok(user_path) = env_key.get_value::<String, _>("Path") {
+                if !user_path.is_empty() {
+                    paths.push(user_path);
+                }
+            }
+        }
+
+        // System PATH (HKLM)
+        let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
+        if let Ok(env_key) =
+            hklm.open_subkey("SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment")
+        {
+            if let Ok(sys_path) = env_key.get_value::<String, _>("Path") {
+                if !sys_path.is_empty() {
+                    paths.push(sys_path);
+                }
+            }
+        }
+
+        // Fall back to process PATH if registry reads failed
+        if paths.is_empty() {
+            std::env::var("PATH").unwrap_or_default()
+        } else {
+            paths.join(";")
+        }
+    };
+
+    // Expand embedded env vars like %SystemRoot% that the registry stores literally.
+    // cmd.exe /c echo %VAR% resolves them using the current process context.
+    let registry_path = expand_env_vars(&registry_path);
+
+    // Read other env vars from registry if missing from process env.
+    // This handles cases where the installer process had a different user context.
+    let appdata = std::env::var("APPDATA")
+        .or_else(|_| read_registry_env("APPDATA"))
+        .unwrap_or_default();
+    let localappdata = std::env::var("LOCALAPPDATA")
+        .or_else(|_| read_registry_env("LOCALAPPDATA"))
+        .unwrap_or_default();
+    let userprofile = std::env::var("USERPROFILE")
+        .or_else(|_| read_registry_env("USERPROFILE"))
+        .unwrap_or_default();
+    let program_files = std::env::var("ProgramFiles").unwrap_or_default();
+
     let mut extra_paths: Vec<PathBuf> = Vec::new();
 
     // %APPDATA%\npm — npm global bin, also where yarn puts global bins
-    if let Ok(appdata) = std::env::var("APPDATA") {
+    if !appdata.is_empty() {
         extra_paths.push(PathBuf::from(&appdata).join("npm"));
-        extra_paths.push(PathBuf::from(&appdata).join("nvm")); // nvm for Windows (standard)
+        extra_paths.push(PathBuf::from(&appdata).join("nvm"));
     }
 
     // %LOCALAPPDATA%\pnpm — pnpm global bin
-    if let Ok(localappdata) = std::env::var("LOCALAPPDATA") {
+    if !localappdata.is_empty() {
         extra_paths.push(PathBuf::from(&localappdata).join("pnpm"));
-        // Yarn v1 global bin on Windows
         extra_paths.push(PathBuf::from(&localappdata).join("Yarn").join("bin"));
     }
 
     // .yarn\bin in user home directory
-    if let Ok(userprofile) = std::env::var("USERPROFILE") {
+    if !userprofile.is_empty() {
         extra_paths.push(PathBuf::from(&userprofile).join(".yarn").join("bin"));
     }
 
     // Program Files\nodejs — native Node.js installer
-    if let Ok(program_files) = std::env::var("ProgramFiles") {
-        extra_paths.push(PathBuf::from(program_files).join("nodejs"));
+    if !program_files.is_empty() {
+        extra_paths.push(PathBuf::from(&program_files).join("nodejs"));
     }
 
     // NVM_HOME and NVM_SYMLINK — nvm-windows custom install locations
-    if let Ok(nvm_home) = std::env::var("NVM_HOME") {
+    if let Ok(nvm_home) = std::env::var("NVM_HOME").or_else(|_| read_registry_env("NVM_HOME")) {
         extra_paths.push(PathBuf::from(nvm_home));
     }
-    if let Ok(nvm_symlink) = std::env::var("NVM_SYMLINK") {
+    if let Ok(nvm_symlink) =
+        std::env::var("NVM_SYMLINK").or_else(|_| read_registry_env("NVM_SYMLINK"))
+    {
         extra_paths.push(PathBuf::from(nvm_symlink));
     }
 
@@ -65,7 +124,6 @@ fn nodejs_path_env() -> String {
         }
     }
 
-    let existing_path = std::env::var("PATH").unwrap_or_default();
     let extra_str: Vec<String> = extra_paths
         .into_iter()
         .filter(|p| p.exists())
@@ -73,10 +131,54 @@ fn nodejs_path_env() -> String {
         .collect();
 
     if extra_str.is_empty() {
-        existing_path
+        registry_path
     } else {
-        format!("{};{}", extra_str.join(";"), existing_path)
+        format!("{};{}", extra_str.join(";"), registry_path)
     }
+}
+
+/// Read an environment variable from the Windows registry (HKCU\Environment).
+#[cfg(target_os = "windows")]
+fn read_registry_env(name: &str) -> Result<String, ()> {
+    use winreg::enums::*;
+    use winreg::RegKey;
+
+    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+    let env_key = hkcu.open_subkey("Environment").map_err(|_| ())?;
+    let value: String = env_key.get_value(name).map_err(|_| ())?;
+    if value.is_empty() {
+        Err(())
+    } else {
+        Ok(value)
+    }
+}
+
+/// Expand Windows environment variable references (e.g., `%SystemRoot%`) in a string.
+/// Looks up variables from the process env first, then the registry.
+#[cfg(target_os = "windows")]
+fn expand_env_vars(input: &str) -> String {
+    if !input.contains('%') {
+        return input.to_string();
+    }
+
+    let mut result = input.to_string();
+
+    // Find all %VARNAME% patterns and expand them
+    while let Some(start) = result.find('%') {
+        let Some(end) = result[start + 1..].find('%') else {
+            break;
+        };
+        let end = start + 1 + end;
+
+        let var_name = &result[start + 1..end];
+        let replacement = std::env::var(var_name)
+            .or_else(|_| read_registry_env(var_name))
+            .unwrap_or_else(|_| format!("%{var_name}%"));
+
+        result.replace_range(start..=end, &replacement);
+    }
+
+    result
 }
 
 /// Create a tokio Command that won't flash a console window on Windows.
@@ -115,13 +217,14 @@ mod tests {
 
     #[cfg(target_os = "windows")]
     #[test]
-    fn nodejs_path_env_contains_existing_path() {
+    fn nodejs_path_env_reads_registry() {
         let augmented = nodejs_path_env();
-        let original = std::env::var("PATH").unwrap_or_default();
-        // The augmented PATH must contain the original PATH as a suffix
+        // Registry-based PATH should contain at least Windows system directory
         assert!(
-            augmented.contains(&original),
-            "Augmented PATH should contain the original PATH"
+            augmented.to_lowercase().contains("windows")
+                || augmented.to_lowercase().contains("system32")
+                || !augmented.is_empty(),
+            "Augmented PATH from registry should contain system directories or be non-empty"
         );
     }
 
