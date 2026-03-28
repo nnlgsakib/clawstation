@@ -2,52 +2,30 @@ name: Release
 
 on:
   push:
-    tags: ['v*']
+    tags:
+      - 'v*'
 
 permissions:
   contents: write
 
-concurrency:
-  group: release-${{ github.ref }}
-  cancel-in-progress: false
-
 jobs:
   build:
-    name: Build (${{ matrix.label }})
     strategy:
       fail-fast: false
       matrix:
         include:
           - platform: ubuntu-22.04
-            rust_target: x86_64-unknown-linux-gnu
-            label: linux-x86_64
+            target: x86_64-unknown-linux-gnu
           - platform: ubuntu-22.04
-            rust_target: aarch64-unknown-linux-gnu
-            label: linux-aarch64
+            target: aarch64-unknown-linux-gnu
           - platform: windows-latest
-            rust_target: x86_64-pc-windows-msvc
-            label: windows-x86_64
+            target: x86_64-pc-windows-msvc
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'pnpm'
-
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.rust_target }}
-
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: src-tauri
-
-      - name: Install Linux dependencies
-        if: runner.os == 'Linux'
+      - name: Install dependencies (Ubuntu)
+        if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -58,128 +36,21 @@ jobs:
             librsvg2-dev \
             patchelf
 
-      - name: Install cross-compilation tools (aarch64)
-        if: matrix.rust_target == 'aarch64-unknown-linux-gnu'
+      - name: Setup cross-compilation (aarch64)
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
         run: |
           sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
           echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
-          echo "CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
-          echo "CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++" >> $GITHUB_ENV
 
-      - run: pnpm install --frozen-lockfile
-
-      - name: Build Tauri app
-        run: pnpm tauri build --target ${{ matrix.rust_target }}
+      - uses: tauri-apps/tauri-action@v0
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-
-      - name: Collect artifacts
-        shell: bash
-        run: |
-          BUNDLE_DIR="src-tauri/target/${{ matrix.rust_target }}/release/bundle"
-          mkdir -p release-artifacts
-          echo "Collecting bundles from: $BUNDLE_DIR"
-          find "$BUNDLE_DIR" -type f \( \
-            -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" \
-            -o -name "*.msi" -o -name "*.exe" \
-            -o -name "*.sig" \
-          \) -exec cp -v {} release-artifacts/ \;
-          cd release-artifacts
-          shopt -s nullglob
-          for f in *.AppImage *.deb *.rpm *.msi *.exe; do
-            if command -v sha256sum &> /dev/null; then
-              sha256sum "$f" > "$f.sha256"
-            else
-              shasum -a 256 "$f" > "$f.sha256"
-            fi
-            echo "Checksummed: $f"
-          done
-          shopt -u nullglob
-          echo "--- Collected artifacts ---"
-          ls -la
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
         with:
-          name: build-${{ matrix.label }}
-          path: release-artifacts/
-          if-no-files-found: warn
-          retention-days: 1
-
-  release:
-    name: Create GitHub Release
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Download all build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: build-*
-          merge-multiple: true
-
-      - name: Prepare release files
-        run: |
-          mkdir -p release
-          find . -maxdepth 2 -type f \( \
-            -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" \
-            -o -name "*.msi" -o -name "*.exe" \
-            -o -name "*.sig" -o -name "*.sha256" \
-          \) -exec cp -v {} release/ \;
-          echo "--- Release files ---"
-          ls -la release/
-
-      - name: Verify artifacts exist
-        run: |
-          ARTIFACT_COUNT=$(find release -type f ! -name "*.sha256" ! -name "*.sig" | wc -l)
-          echo "Found $ARTIFACT_COUNT installer artifacts"
-          if [ "$ARTIFACT_COUNT" -eq 0 ]; then
-            echo "::error::No installer artifacts found!"
-            exit 1
-          fi
-
-      - name: Generate release notes
-        id: notes
-        run: |
-          TAG="${{ github.ref_name }}"
-          {
-            echo "notes<<EOF"
-            echo "## ClawStation ${TAG}"
-            echo ""
-            echo "### Downloads"
-            echo ""
-            echo "| File | SHA-256 |"
-            echo "|------|---------|"
-            for f in release/*.sha256; do
-              [ -f "$f" ] || continue
-              fname=$(basename "$f" .sha256)
-              hash=$(cut -d' ' -f1 "$f")
-              echo "| \`${fname}\` | \`${hash:0:16}...\` |"
-            done
-            echo ""
-            echo "<details>"
-            echo "<summary>Full checksums</summary>"
-            echo ""
-            echo '```'
-            cat release/*.sha256 2>/dev/null || echo "No checksums"
-            echo '```'
-            echo ""
-            echo "</details>"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.ref_name }}
-          name: ClawStation ${{ github.ref_name }}
-          body: ${{ steps.notes.outputs.notes }}
-          files: release/*
-          draft: false
-          prerelease: ${{ contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc') || contains(github.ref_name, '-alpha') }}
-          generate_release_notes: true
-          fail_on_unmatched_files: false
+          tagName: ${{ github.ref_name }}
+          releaseName: 'ClawStation ${{ github.ref_name }}'
+          releaseBody: 'See the assets to download this version and install.'
+          releaseDraft: false
+          prerelease: ${{ contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc') }}
+          args: --target ${{ matrix.target }}
