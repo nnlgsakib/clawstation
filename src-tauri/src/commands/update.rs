@@ -8,8 +8,7 @@ use crate::install::verify::verify_gateway_health;
 
 const OPENCLAW_IMAGE: &str = "ghcr.io/openclaw/openclaw";
 const OPENCLAW_TAG: &str = "latest";
-const GITHUB_RELEASES_URL: &str =
-    "https://api.github.com/repos/openclaw/openclaw/releases/latest";
+const GITHUB_RELEASES_URL: &str = "https://api.github.com/repos/openclaw/openclaw/releases/latest";
 
 // ─── Types ────────────────────────────────────────────────────────
 
@@ -116,7 +115,12 @@ async fn update_docker(app_handle: &AppHandle) -> Result<UpdateResult, AppError>
     let docker = connect_docker().await?;
 
     // Pull the latest image
-    emit_progress(app_handle, "pulling_image", 30, "Pulling latest OpenClaw image...");
+    emit_progress(
+        app_handle,
+        "pulling_image",
+        30,
+        "Pulling latest OpenClaw image...",
+    );
 
     use futures_util::StreamExt;
     let mut stream = docker.create_image(
@@ -237,9 +241,10 @@ async fn update_native(app_handle: &AppHandle) -> Result<UpdateResult, AppError>
         .await
         .map_err(|e| AppError::InstallationFailed {
             reason: format!("Failed to update openclaw: {e}"),
-            suggestion: "Ensure npm is installed and you have permission to install global packages. \
+            suggestion:
+                "Ensure npm is installed and you have permission to install global packages. \
                          Try: npm install -g openclaw@latest"
-                .into(),
+                    .into(),
         })?;
 
     if !output.status.success() {
@@ -271,7 +276,9 @@ async fn detect_install_method() -> (String, String) {
     // Check for Docker install
     let compose_path = home.join(".openclaw").join("docker-compose.yml");
     if compose_path.exists() {
-        let version = get_docker_version().await.unwrap_or_else(|| "latest".into());
+        let version = get_docker_version()
+            .await
+            .unwrap_or_else(|| "latest".into());
         return ("docker".into(), version);
     }
 
@@ -282,9 +289,7 @@ async fn detect_install_method() -> (String, String) {
         .await;
     if let Ok(output) = output {
         if output.status.success() {
-            let version = String::from_utf8_lossy(&output.stdout)
-                .trim()
-                .to_string();
+            let version = String::from_utf8_lossy(&output.stdout).trim().to_string();
             return ("native".into(), version);
         }
     }
@@ -295,7 +300,10 @@ async fn detect_install_method() -> (String, String) {
 /// Get the running OpenClaw image tag from Docker.
 async fn get_docker_version() -> Option<String> {
     let docker = connect_docker().await.ok()?;
-    let container = docker.inspect_container("openclaw-gateway", None).await.ok()?;
+    let container = docker
+        .inspect_container("openclaw-gateway", None)
+        .await
+        .ok()?;
     let image = container.config?.image?;
     // Image format: "ghcr.io/openclaw/openclaw:latest" or similar
     let tag = image.split(':').last().unwrap_or("latest");

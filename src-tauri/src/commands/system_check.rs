@@ -26,13 +26,15 @@ pub async fn run_system_check() -> Result<SystemCheckResult, AppError> {
     let platform = std::env::consts::OS.to_string();
 
     // Docker check — reuse shared health check
-    let docker_status = check_docker_health_internal().await.unwrap_or(DockerStatus {
-        installed: false,
-        running: false,
-        version: None,
-        api_version: None,
-        platform: platform.clone(),
-    });
+    let docker_status = check_docker_health_internal()
+        .await
+        .unwrap_or(DockerStatus {
+            installed: false,
+            running: false,
+            version: None,
+            api_version: None,
+            platform: platform.clone(),
+        });
 
     // Node.js check
     let (node_available, node_version) = check_nodejs().await;

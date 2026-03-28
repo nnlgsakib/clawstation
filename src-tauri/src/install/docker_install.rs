@@ -1,8 +1,8 @@
 use crate::docker::check::check_docker_health_internal;
 use crate::error::AppError;
-use crate::install::InstallResult;
 use crate::install::progress::emit_progress;
 use crate::install::verify::verify_gateway_health;
+use crate::install::InstallResult;
 use serde::{Deserialize, Serialize};
 use std::process::Stdio;
 use tokio::io::{AsyncBufReadExt, BufReader};
@@ -68,8 +68,8 @@ pub async fn docker_install(
 
     if !docker_status.running {
         return Err(AppError::DockerDaemonNotRunning {
-            suggestion: "Start Docker Desktop (Windows) or run: sudo systemctl start docker (Linux)"
-                .into(),
+            suggestion:
+                "Start Docker Desktop (Windows) or run: sudo systemctl start docker (Linux)".into(),
         });
     }
 
@@ -92,12 +92,12 @@ pub async fn docker_install(
     let workspace_dir = config_dir.join("workspace");
     let repo_dir = config_dir.join("repo");
 
-    tokio::fs::create_dir_all(&config_dir).await.map_err(|e| {
-        AppError::InstallationFailed {
+    tokio::fs::create_dir_all(&config_dir)
+        .await
+        .map_err(|e| AppError::InstallationFailed {
             reason: format!("Failed to create config directory: {e}"),
             suggestion: "Check directory permissions for ~/.openclaw".into(),
-        }
-    })?;
+        })?;
     tokio::fs::create_dir_all(&workspace_dir)
         .await
         .map_err(|e| AppError::InstallationFailed {
@@ -118,7 +118,13 @@ pub async fn docker_install(
 
         // Mark repo directory as safe (needed for non-NTFS drives on Windows)
         tokio::process::Command::new("git")
-            .args(["config", "--global", "--add", "safe.directory", repo_dir.to_str().unwrap()])
+            .args([
+                "config",
+                "--global",
+                "--add",
+                "safe.directory",
+                repo_dir.to_str().unwrap(),
+            ])
             .output()
             .await
             .ok();
@@ -142,10 +148,13 @@ pub async fn docker_install(
             }
         }
 
-        let status = child.wait().await.map_err(|e| AppError::InstallationFailed {
-            reason: format!("Failed to wait for git pull: {e}"),
-            suggestion: "Ensure git is installed and on your PATH".into(),
-        })?;
+        let status = child
+            .wait()
+            .await
+            .map_err(|e| AppError::InstallationFailed {
+                reason: format!("Failed to wait for git pull: {e}"),
+                suggestion: "Ensure git is installed and on your PATH".into(),
+            })?;
 
         if !status.success() {
             emit_log(app_handle, "git pull completed with warnings");
@@ -163,7 +172,8 @@ pub async fn docker_install(
         let mut child = tokio::process::Command::new("git")
             .args([
                 "clone",
-                "--depth", "1",
+                "--depth",
+                "1",
                 "--progress",
                 OPENCLAW_REPO,
                 repo_dir.to_str().unwrap(),
@@ -186,10 +196,13 @@ pub async fn docker_install(
             }
         }
 
-        let status = child.wait().await.map_err(|e| AppError::InstallationFailed {
-            reason: format!("Failed to wait for git clone: {e}"),
-            suggestion: "Ensure git is installed and on your PATH".into(),
-        })?;
+        let status = child
+            .wait()
+            .await
+            .map_err(|e| AppError::InstallationFailed {
+                reason: format!("Failed to wait for git clone: {e}"),
+                suggestion: "Ensure git is installed and on your PATH".into(),
+            })?;
 
         if !status.success() {
             return Err(AppError::InstallationFailed {
@@ -202,7 +215,13 @@ pub async fn docker_install(
 
         // Mark repo directory as safe (needed for non-NTFS drives on Windows)
         tokio::process::Command::new("git")
-            .args(["config", "--global", "--add", "safe.directory", repo_dir.to_str().unwrap()])
+            .args([
+                "config",
+                "--global",
+                "--add",
+                "safe.directory",
+                repo_dir.to_str().unwrap(),
+            ])
             .output()
             .await
             .ok();
@@ -237,7 +256,10 @@ pub async fn docker_install(
             suggestion: "Check write permissions for ~/.openclaw/repo".into(),
         })?;
 
-    emit_log(app_handle, &format!(".env written to {}", env_path.display()));
+    emit_log(
+        app_handle,
+        &format!(".env written to {}", env_path.display()),
+    );
 
     // Create required subdirectories under config_dir
     for sub in &["identity", "agents/main/agent", "agents/main/sessions"] {
@@ -245,7 +267,12 @@ pub async fn docker_install(
     }
 
     // Step 5a: Pull pre-built image
-    emit_progress(app_handle, "pulling_image", 40, "Pulling pre-built OpenClaw image...");
+    emit_progress(
+        app_handle,
+        "pulling_image",
+        40,
+        "Pulling pre-built OpenClaw image...",
+    );
     emit_log(app_handle, &format!("Pulling {OPENCLAW_IMAGE}..."));
 
     let mut child = tokio::process::Command::new("docker")
@@ -267,10 +294,13 @@ pub async fn docker_install(
         }
     }
 
-    let status = child.wait().await.map_err(|e| AppError::InstallationFailed {
-        reason: format!("Failed to wait for docker pull: {e}"),
-        suggestion: "Ensure Docker is installed and running".into(),
-    })?;
+    let status = child
+        .wait()
+        .await
+        .map_err(|e| AppError::InstallationFailed {
+            reason: format!("Failed to wait for docker pull: {e}"),
+            suggestion: "Ensure Docker is installed and running".into(),
+        })?;
 
     if !status.success() {
         return Err(AppError::InstallationFailed {
@@ -289,16 +319,31 @@ pub async fn docker_install(
     let config_commands: &[(&[&str], &str)] = &[
         (&["config", "set", "gateway.mode", "local"], "mode"),
         (&["config", "set", "gateway.bind", "lan"], "bind"),
-        (&[
-            "config", "set", "gateway.controlUi.allowedOrigins",
-            r#"["http://localhost:18789","http://127.0.0.1:18789"]"#,
-            "--strict-json",
-        ], "origins"),
+        (
+            &[
+                "config",
+                "set",
+                "gateway.controlUi.allowedOrigins",
+                r#"["http://localhost:18789","http://127.0.0.1:18789"]"#,
+                "--strict-json",
+            ],
+            "origins",
+        ),
     ];
 
     for (args, label) in config_commands {
         let output = tokio::process::Command::new("docker")
-            .args(["compose", "run", "--rm", "--no-deps", "-T", "--entrypoint", "node", "openclaw-gateway", "dist/index.js"])
+            .args([
+                "compose",
+                "run",
+                "--rm",
+                "--no-deps",
+                "-T",
+                "--entrypoint",
+                "node",
+                "openclaw-gateway",
+                "dist/index.js",
+            ])
             .args(*args)
             .current_dir(&repo_dir)
             .output()
@@ -321,7 +366,12 @@ pub async fn docker_install(
     emit_log(app_handle, "Gateway configured.");
 
     // Step 5c: Start gateway
-    emit_progress(app_handle, "starting_gateway", 75, "Starting OpenClaw gateway...");
+    emit_progress(
+        app_handle,
+        "starting_gateway",
+        75,
+        "Starting OpenClaw gateway...",
+    );
     emit_log(app_handle, "Starting gateway via docker compose...");
 
     let output = tokio::process::Command::new("docker")
@@ -356,12 +406,7 @@ pub async fn docker_install(
     emit_progress(app_handle, "starting_gateway", 85, "Gateway running.");
 
     // Step 6: Verify gateway is healthy
-    emit_progress(
-        app_handle,
-        "verifying",
-        90,
-        "Verifying installation...",
-    );
+    emit_progress(app_handle, "verifying", 90, "Verifying installation...");
     verify_gateway_health(30).await?;
 
     emit_progress(

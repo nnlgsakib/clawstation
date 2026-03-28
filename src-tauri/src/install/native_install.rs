@@ -14,12 +14,7 @@ const MIN_NODE_VERSION: &str = "22.12.0";
 /// 4. Verify installation
 pub async fn native_install(app_handle: &tauri::AppHandle) -> Result<InstallResult, AppError> {
     // Step 1: Check Node.js version
-    emit_progress(
-        app_handle,
-        "checking_node",
-        10,
-        "Checking Node.js...",
-    );
+    emit_progress(app_handle, "checking_node", 10, "Checking Node.js...");
     let node_version = get_node_version().await?;
 
     if !meets_minimum_version(&node_version, MIN_NODE_VERSION) {
@@ -69,12 +64,7 @@ pub async fn native_install(app_handle: &tauri::AppHandle) -> Result<InstallResu
     }
 
     // Step 3: Run onboard --install-daemon
-    emit_progress(
-        app_handle,
-        "configuring",
-        60,
-        "Running OpenClaw setup...",
-    );
+    emit_progress(app_handle, "configuring", 60, "Running OpenClaw setup...");
     let output = tokio::process::Command::new("openclaw")
         .args(["onboard", "--install-daemon"])
         .output()
@@ -89,18 +79,11 @@ pub async fn native_install(app_handle: &tauri::AppHandle) -> Result<InstallResu
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
         // Non-fatal: onboarding wizard may require interactive input
-        eprintln!(
-            "Warning: openclaw onboard exited with warnings: {stderr}"
-        );
+        eprintln!("Warning: openclaw onboard exited with warnings: {stderr}");
     }
 
     // Step 4: Verify installation
-    emit_progress(
-        app_handle,
-        "verifying",
-        90,
-        "Verifying installation...",
-    );
+    emit_progress(app_handle, "verifying", 90, "Verifying installation...");
     let version = get_openclaw_version().await?;
 
     emit_progress(

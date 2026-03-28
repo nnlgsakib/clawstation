@@ -11,9 +11,9 @@ pub struct DockerStatus {
     pub running: bool,
     pub version: Option<String>,
     pub api_version: Option<String>,
-    pub platform: String,       // "windows" or "linux"
-    pub docker_desktop: bool,   // true if Docker Desktop detected (Windows)
-    pub wsl_backend: bool,      // true if WSL2 backend active (Windows)
+    pub platform: String,     // "windows" or "linux"
+    pub docker_desktop: bool, // true if Docker Desktop detected (Windows)
+    pub wsl_backend: bool,    // true if WSL2 backend active (Windows)
 }
 
 /// Extended Docker information with container/image counts.

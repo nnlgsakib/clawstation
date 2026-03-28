@@ -90,11 +90,7 @@ pub async fn check_openclaw() -> Result<OpenClawInfo, String> {
     };
 
     for (cmd, args) in &attempts {
-        if let Ok(out) = tokio::process::Command::new(cmd)
-            .args(args)
-            .output()
-            .await
-        {
+        if let Ok(out) = tokio::process::Command::new(cmd).args(args).output().await {
             if out.status.success() {
                 let version = String::from_utf8_lossy(&out.stdout).trim().to_string();
                 if !version.is_empty() {
@@ -168,10 +164,7 @@ pub async fn install_openclaw_script(app: tauri::AppHandle) -> Result<String, St
     );
 
     for pkg_manager in &managers {
-        let _ = app.emit(
-            "install-output",
-            format!("Trying {pkg_manager}..."),
-        );
+        let _ = app.emit("install-output", format!("Trying {pkg_manager}..."));
 
         let install_args: Vec<&str> = match pkg_manager.as_str() {
             "pnpm" => vec!["add", "-g", "openclaw@latest"],
@@ -248,7 +241,10 @@ pub async fn install_openclaw_script(app: tauri::AppHandle) -> Result<String, St
 
         match status {
             Ok(s) if s.success() => {
-                let _ = app.emit("install-output", format!("{pkg_manager} install completed, verifying..."));
+                let _ = app.emit(
+                    "install-output",
+                    format!("{pkg_manager} install completed, verifying..."),
+                );
 
                 let verify = check_openclaw().await?;
                 if verify.installed {
@@ -270,7 +266,9 @@ pub async fn install_openclaw_script(app: tauri::AppHandle) -> Result<String, St
                 let exit_code = s.code().unwrap_or(-1);
                 let _ = app.emit(
                     "install-output",
-                    format!("[warn] {pkg_manager} failed with exit code {exit_code}, trying next..."),
+                    format!(
+                        "[warn] {pkg_manager} failed with exit code {exit_code}, trying next..."
+                    ),
                 );
                 continue;
             }
@@ -298,7 +296,10 @@ pub async fn reinstall_openclaw(app: tauri::AppHandle) -> Result<String, String>
         return Err("No package manager found (pnpm, yarn, or npm required)".to_string());
     }
 
-    let _ = app.emit("install-output", "Removing existing OpenClaw installation...".to_string());
+    let _ = app.emit(
+        "install-output",
+        "Removing existing OpenClaw installation...".to_string(),
+    );
 
     // Try to uninstall with each available manager
     for pkg_manager in &managers {
@@ -364,7 +365,10 @@ pub async fn reinstall_openclaw(app: tauri::AppHandle) -> Result<String, String>
         }
     }
 
-    let _ = app.emit("install-output", "Uninstall complete. Installing fresh copy...".to_string());
+    let _ = app.emit(
+        "install-output",
+        "Uninstall complete. Installing fresh copy...".to_string(),
+    );
 
     // Now do a clean install
     install_openclaw_script(app).await
@@ -373,10 +377,7 @@ pub async fn reinstall_openclaw(app: tauri::AppHandle) -> Result<String, String>
 // ─── Private helpers ──────────────────────────────────────────────
 
 fn parse_node_version(version: &str) -> (bool, bool) {
-    let parts: Vec<u32> = version
-        .split('.')
-        .filter_map(|s| s.parse().ok())
-        .collect();
+    let parts: Vec<u32> = version.split('.').filter_map(|s| s.parse().ok()).collect();
 
     if parts.len() < 2 {
         return (false, false);

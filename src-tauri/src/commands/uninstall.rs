@@ -286,10 +286,7 @@ async fn stop_native_process() -> Result<(), String> {
 /// Handle config directory removal based on preserve_config flag.
 ///
 /// Returns true if config was fully removed, false if preserved.
-async fn handle_config_removal(
-    config: &PathBuf,
-    preserve_config: bool,
-) -> Result<bool, String> {
+async fn handle_config_removal(config: &PathBuf, preserve_config: bool) -> Result<bool, String> {
     if !config.exists() {
         return Ok(true); // Nothing to remove
     }

@@ -1,9 +1,9 @@
 use reqwest;
 use serde::{Deserialize, Serialize};
 
-use crate::error::AppError;
 use crate::commands::monitoring::get_openclaw_status;
 use crate::commands::monitoring::OpenClawStatus;
+use crate::error::AppError;
 
 // ─── Types ────────────────────────────────────────────────────────
 
@@ -129,10 +129,12 @@ pub async fn disconnect_channel(channel_id: String) -> Result<ChannelInfo, AppEr
 
     let port = match status {
         OpenClawStatus::Running { port, .. } => port,
-        _ => return Err(AppError::Internal {
-            message: "OpenClaw is not running".into(),
-            suggestion: "Start OpenClaw before managing channels.".into(),
-        }),
+        _ => {
+            return Err(AppError::Internal {
+                message: "OpenClaw is not running".into(),
+                suggestion: "Start OpenClaw before managing channels.".into(),
+            })
+        }
     };
 
     let client = reqwest::Client::builder()
@@ -143,7 +145,10 @@ pub async fn disconnect_channel(channel_id: String) -> Result<ChannelInfo, AppEr
             suggestion: "This is an internal error. Please report it.".into(),
         })?;
 
-    let url = format!("http://localhost:{}/api/channels/{}/disconnect", port, channel_id);
+    let url = format!(
+        "http://localhost:{}/api/channels/{}/disconnect",
+        port, channel_id
+    );
 
     match client.post(&url).send().await {
         Ok(resp) => match resp.json::<ChannelInfo>().await {
@@ -173,10 +178,12 @@ pub async fn connect_channel(channel_id: String) -> Result<ChannelInfo, AppError
 
     let port = match status {
         OpenClawStatus::Running { port, .. } => port,
-        _ => return Err(AppError::Internal {
-            message: "OpenClaw is not running".into(),
-            suggestion: "Start OpenClaw before managing channels.".into(),
-        }),
+        _ => {
+            return Err(AppError::Internal {
+                message: "OpenClaw is not running".into(),
+                suggestion: "Start OpenClaw before managing channels.".into(),
+            })
+        }
     };
 
     let client = reqwest::Client::builder()
@@ -187,7 +194,10 @@ pub async fn connect_channel(channel_id: String) -> Result<ChannelInfo, AppError
             suggestion: "This is an internal error. Please report it.".into(),
         })?;
 
-    let url = format!("http://localhost:{}/api/channels/{}/connect", port, channel_id);
+    let url = format!(
+        "http://localhost:{}/api/channels/{}/connect",
+        port, channel_id
+    );
 
     match client.post(&url).send().await {
         Ok(resp) => match resp.json::<ChannelInfo>().await {
@@ -217,10 +227,12 @@ pub async fn get_whatsapp_qr() -> Result<WhatsAppQrData, AppError> {
 
     let port = match status {
         OpenClawStatus::Running { port, .. } => port,
-        _ => return Err(AppError::Internal {
-            message: "OpenClaw is not running".into(),
-            suggestion: "Start OpenClaw before pairing WhatsApp.".into(),
-        }),
+        _ => {
+            return Err(AppError::Internal {
+                message: "OpenClaw is not running".into(),
+                suggestion: "Start OpenClaw before pairing WhatsApp.".into(),
+            })
+        }
     };
 
     let client = reqwest::Client::builder()
@@ -278,10 +290,12 @@ pub async fn validate_telegram_token(token: String) -> Result<TokenValidationRes
     let status = get_openclaw_status().await?;
     let port = match status {
         OpenClawStatus::Running { port, .. } => port,
-        _ => return Ok(TokenValidationResult {
-            valid: false,
-            message: "OpenClaw is not running. Start it first.".into(),
-        }),
+        _ => {
+            return Ok(TokenValidationResult {
+                valid: false,
+                message: "OpenClaw is not running. Start it first.".into(),
+            })
+        }
     };
 
     let client = reqwest::Client::builder()
@@ -294,7 +308,12 @@ pub async fn validate_telegram_token(token: String) -> Result<TokenValidationRes
 
     let url = format!("http://localhost:{}/api/channels/telegram/validate", port);
 
-    match client.post(&url).json(&serde_json::json!({ "token": token })).send().await {
+    match client
+        .post(&url)
+        .json(&serde_json::json!({ "token": token }))
+        .send()
+        .await
+    {
         Ok(resp) => {
             if resp.status().is_success() {
                 Ok(TokenValidationResult {
@@ -304,7 +323,8 @@ pub async fn validate_telegram_token(token: String) -> Result<TokenValidationRes
             } else {
                 Ok(TokenValidationResult {
                     valid: false,
-                    message: "Token rejected by Telegram API. Check that the token is correct.".into(),
+                    message: "Token rejected by Telegram API. Check that the token is correct."
+                        .into(),
                 })
             }
         }
@@ -337,10 +357,12 @@ pub async fn validate_discord_token(token: String) -> Result<TokenValidationResu
     let status = get_openclaw_status().await?;
     let port = match status {
         OpenClawStatus::Running { port, .. } => port,
-        _ => return Ok(TokenValidationResult {
-            valid: false,
-            message: "OpenClaw is not running. Start it first.".into(),
-        }),
+        _ => {
+            return Ok(TokenValidationResult {
+                valid: false,
+                message: "OpenClaw is not running. Start it first.".into(),
+            })
+        }
     };
 
     let client = reqwest::Client::builder()
@@ -353,7 +375,12 @@ pub async fn validate_discord_token(token: String) -> Result<TokenValidationResu
 
     let url = format!("http://localhost:{}/api/channels/discord/validate", port);
 
-    match client.post(&url).json(&serde_json::json!({ "token": token })).send().await {
+    match client
+        .post(&url)
+        .json(&serde_json::json!({ "token": token }))
+        .send()
+        .await
+    {
         Ok(resp) => {
             if resp.status().is_success() {
                 Ok(TokenValidationResult {
@@ -363,7 +390,8 @@ pub async fn validate_discord_token(token: String) -> Result<TokenValidationResu
             } else {
                 Ok(TokenValidationResult {
                     valid: false,
-                    message: "Token rejected by Discord API. Check that the token is correct.".into(),
+                    message: "Token rejected by Discord API. Check that the token is correct."
+                        .into(),
                 })
             }
         }
@@ -416,10 +444,12 @@ pub async fn update_contact_status(
 
     let port = match status {
         OpenClawStatus::Running { port, .. } => port,
-        _ => return Err(AppError::Internal {
-            message: "OpenClaw is not running".into(),
-            suggestion: "Start OpenClaw before managing contacts.".into(),
-        }),
+        _ => {
+            return Err(AppError::Internal {
+                message: "OpenClaw is not running".into(),
+                suggestion: "Start OpenClaw before managing contacts.".into(),
+            })
+        }
     };
 
     let client = reqwest::Client::builder()
@@ -430,7 +460,10 @@ pub async fn update_contact_status(
             suggestion: "This is an internal error. Please report it.".into(),
         })?;
 
-    let url = format!("http://localhost:{}/api/contacts/{}/status", port, contact_id);
+    let url = format!(
+        "http://localhost:{}/api/contacts/{}/status",
+        port, contact_id
+    );
 
     match client
         .put(&url)

@@ -32,7 +32,12 @@ fn desktop_config_path() -> Result<std::path::PathBuf, String> {
 
 fn auth_profiles_path() -> Result<std::path::PathBuf, String> {
     let home = dirs::home_dir().ok_or("Cannot determine home directory")?;
-    Ok(home.join(".openclaw").join("agents").join("main").join("agent").join("auth-profiles.json"))
+    Ok(home
+        .join(".openclaw")
+        .join("agents")
+        .join("main")
+        .join("agent")
+        .join("auth-profiles.json"))
 }
 
 /// Read the desktop config.
@@ -42,7 +47,9 @@ pub async fn read_desktop_config() -> Result<DesktopConfig, String> {
     if !path.exists() {
         return Ok(DesktopConfig::default());
     }
-    let content = tokio::fs::read_to_string(&path).await.map_err(|e| format!("{e}"))?;
+    let content = tokio::fs::read_to_string(&path)
+        .await
+        .map_err(|e| format!("{e}"))?;
     serde_json::from_str(&content).map_err(|e| format!("{e}"))
 }
 
@@ -51,10 +58,14 @@ pub async fn read_desktop_config() -> Result<DesktopConfig, String> {
 pub async fn write_desktop_config(config: DesktopConfig) -> Result<(), String> {
     let path = desktop_config_path()?;
     if let Some(parent) = path.parent() {
-        tokio::fs::create_dir_all(parent).await.map_err(|e| format!("{e}"))?;
+        tokio::fs::create_dir_all(parent)
+            .await
+            .map_err(|e| format!("{e}"))?;
     }
     let json = serde_json::to_string_pretty(&config).map_err(|e| format!("{e}"))?;
-    tokio::fs::write(&path, json).await.map_err(|e| format!("{e}"))
+    tokio::fs::write(&path, json)
+        .await
+        .map_err(|e| format!("{e}"))
 }
 
 /// Write API key to OpenClaw's auth-profiles.json so the gateway can find it.
@@ -69,14 +80,18 @@ pub async fn write_auth_profile(
 ) -> Result<(), String> {
     let path = auth_profiles_path()?;
     if let Some(parent) = path.parent() {
-        tokio::fs::create_dir_all(parent).await.map_err(|e| format!("{e}"))?;
+        tokio::fs::create_dir_all(parent)
+            .await
+            .map_err(|e| format!("{e}"))?;
     }
 
     let mode = mode.unwrap_or_else(|| "api_key".to_string());
 
     // Read existing profiles
     let mut profiles: HashMap<String, AuthProfile> = if path.exists() {
-        let content = tokio::fs::read_to_string(&path).await.map_err(|e| format!("{e}"))?;
+        let content = tokio::fs::read_to_string(&path)
+            .await
+            .map_err(|e| format!("{e}"))?;
         serde_json::from_str(&content).unwrap_or_default()
     } else {
         HashMap::new()
@@ -84,15 +99,24 @@ pub async fn write_auth_profile(
 
     // Create/update profile
     let profile_key = format!("{provider}:default");
-    profiles.insert(profile_key, AuthProfile {
-        provider: provider.clone(),
-        mode: mode.clone(),
-        key: if mode == "api_key" { Some(api_key.clone()) } else { None },
-        token: if mode == "token" { Some(api_key) } else { None },
-    });
+    profiles.insert(
+        profile_key,
+        AuthProfile {
+            provider: provider.clone(),
+            mode: mode.clone(),
+            key: if mode == "api_key" {
+                Some(api_key.clone())
+            } else {
+                None
+            },
+            token: if mode == "token" { Some(api_key) } else { None },
+        },
+    );
 
     let json = serde_json::to_string_pretty(&profiles).map_err(|e| format!("{e}"))?;
-    tokio::fs::write(&path, json).await.map_err(|e| format!("{e}"))
+    tokio::fs::write(&path, json)
+        .await
+        .map_err(|e| format!("{e}"))
 }
 
 /// Write API key to OpenClaw's .env file so the gateway process can read it.
@@ -104,11 +128,15 @@ pub async fn write_env_key(env_var: String, value: String) -> Result<(), String>
     let env_path = home.join(".openclaw").join(".env");
 
     if let Some(parent) = env_path.parent() {
-        tokio::fs::create_dir_all(parent).await.map_err(|e| format!("{e}"))?;
+        tokio::fs::create_dir_all(parent)
+            .await
+            .map_err(|e| format!("{e}"))?;
     }
 
     let mut content = if env_path.exists() {
-        tokio::fs::read_to_string(&env_path).await.map_err(|e| format!("{e}"))?
+        tokio::fs::read_to_string(&env_path)
+            .await
+            .map_err(|e| format!("{e}"))?
     } else {
         String::new()
     };
@@ -128,11 +156,15 @@ pub async fn write_env_key(env_var: String, value: String) -> Result<(), String>
         content.push_str(&line);
     }
 
-    tokio::fs::write(&env_path, content).await.map_err(|e| format!("{e}"))
+    tokio::fs::write(&env_path, content)
+        .await
+        .map_err(|e| format!("{e}"))
 }
 
 /// Get the workspace path from desktop config, or default.
 pub async fn get_workspace_path() -> String {
     let config = read_desktop_config().await.unwrap_or_default();
-    config.workspace_path.unwrap_or_else(|| "~/.openclaw/workspace".to_string())
+    config
+        .workspace_path
+        .unwrap_or_else(|| "~/.openclaw/workspace".to_string())
 }

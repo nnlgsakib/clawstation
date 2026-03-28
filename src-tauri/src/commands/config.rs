@@ -36,12 +36,13 @@ pub async fn read_config() -> Result<serde_json::Value, AppError> {
         return Ok(serde_json::json!({}));
     }
 
-    let content = tokio::fs::read_to_string(&config_path)
-        .await
-        .map_err(|e| AppError::ConfigError {
-            message: format!("Cannot read config: {e}"),
-            suggestion: "Check file permissions on ~/.openclaw/openclaw.json".into(),
-        })?;
+    let content =
+        tokio::fs::read_to_string(&config_path)
+            .await
+            .map_err(|e| AppError::ConfigError {
+                message: format!("Cannot read config: {e}"),
+                suggestion: "Check file permissions on ~/.openclaw/openclaw.json".into(),
+            })?;
 
     // Parse as JSON5 (strip comments, trailing commas)
     let cleaned = strip_json5_comments(&content);
@@ -232,7 +233,9 @@ fn regex_trailing_comma(input: &str) -> String {
         if bytes[i] == b',' {
             // Look ahead for whitespace then } or ]
             let mut j = i + 1;
-            while j < len && (bytes[j] == b' ' || bytes[j] == b'\t' || bytes[j] == b'\n' || bytes[j] == b'\r') {
+            while j < len
+                && (bytes[j] == b' ' || bytes[j] == b'\t' || bytes[j] == b'\n' || bytes[j] == b'\r')
+            {
                 j += 1;
             }
             if j < len && (bytes[j] == b'}' || bytes[j] == b']') {
