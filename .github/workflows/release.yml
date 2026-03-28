@@ -2,29 +2,34 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    tags: ['v*']
 
 permissions:
   contents: write
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build:
+    name: Build (${{ matrix.label }})
     strategy:
       fail-fast: false
       matrix:
         include:
           - platform: ubuntu-22.04
-            target: x86_64-unknown-linux-gnu
+            rust_target: x86_64-unknown-linux-gnu
             label: linux-x86_64
+          - platform: ubuntu-22.04
+            rust_target: aarch64-unknown-linux-gnu
+            label: linux-aarch64
           - platform: windows-latest
-            target: x86_64-pc-windows-msvc
+            rust_target: x86_64-pc-windows-msvc
             label: windows-x86_64
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - uses: pnpm/action-setup@v4
 
@@ -33,8 +38,16 @@ jobs:
           node-version: '22'
           cache: 'pnpm'
 
-      - name: Install dependencies (Ubuntu)
-        if: matrix.platform == 'ubuntu-22.04'
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust_target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -45,37 +58,71 @@ jobs:
             librsvg2-dev \
             patchelf
 
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
-
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: src-tauri
+      - name: Setup cross-compilation (aarch64)
+        if: matrix.rust_target == 'aarch64-unknown-linux-gnu'
+        run: |
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
 
       - run: pnpm install --frozen-lockfile
 
-      - uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-        with:
-          tagName: ${{ github.ref_name }}
-          releaseName: 'ClawStation ${{ github.ref_name }}'
-          releaseBody: '## ClawStation ${{ github.ref_name }}'
-          releaseDraft: false
-          prerelease: ${{ contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc') }}
-          args: --target ${{ matrix.target }}
+      - name: Build Tauri app
+        run: pnpm tauri build --target ${{ matrix.rust_target }}
 
-  update-release:
-    name: Finalize Release
+      - name: Collect artifacts
+        shell: bash
+        run: |
+          BUNDLE_DIR="src-tauri/target/${{ matrix.rust_target }}/release/bundle"
+          mkdir -p release-artifacts
+          echo "Collecting bundles from: $BUNDLE_DIR"
+          find "$BUNDLE_DIR" -type f \( \
+            -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" \
+            -o -name "*.msi" -o -name "*.exe" \
+          \) -exec cp -v {} release-artifacts/ \;
+          echo "--- Collected artifacts ---"
+          ls -la release-artifacts/
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.label }}
+          path: release-artifacts/
+          if-no-files-found: warn
+          retention-days: 1
+
+  release:
+    name: Create GitHub Release
     needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: build-*
+          merge-multiple: true
+
+      - name: Prepare release files
+        run: |
+          mkdir -p release
+          find . -maxdepth 2 -type f \( \
+            -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" \
+            -o -name "*.msi" -o -name "*.exe" \
+          \) -exec cp -v {} release/ \;
+          echo "--- Release files ---"
+          ls -la release/
+
+      - name: Verify artifacts exist
+        run: |
+          ARTIFACT_COUNT=$(find release -type f | wc -l)
+          echo "Found $ARTIFACT_COUNT installer artifacts"
+          if [ "$ARTIFACT_COUNT" -eq 0 ]; then
+            echo "::error::No installer artifacts found!"
+            exit 1
+          fi
 
       - name: Generate release notes
         id: notes
@@ -85,7 +132,6 @@ jobs:
           TAG="${{ github.ref_name }}"
           PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
 
-          # Get contributors
           if [ -n "$PREV_TAG" ]; then
             CONTRIBUTORS=$(git log "${PREV_TAG}..HEAD" --format='%an' | sort -u | sed 's/^/- /')
             COMMIT_COUNT=$(git rev-list --count "${PREV_TAG}..HEAD")
@@ -100,14 +146,27 @@ jobs:
             echo "body<<EOF"
             echo "## ClawStation ${TAG}"
             echo ""
-            echo "### Installation"
+            echo "### Downloads"
             echo ""
-            echo "Download the appropriate installer for your platform from the assets below."
-            echo ""
-            echo "| Platform | Installer |"
-            echo "|----------|-----------|"
-            echo "| Linux (x86_64) | \`.AppImage\` or \`.deb\` |"
-            echo "| Windows (x86_64) | \`.msi\` or \`.exe\` |"
+            echo "| Platform | File |"
+            echo "|----------|------|"
+            for f in release/*; do
+              [ -f "$f" ] || continue
+              fname=$(basename "$f")
+              case "$fname" in
+                *.AppImage) echo "| Linux x86_64 (AppImage) | \`${fname}\` |" ;;
+                *.deb)
+                  if echo "$fname" | grep -q aarch64; then
+                    echo "| Linux aarch64 (DEB) | \`${fname}\` |"
+                  else
+                    echo "| Linux x86_64 (DEB) | \`${fname}\` |"
+                  fi
+                  ;;
+                *.rpm) echo "| Linux (RPM) | \`${fname}\` |" ;;
+                *.msi) echo "| Windows (MSI) | \`${fname}\` |" ;;
+                *.exe) echo "| Windows (EXE) | \`${fname}\` |" ;;
+              esac
+            done
             echo ""
             echo "### Changelog (${COMMIT_COUNT} commits)"
             echo ""
@@ -141,9 +200,14 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Update release body
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
+          name: ClawStation ${{ github.ref_name }}
           body: ${{ steps.notes.outputs.body }}
+          files: release/*
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc') || contains(github.ref_name, '-alpha') }}
           generate_release_notes: true
+          fail_on_unmatched_files: false
