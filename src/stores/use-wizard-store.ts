@@ -510,7 +510,7 @@ export const useWizardStore = create<WizardState>((set, get) => ({
 
   // Setters
   setModelProvider: (provider) => {
-    const prov = MODEL_PROVIDERS.find((p) => p.id === provider);
+    const prov = get().getEffectiveProviders().find((p) => p.id === provider);
     set({
       modelProvider: provider,
       selectedModel: prov?.models[0] ?? "",
@@ -573,7 +573,7 @@ export const useWizardStore = create<WizardState>((set, get) => ({
   getGeneratedConfig: () => {
     const state = get();
     const effectiveModel = state.customModelId || state.selectedModel;
-    const provider = MODEL_PROVIDERS.find((p) => p.id === state.modelProvider);
+    const provider = state.getEffectiveProviders().find((p) => p.id === state.modelProvider);
     const now = new Date().toISOString();
 
     // ─── Build config matching real OpenClaw schema ────────────
