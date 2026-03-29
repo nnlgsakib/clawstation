@@ -1,4 +1,6 @@
+import { useMemo } from "react";
 import { useConfigStore, type ProviderConfig } from "@/stores/use-config-store";
+import { useOpenClawMetadata } from "@/hooks/use-openclaw-metadata";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const PROVIDER_OPTIONS = [
@@ -23,9 +25,31 @@ export function ProviderSection() {
   const { config, setProvider } = useConfigStore();
   const provider: ProviderConfig = { ...DEFAULT_PROVIDER, ...(config.provider as Partial<ProviderConfig> | undefined) };
 
+  // Dynamic metadata from OpenClaw
+  const { data: metadata } = useOpenClawMetadata();
+  const providerOptions = useMemo(() => {
+    if (!metadata) return PROVIDER_OPTIONS;
+    return metadata.providers.map(p => ({
+      value: p.id,
+      label: p.name,
+    }));
+  }, [metadata]);
+
+  const defaultModels = useMemo(() => {
+    if (!metadata) return DEFAULT_MODELS;
+    const models: Record<string, string> = {};
+    for (const p of metadata.providers) {
+      if (p.models.length > 0) {
+        models[p.id] = p.models[0].id.split("/").pop() ?? p.models[0].id;
+      }
+    }
+    // Merge with hardcoded defaults as fallback
+    return { ...DEFAULT_MODELS, ...models };
+  }, [metadata]);
+
   const handleProviderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newProvider = e.target.value;
-    const newModel = DEFAULT_MODELS[newProvider] || "";
+    const newModel = defaultModels[newProvider] || "";
     setProvider({
       provider: newProvider,
       model: newModel,
@@ -70,7 +94,7 @@ export function ProviderSection() {
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="">Select a provider</option>
-            {PROVIDER_OPTIONS.map((opt) => (
+            {providerOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>

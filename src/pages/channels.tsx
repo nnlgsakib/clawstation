@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   useChannels,
   useUpdateChannel,
@@ -6,6 +6,7 @@ import {
 } from "@/hooks/use-channels";
 import { useGatewayConfig } from "@/hooks/use-gateway";
 import { useGatewayStore } from "@/stores/use-gateway-store";
+import { useOpenClawMetadata } from "@/hooks/use-openclaw-metadata";
 import {
   Card,
   CardContent,
@@ -37,14 +38,60 @@ const CHANNEL_ICONS: Record<string, string> = {
   slack: "💬",
   signal: "🔒",
   msteams: "👥",
+  imessage: "💬",
+  irc: "🌐",
+  googlechat: "💬",
+  line: "💚",
+  matrix: "🔢",
+  mattermost: "🟦",
+  feishu: "🐦",
+  twitch: "📺",
+  nostr: "⚡",
+  "synology-chat": "🏠",
+  "nextcloud-talk": "☁️",
+  bluebubbles: "🫧",
+  zalo: "🇻🇳",
+  zalouser: "🇻🇳",
+  "voice-call": "📞",
+  openshell: "🐚",
+  tlon: "🌍",
+  "device-pair": "📱",
+  "phone-control": "📞",
 };
 
 export function Channels() {
   const connected = useGatewayStore((s) => s.connected);
   const { data: channels, isLoading, refetch } = useChannels();
   const { data: gatewayConfig } = useGatewayConfig();
+  const { data: metadata } = useOpenClawMetadata();
 
   const baseHash = (gatewayConfig as Record<string, unknown> | undefined)?.baseHash as string ?? "";
+
+  // Merge Gateway data with metadata — show all known channels
+  const allChannels = useMemo(() => {
+    if (!metadata) return channels ?? [];
+    return metadata.channels.map(ch => {
+      const gwChannel = channels?.find(c => c.provider === ch.id);
+      if (gwChannel) return gwChannel;
+      // Create a stub ChannelInfo from metadata
+      return {
+        provider: ch.id,
+        name: ch.name,
+        description: ch.description,
+        enabled: false,
+        config: {} as Record<string, unknown>,
+        setupFields: ch.configFields.map(f => ({
+          key: f.key,
+          label: f.label,
+          type: f.fieldType as "text" | "password" | "select" | "boolean" | "number",
+          placeholder: f.placeholder,
+          required: f.required,
+          options: f.enumValues?.map(v => ({ label: v, value: v })),
+        })),
+        docsUrl: ch.docsUrl,
+      } as ChannelInfo;
+    });
+  }, [metadata, channels]);
 
   const handleRefresh = () => {
     refetch();
@@ -107,7 +154,7 @@ export function Channels() {
 
       {connected && !isLoading && (
         <div className="grid gap-4 sm:grid-cols-2">
-          {channels?.map((channel) => (
+          {allChannels?.map((channel) => (
             <ChannelCard
               key={channel.provider}
               channel={channel}
