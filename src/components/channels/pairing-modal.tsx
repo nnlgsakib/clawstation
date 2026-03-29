@@ -1,6 +1,8 @@
+import { useMemo } from "react";
 import {
   type ChannelInfo,
 } from "@/hooks/use-channels"
+import { useOpenClawMetadata } from "@/hooks/use-openclaw-metadata"
 import {
   Dialog,
   DialogHeader,
@@ -9,6 +11,7 @@ import {
   DialogContent,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { ChannelConfigForm } from "@/components/channels/channel-config-form"
 
 interface PairingModalProps {
   open: boolean
@@ -21,7 +24,15 @@ export function PairingModal({
   open,
   onOpenChange,
   channel,
+  onSuccess,
 }: PairingModalProps) {
+  const { data: metadata } = useOpenClawMetadata()
+
+  const channelMetadata = useMemo(() => {
+    if (!channel || !metadata) return null
+    return metadata.channels.find(ch => ch.id === channel.provider) ?? null
+  }, [channel, metadata])
+
   if (!channel) return null
 
   return (
@@ -33,12 +44,26 @@ export function PairingModal({
         </DialogDescription>
       </DialogHeader>
       <DialogContent>
-        <div className="text-sm text-muted-foreground">
-          Use the channel configuration on the Channels page to set up {channel.name}.
-        </div>
-        <Button onClick={() => onOpenChange(false)} variant="outline">
-          Close
-        </Button>
+        {channelMetadata ? (
+          <ChannelConfigForm
+            channel={channelMetadata}
+            initialValues={channel.config as Record<string, string>}
+            onSave={() => {
+              onSuccess()
+              onOpenChange(false)
+            }}
+            showDmPolicy={true}
+          />
+        ) : (
+          <div className="space-y-4">
+            <div className="text-sm text-muted-foreground">
+              Use the channel configuration on the Channels page to set up {channel.name}.
+            </div>
+            <Button onClick={() => onOpenChange(false)} variant="outline">
+              Close
+            </Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   )

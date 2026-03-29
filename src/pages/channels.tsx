@@ -24,12 +24,11 @@ import {
   AlertTriangle,
   Loader2,
   ExternalLink,
-  Eye,
-  EyeOff,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { ChannelConfigForm } from "@/components/channels/channel-config-form";
 
 const CHANNEL_ICONS: Record<string, string> = {
   whatsapp: "📱",
@@ -175,9 +174,13 @@ function ChannelCard({
   baseHash: string;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
-  const [showTokens, setShowTokens] = useState<Record<string, boolean>>({});
   const updateChannel = useUpdateChannel();
+  const { data: metadata } = useOpenClawMetadata();
+
+  const channelMetadata = useMemo(() => {
+    if (!metadata) return null;
+    return metadata.channels.find(ch => ch.id === channel.provider) ?? null;
+  }, [metadata, channel.provider]);
 
   const handleToggle = async () => {
     if (!baseHash) {
@@ -198,20 +201,15 @@ function ChannelCard({
     }
   };
 
-  const handleSaveConfig = async () => {
+  const handleSaveConfig = async (config: Record<string, string>) => {
     if (!baseHash) {
       toast.error("No config hash available — refresh the page");
       return;
     }
     try {
-      const configToSave: Record<string, unknown> = { ...fieldValues, enabled: true };
-      // OpenClaw requires allowFrom=["*"] when dmPolicy is "open"
-      if (configToSave.dmPolicy === "open") {
-        configToSave.allowFrom = ["*"];
-      }
       await updateChannel.mutateAsync({
         provider: channel.provider,
-        config: configToSave,
+        config,
         baseHash,
       });
       toast.success(`${channel.name} configuration saved`);
@@ -221,7 +219,9 @@ function ChannelCard({
     }
   };
 
-  const dmPolicy = (channel.config.dmPolicy as string) ?? "pairing";
+  const hasConfigFields = channelMetadata
+    ? channelMetadata.configFields.length > 0
+    : channel.setupFields.length > 0;
 
   return (
     <Card
@@ -262,7 +262,7 @@ function ChannelCard({
             ) : null}
             {channel.enabled ? "Disable" : "Enable"}
           </Button>
-          {channel.setupFields.length > 0 && (
+          {hasConfigFields && (
             <Button
               size="sm"
               variant="ghost"
@@ -281,93 +281,24 @@ function ChannelCard({
           </a>
         </div>
 
-        {/* Expanded config fields */}
-        {expanded && channel.setupFields.length > 0 && (
+        {expanded && channelMetadata && (
+          <ChannelConfigForm
+            channel={channelMetadata}
+            initialValues={channel.config as Record<string, string>}
+            onSave={handleSaveConfig}
+            isPending={updateChannel.isPending}
+          />
+        )}
+
+        {expanded && !channelMetadata && hasConfigFields && (
           <div className="space-y-3 border-t border-border pt-3">
-            {channel.setupFields.map((field) => (
-              <div key={field.key} className="space-y-1">
-                <label className="text-sm font-medium">
-                  {field.label}
-                  {field.required && (
-                    <span className="ml-1 text-destructive">*</span>
-                  )}
-                </label>
-                <div className="relative">
-                  <input
-                    type={
-                      field.type === "password" && !showTokens[field.key]
-                        ? "password"
-                        : "text"
-                    }
-                    placeholder={field.placeholder}
-                    value={fieldValues[field.key] ?? ""}
-                    onChange={(e) =>
-                      setFieldValues((prev) => ({
-                        ...prev,
-                        [field.key]: e.target.value,
-                      }))
-                    }
-                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                  />
-                  {field.type === "password" && (
-                    <button
-                      onClick={() =>
-                        setShowTokens((prev) => ({
-                          ...prev,
-                          [field.key]: !prev[field.key],
-                        }))
-                      }
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
-                      {showTokens[field.key] ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-
-            {/* DM Policy */}
-            <div className="space-y-1">
-              <label className="text-sm font-medium">DM Policy</label>
-              <select
-                value={fieldValues.dmPolicy ?? dmPolicy}
-                onChange={(e) =>
-                  setFieldValues((prev) => ({
-                    ...prev,
-                    dmPolicy: e.target.value,
-                  }))
-                }
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                <option value="pairing">
-                  Pairing — unknown senders get a one-time code
-                </option>
-                <option value="allowlist">
-                  Allowlist — only approved contacts
-                </option>
-                <option value="open">Open — allow all DMs</option>
-                <option value="disabled">Disabled — ignore all DMs</option>
-              </select>
-            </div>
-
-            <Button
-              size="sm"
-              onClick={handleSaveConfig}
-              disabled={updateChannel.isPending}
-            >
-              {updateChannel.isPending ? (
-                <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-              ) : null}
-              Save Configuration
-            </Button>
+            <p className="text-xs text-muted-foreground">
+              Loading channel configuration...
+            </p>
           </div>
         )}
 
-        {channel.setupFields.length === 0 && channel.enabled && (
+        {!hasConfigFields && channel.enabled && (
           <p className="text-xs text-muted-foreground">
             {channel.provider === "signal"
               ? "Requires signal-cli to be installed separately."
