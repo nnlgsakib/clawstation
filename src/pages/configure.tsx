@@ -3,10 +3,12 @@ import { useConfig, useSaveConfig, useValidateConfig } from "@/hooks/use-config"
 import { useGatewayConfig, useGatewayConfigPatch } from "@/hooks/use-gateway";
 import { useGatewayStore } from "@/stores/use-gateway-store";
 import { useConfigStore, type OpenClawConfig } from "@/stores/use-config-store";
+import { useConfigSchema } from "@/hooks/use-config-schema";
 import { ProviderSection } from "@/components/config/provider-section";
 import { SandboxSection } from "@/components/config/sandbox-section";
 import { ToolsSection } from "@/components/config/tools-section";
 import { AgentsSection } from "@/components/config/agents-section";
+import { DynamicConfigSection } from "@/components/config/dynamic-config-section";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,7 +25,8 @@ export function Configure() {
   const { data: config, isLoading, error, isError } = useConfig();
   const saveConfig = useSaveConfig();
   const validateConfig = useValidateConfig();
-  const { config: storeConfig, isDirty, setConfig, markClean } = useConfigStore();
+  const { config: storeConfig, isDirty, setConfig, markClean, updateField } = useConfigStore();
+  const schema = useConfigSchema();
   const [isSaving, setIsSaving] = useState(false);
 
   const baseHash = (gatewayConfig as Record<string, unknown> | undefined)?.baseHash as string ?? "";
@@ -121,10 +124,57 @@ export function Configure() {
       {/* Configuration sections */}
       {!isLoading && (
         <div className="space-y-6">
+          {/* Existing polished sections */}
           <ProviderSection />
           <SandboxSection />
           <ToolsSection />
           <AgentsSection />
+
+          {/* Dynamic sections — Core (skip those handled by existing sections) */}
+          {schema
+            .filter(s => s.category === "core" && !["agents","models","tools","sandbox"].includes(s.id))
+            .map(section => (
+              <DynamicConfigSection
+                key={section.id}
+                section={section}
+                config={storeConfig}
+                onUpdate={updateField}
+              />
+            ))}
+
+          {/* Dynamic sections — Infrastructure */}
+          {schema.filter(s => s.category === "infrastructure").length > 0 && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold">Infrastructure</h2>
+              {schema.filter(s => s.category === "infrastructure").map(section => (
+                <DynamicConfigSection
+                  key={section.id}
+                  section={section}
+                  config={storeConfig}
+                  onUpdate={updateField}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Dynamic sections — Advanced (collapsible group) */}
+          {schema.filter(s => s.category === "advanced").length > 0 && (
+            <details className="space-y-4">
+              <summary className="cursor-pointer text-lg font-semibold text-muted-foreground hover:text-foreground">
+                Advanced Settings ({schema.filter(s => s.category === "advanced").length} sections)
+              </summary>
+              <div className="space-y-4 pl-2">
+                {schema.filter(s => s.category === "advanced").map(section => (
+                  <DynamicConfigSection
+                    key={section.id}
+                    section={section}
+                    config={storeConfig}
+                    onUpdate={updateField}
+                  />
+                ))}
+              </div>
+            </details>
+          )}
         </div>
       )}
     </div>
