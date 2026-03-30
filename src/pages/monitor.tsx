@@ -13,7 +13,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
-  CheckCircle2,
   AlertTriangle,
   Activity,
   Play,
@@ -31,7 +30,11 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export function Monitor() {
-  const { connected } = useGatewayStore();
+  const { connected, startupPhase } = useGatewayStore();
+
+  const isStarting = startupPhase === 'starting' || startupPhase === 'health_checking';
+  const isReady = connected || startupPhase === 'ready';
+  const isFailed = startupPhase === 'failed';
   const { start, stop, restart } = useGatewayActions();
   const [loading, setLoading] = useState<string | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
@@ -106,16 +109,27 @@ export function Monitor() {
                 Status
               </CardTitle>
               <Badge
-                variant={connected ? "success" : "outline"}
+                variant={
+                  isReady ? "success" :
+                  isStarting ? "warning" :
+                  isFailed ? "destructive" :
+                  "outline"
+                }
               >
                 <span className="flex items-center gap-1.5">
                   <span
                     className={cn(
                       "h-1.5 w-1.5 rounded-full",
-                      connected ? "bg-success pulse-status" : "bg-muted-foreground"
+                      isReady ? "bg-success pulse-status" :
+                      isStarting ? "bg-warning pulse-status" :
+                      isFailed ? "bg-destructive" :
+                      "bg-muted-foreground"
                     )}
                   />
-                  {connected ? "Running" : "Stopped"}
+                  {isReady ? "Running" :
+                   isStarting ? "Starting" :
+                   isFailed ? "Failed" :
+                   "Stopped"}
                 </span>
               </Badge>
             </div>
@@ -123,7 +137,12 @@ export function Monitor() {
           <CardContent className="space-y-4">
             {/* Status details */}
             <div className="grid grid-cols-2 gap-3">
-              <StatusItem label="Status" value={connected ? "Connected" : "Disconnected"} />
+              <StatusItem label="Status" value={
+                isReady ? "Connected" :
+                isStarting ? (startupPhase === 'health_checking' ? "Health Checking" : "Starting") :
+                isFailed ? "Startup Failed" :
+                "Disconnected"
+              } />
               <StatusItem label="Port" value="18789" mono />
               <StatusItem label="Process" value={gatewayVersion ?? "N/A"} mono className="col-span-2" />
             </div>
@@ -198,13 +217,13 @@ export function Monitor() {
                 label="Gateway UI"
                 href="http://127.0.0.1:18789"
                 external
-                disabled={!connected}
+                disabled={!isReady}
               />
               <QuickLink
                 icon={Activity}
                 label="Control UI"
                 to="/webapp"
-                disabled={!connected}
+                disabled={!isReady}
               />
               <QuickLink
                 icon={Activity}
@@ -218,12 +237,38 @@ export function Monitor() {
               />
             </div>
 
-            {!connected && (
+            {!connected && !isStarting && !isFailed && (
               <Alert className="mt-4 border-warning/30 bg-warning/5">
                 <AlertTriangle className="h-4 w-4 text-warning" />
                 <AlertTitle className="text-warning">Gateway Not Running</AlertTitle>
                 <AlertDescription>
                   Start the Gateway to enable AI agent features.{" "}
+                  <Link
+                    to="/install"
+                    className="font-medium underline hover:text-foreground"
+                  >
+                    Go to Install page
+                  </Link>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {isStarting && (
+              <Alert className="mt-4 border-warning/30 bg-warning/5">
+                <Loader2 className="h-4 w-4 text-warning animate-spin" />
+                <AlertTitle className="text-warning">Gateway Starting</AlertTitle>
+                <AlertDescription>
+                  Waiting for gateway to become ready. This usually takes 5-15 seconds.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {isFailed && (
+              <Alert className="mt-4 border-destructive/30 bg-destructive/5">
+                <AlertTriangle className="h-4 w-4 text-destructive" />
+                <AlertTitle className="text-destructive">Gateway Startup Failed</AlertTitle>
+                <AlertDescription>
+                  Gateway failed to become healthy. Check the logs below or retry.{" "}
                   <Link
                     to="/install"
                     className="font-medium underline hover:text-foreground"
