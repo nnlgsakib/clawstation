@@ -6,6 +6,16 @@ use tokio::io::AsyncBufReadExt;
 use super::silent::{run_with_timeout, silent_cmd, QUICK_TIMEOUT};
 use crate::state::AppState;
 
+/// Gateway startup phase for tracking readiness progression.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub enum GatewayStartupPhase {
+    Starting,
+    HealthChecking,
+    Ready,
+    Failed,
+}
+
 /// Gateway status information.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -13,6 +23,7 @@ pub struct GatewayStatus {
     pub running: bool,
     pub port: u16,
     pub pid: Option<u32>,
+    pub startup_phase: GatewayStartupPhase,
 }
 
 /// Start the OpenClaw Gateway process.
@@ -35,6 +46,7 @@ pub async fn start_gateway(
                 running: true,
                 port,
                 pid: app_state.gateway_pid,
+                startup_phase: GatewayStartupPhase::Ready,
             });
         }
     }
@@ -53,6 +65,7 @@ pub async fn start_gateway(
             running: true,
             port,
             pid: None,
+            startup_phase: GatewayStartupPhase::Ready,
         });
     }
 
@@ -169,7 +182,13 @@ pub async fn start_gateway(
         running: true,
         port,
         pid,
+        startup_phase: GatewayStartupPhase::Starting,
     })
+}
+
+/// Monitor gateway health in the background after spawn.
+async fn monitor_gateway_health(app: tauri::AppHandle, port: u16) {
+    // Health check task will be added in Task 2
 }
 
 /// Stop the OpenClaw Gateway process.
@@ -225,6 +244,7 @@ pub async fn stop_gateway(
         running: false,
         port: 18789,
         pid: None,
+        startup_phase: GatewayStartupPhase::Starting,
     })
 }
 
@@ -297,6 +317,7 @@ pub async fn get_gateway_status(
         running,
         port: 18789,
         pid,
+        startup_phase: if running { GatewayStartupPhase::Ready } else { GatewayStartupPhase::Starting },
     })
 }
 
