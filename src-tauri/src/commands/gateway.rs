@@ -362,7 +362,8 @@ pub async fn restart_gateway(
 
 /// Get the current Gateway status.
 ///
-/// Checks if the Gateway port is listening.
+/// Checks if the Gateway port is listening and performs a quick health check
+/// to determine the actual startup phase.
 #[tauri::command]
 pub async fn get_gateway_status(
     state: tauri::State<'_, Mutex<AppState>>,
@@ -383,11 +384,47 @@ pub async fn get_gateway_status(
         app_state.gateway_pid = None;
     }
 
+    // Determine startup phase via quick health check when port is open
+    let startup_phase = if running {
+        let client = reqwest::Client::builder()
+            .timeout(std::time::Duration::from_secs(2))
+            .build()
+            .unwrap_or_default();
+
+        let health_ok = client
+            .get("http://127.0.0.1:18789/healthz")
+            .send()
+            .await
+            .map(|r| r.status().is_success())
+            .unwrap_or(false);
+
+        if health_ok {
+            let ready_ok = client
+                .get("http://127.0.0.1:18789/readyz")
+                .send()
+                .await
+                .map(|r| r.status().is_success())
+                .unwrap_or(false);
+            if ready_ok {
+                GatewayStartupPhase::Ready
+            } else {
+                GatewayStartupPhase::HealthChecking
+            }
+        } else {
+            GatewayStartupPhase::HealthChecking
+        }
+    } else if pid.is_some() {
+        // PID exists but port won't open — likely still starting or failed
+        GatewayStartupPhase::Starting
+    } else {
+        GatewayStartupPhase::Starting
+    };
+
     Ok(GatewayStatus {
         running,
         port: 18789,
         pid,
-        startup_phase: if running { GatewayStartupPhase::Ready } else { GatewayStartupPhase::Starting },
+        startup_phase,
     })
 }
 
