@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { Header } from "@/components/layout/header";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { useGatewayStore } from "@/stores/use-gateway-store";
-import { Wifi, WifiOff, Loader2 } from "lucide-react";
+import { Wifi, WifiOff, Loader2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface AppShellProps {
@@ -14,7 +14,11 @@ interface AppShellProps {
  * Features a refined dark theme with subtle gradients and better visual hierarchy.
  */
 export function AppShell({ children }: AppShellProps) {
-  const { connected, connecting } = useGatewayStore();
+  const { connected, startupPhase } = useGatewayStore();
+
+  const isStarting = startupPhase === 'starting' || startupPhase === 'health_checking';
+  const isReady = connected || startupPhase === 'ready';
+  const isFailed = startupPhase === 'failed';
 
   return (
     <div className="flex h-screen flex-col bg-background">
@@ -32,17 +36,21 @@ export function AppShell({ children }: AppShellProps) {
             <div className={cn(
               "flex items-center gap-2.5 px-3 py-2.5 rounded-lg",
               "transition-all duration-200",
-              connected
+              isReady
                 ? "bg-success-muted/50 text-success"
-                : connecting
+                : isStarting
                 ? "bg-warning-muted/50 text-warning"
+                : isFailed
+                ? "bg-destructive/10 text-destructive"
                 : "bg-muted text-muted-foreground"
             )}>
               <div className="relative">
-                {connecting ? (
+                {isStarting ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
-                ) : connected ? (
+                ) : isReady ? (
                   <Wifi className="h-4 w-4" />
+                ) : isFailed ? (
+                  <AlertCircle className="h-4 w-4" />
                 ) : (
                   <WifiOff className="h-4 w-4" />
                 )}
@@ -52,8 +60,10 @@ export function AppShell({ children }: AppShellProps) {
                     "absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full border-2 border-sidebar",
                     connected
                       ? "bg-success"
-                      : connecting
+                      : isStarting
                       ? "bg-warning pulse-status"
+                      : isFailed
+                      ? "bg-destructive"
                       : "bg-muted-foreground"
                   )}
                 />
@@ -62,12 +72,20 @@ export function AppShell({ children }: AppShellProps) {
                 <span className="text-xs font-medium">
                   {connected
                     ? "Gateway Connected"
-                    : connecting
-                    ? "Connecting..."
+                    : isStarting
+                    ? "Starting..."
+                    : isFailed
+                    ? "Startup Failed"
                     : "Disconnected"}
                 </span>
                 <span className="text-[10px] opacity-60">
-                  {connected ? "All systems operational" : "Click to reconnect"}
+                  {connected
+                    ? "All systems operational"
+                    : isStarting
+                    ? "Health check in progress"
+                    : isFailed
+                    ? "Click to retry"
+                    : "Click to reconnect"}
                 </span>
               </div>
             </div>
