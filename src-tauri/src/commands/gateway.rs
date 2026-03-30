@@ -178,6 +178,10 @@ pub async fn start_gateway(
         let _ = app_exit.emit("gateway-stopped", ());
     });
 
+    // Spawn background health check task
+    let app_health = app.clone();
+    tokio::spawn(monitor_gateway_health(app_health, port));
+
     Ok(GatewayStatus {
         running: true,
         port,
@@ -187,8 +191,74 @@ pub async fn start_gateway(
 }
 
 /// Monitor gateway health in the background after spawn.
+///
+/// Polls /healthz and /readyz with exponential backoff. Emits granular
+/// startup-phase events so the frontend knows exactly when the gateway
+/// is ready to serve requests.
 async fn monitor_gateway_health(app: tauri::AppHandle, port: u16) {
-    // Health check task will be added in Task 2
+    let client = reqwest::Client::new();
+    let mut attempt: u32 = 0;
+    let deadline = tokio::time::Instant::now() + tokio::time::Duration::from_secs(60);
+    let mut health_checked = false;
+
+    let _ = app.emit(
+        "gateway-startup-phase",
+        serde_json::json!({ "phase": "starting" }),
+    );
+
+    loop {
+        if tokio::time::Instant::now() > deadline {
+            let _ = app.emit(
+                "gateway-startup-phase",
+                serde_json::json!({ "phase": "failed", "reason": "Timeout after 60s" }),
+            );
+            let _ = app.emit("gateway-stopped", ());
+            break;
+        }
+
+        if tokio::net::TcpStream::connect(format!("127.0.0.1:{port}"))
+            .await
+            .is_ok()
+        {
+            if !health_checked {
+                health_checked = true;
+                let _ = app.emit(
+                    "gateway-startup-phase",
+                    serde_json::json!({ "phase": "healthChecking" }),
+                );
+            }
+            if let Ok(resp) = client
+                .get(format!("http://127.0.0.1:{port}/healthz"))
+                .send()
+                .await
+            {
+                if resp.status().is_success() {
+                    if let Ok(ready) = client
+                        .get(format!("http://127.0.0.1:{port}/readyz"))
+                        .send()
+                        .await
+                    {
+                        if ready.status().is_success() {
+                            let _ = app.emit(
+                                "gateway-startup-phase",
+                                serde_json::json!({ "phase": "ready" }),
+                            );
+                            let _ = app.emit(
+                                "gateway-status",
+                                serde_json::json!({ "connected": true }),
+                            );
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Exponential-ish backoff: 2s, 2s, 3s, 4s, 5s cap
+        let delay = std::cmp::min(2 + attempt, 5);
+        tokio::time::sleep(tokio::time::Duration::from_secs(delay as u64)).await;
+        attempt = attempt.saturating_add(1);
+    }
 }
 
 /// Stop the OpenClaw Gateway process.
