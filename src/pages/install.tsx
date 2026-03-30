@@ -11,12 +11,16 @@ import {
   Terminal,
   ChevronDown,
   ChevronUp,
+  Download,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { useInstallStore, type PrerequisitesInfo } from "@/stores/use-install-store";
+import { cn } from "@/lib/utils";
 
 export function Install() {
   const navigate = useNavigate();
@@ -36,7 +40,7 @@ export function Install() {
   const hasCheckedPrereqs = useRef(false);
   const [showLogs, setShowLogs] = useState(false);
 
-  // Check prerequisites only once (not on re-mount)
+  // Check prerequisites only once
   useEffect(() => {
     if (!hasCheckedPrereqs.current && !prereqs) {
       hasCheckedPrereqs.current = true;
@@ -133,9 +137,10 @@ export function Install() {
   };
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div>
-        <h1 className="text-xl font-semibold text-foreground">
+    <div className="space-y-6">
+      {/* Page header */}
+      <div className="flex flex-col gap-1">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
           Start OpenClaw
         </h1>
         <p className="text-sm text-muted-foreground">
@@ -143,33 +148,45 @@ export function Install() {
         </p>
       </div>
 
-      <div className="flex items-center gap-4">
+      {/* Step indicator */}
+      <div className="flex items-center gap-3 py-4">
         <StepIndicator
           label="Prerequisites"
+          step={1}
           active={step === "prerequisites"}
           completed={step !== "prerequisites"}
         />
-        <div className="h-px flex-1 bg-border" />
+        <StepConnector completed={step !== "prerequisites"} />
         <StepIndicator
           label="Starting"
+          step={2}
           active={step === "starting"}
           completed={step === "connected"}
         />
-        <div className="h-px flex-1 bg-border" />
+        <StepConnector completed={step === "connected"} />
         <StepIndicator
           label="Connected"
+          step={3}
           active={step === "connected"}
           completed={false}
         />
       </div>
 
+      {/* Prerequisites step */}
       {step === "prerequisites" && (
         <Card>
-          <CardHeader>
-            <CardTitle>Prerequisites</CardTitle>
-            <CardDescription>
-              Verify your system has the required dependencies.
-            </CardDescription>
+          <CardHeader className="pb-4">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10">
+                <Sparkles className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <CardTitle>Prerequisites</CardTitle>
+                <CardDescription>
+                  Verify your system has the required dependencies.
+                </CardDescription>
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             {loading ? (
@@ -226,6 +243,7 @@ export function Install() {
                       </Button>
                     ) : (
                       <Button size="sm" onClick={handleInstallOpenClaw}>
+                        <Download className="mr-2 h-4 w-4" />
                         Install OpenClaw
                       </Button>
                     )
@@ -235,8 +253,8 @@ export function Install() {
             )}
 
             {prereqs?.nodejs.installed && prereqs?.openclaw.installed && (
-              <div className="pt-2">
-                <Button onClick={handleStartGateway} className="gap-2">
+              <div className="pt-4 border-t border-border">
+                <Button onClick={handleStartGateway} className="gap-2 w-full sm:w-auto">
                   <Play className="h-4 w-4" />
                   Start Gateway
                 </Button>
@@ -245,7 +263,7 @@ export function Install() {
 
             {/* View Logs toggle */}
             {logs.length > 0 && (
-              <div className="pt-2">
+              <div className="pt-4 border-t border-border">
                 <button
                   onClick={() => setShowLogs(!showLogs)}
                   className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -259,13 +277,23 @@ export function Install() {
                   )}
                 </button>
                 {showLogs && (
-                  <div className="mt-2 relative max-h-64 overflow-auto rounded-lg bg-black/90 p-4 font-mono text-xs text-green-400">
-                    {logs.map((line, i) => (
-                      <div key={i} className="whitespace-pre-wrap">
-                        {line}
+                  <div className="mt-3 rounded-lg border border-border bg-[#0d0f12] overflow-hidden">
+                    <div className="flex items-center gap-2 px-4 py-2 border-b border-border bg-[#0d0f12]/80">
+                      <div className="flex gap-1.5">
+                        <span className="h-2.5 w-2.5 rounded-full bg-red-500/80" />
+                        <span className="h-2.5 w-2.5 rounded-full bg-yellow-500/80" />
+                        <span className="h-2.5 w-2.5 rounded-full bg-green-500/80" />
                       </div>
-                    ))}
-                    <div ref={logsEndRef} />
+                      <span className="text-[10px] text-muted-foreground ml-2">install.log</span>
+                    </div>
+                    <div className="max-h-64 overflow-auto p-4 font-mono text-xs text-foreground/80">
+                      {logs.map((line, i) => (
+                        <div key={i} className="whitespace-pre-wrap">
+                          {line}
+                        </div>
+                      ))}
+                      <div ref={logsEndRef} />
+                    </div>
                   </div>
                 )}
               </div>
@@ -274,50 +302,80 @@ export function Install() {
         </Card>
       )}
 
+      {/* Starting/Connected steps */}
       {(step === "starting" || step === "connected") && (
         <Card>
-          <CardHeader>
+          <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  {step === "connected" ? (
-                    <CheckCircle2 className="h-5 w-5 text-green-500" />
-                  ) : (
-                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              <div className="flex items-start gap-3">
+                <div
+                  className={cn(
+                    "flex items-center justify-center w-10 h-10 rounded-lg",
+                    step === "connected"
+                      ? "bg-success/10"
+                      : "bg-primary/10"
                   )}
-                  {step === "connected"
-                    ? "Gateway Connected"
-                    : "Starting Gateway..."}
-                </CardTitle>
-                <CardDescription>
-                  {step === "connected"
-                    ? "Redirecting to dashboard..."
-                    : "OpenClaw Gateway is starting on port 18789"}
-                </CardDescription>
+                >
+                  {step === "connected" ? (
+                    <CheckCircle2 className="h-5 w-5 text-success" />
+                  ) : (
+                    <Loader2 className="h-5 w-5 text-primary animate-spin" />
+                  )}
+                </div>
+                <div>
+                  <CardTitle>
+                    {step === "connected"
+                      ? "Gateway Connected"
+                      : "Starting Gateway..."}
+                  </CardTitle>
+                  <CardDescription>
+                    {step === "connected"
+                      ? "Redirecting to dashboard..."
+                      : "OpenClaw Gateway is starting on port 18789"}
+                  </CardDescription>
+                </div>
               </div>
               {step === "connected" && (
-                <Button asChild variant="outline" size="sm">
-                  <a href="#/">
-                    Go to Dashboard
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </a>
-                </Button>
+                <Badge variant="success">
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-white pulse-status" />
+                    Connected
+                  </span>
+                </Badge>
               )}
             </div>
           </CardHeader>
           <CardContent>
-            <div className="relative max-h-64 overflow-auto rounded-lg bg-black/90 p-4 font-mono text-xs text-green-400">
-              {logs.length === 0 && (
-                <p className="text-muted-foreground">
-                  Waiting for Gateway output...
-                </p>
-              )}
-              {logs.map((line, i) => (
-                <div key={i} className="whitespace-pre-wrap">
-                  {line}
+            {step === "connected" && (
+              <Button asChild variant="outline" size="sm" className="mb-4">
+                <a href="#/">
+                  Go to Dashboard
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </a>
+              </Button>
+            )}
+            <div className="rounded-lg border border-border bg-[#0d0f12] overflow-hidden">
+              <div className="flex items-center gap-2 px-4 py-2 border-b border-border bg-[#0d0f12]/80">
+                <div className="flex gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-red-500/80" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-yellow-500/80" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-green-500/80" />
                 </div>
-              ))}
-              <div ref={logsEndRef} />
+                <span className="text-[10px] text-muted-foreground ml-2">gateway.log</span>
+              </div>
+              <div className="max-h-64 overflow-auto p-4 font-mono text-xs">
+                {logs.length === 0 && (
+                  <p className="text-muted-foreground italic">
+                    Waiting for Gateway output...
+                  </p>
+                )}
+                {logs.map((line, i) => (
+                  <div key={i} className="whitespace-pre-wrap text-foreground/80">
+                    {line}
+                  </div>
+                ))}
+                <div ref={logsEndRef} />
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -328,34 +386,49 @@ export function Install() {
 
 function StepIndicator({
   label,
+  step,
   active,
   completed,
 }: {
   label: string;
+  step: number;
   active: boolean;
   completed: boolean;
 }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2.5">
       <div
-        className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium ${
+        className={cn(
+          "flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium transition-all duration-200",
           completed
-            ? "bg-primary text-primary-foreground"
+            ? "bg-success text-success-foreground"
             : active
-            ? "border-2 border-primary text-primary"
-            : "border-2 border-muted text-muted-foreground"
-        }`}
+            ? "bg-primary text-primary-foreground ring-4 ring-primary/20"
+            : "bg-muted text-muted-foreground"
+        )}
       >
-        {completed ? <CheckCircle2 className="h-3 w-3" /> : null}
+        {completed ? <CheckCircle2 className="h-4 w-4" /> : step}
       </div>
       <span
-        className={`text-sm ${
+        className={cn(
+          "text-sm hidden sm:inline",
           active ? "font-medium text-foreground" : "text-muted-foreground"
-        }`}
+        )}
       >
         {label}
       </span>
     </div>
+  );
+}
+
+function StepConnector({ completed }: { completed: boolean }) {
+  return (
+    <div
+      className={cn(
+        "h-px flex-1 transition-colors duration-200",
+        completed ? "bg-success" : "bg-border"
+      )}
+    />
   );
 }
 
@@ -372,27 +445,26 @@ function PrereqRow({
   detail: string;
   action?: React.ReactNode;
 }) {
-  const icon =
-    status === "ok" || status === "recommended" ? (
-      <CheckCircle2 className="h-4 w-4 text-green-500" />
-    ) : status === "minimum" ? (
-      <CheckCircle2 className="h-4 w-4 text-yellow-500" />
-    ) : status === "old" ? (
-      <XCircle className="h-4 w-4 text-yellow-500" />
-    ) : (
-      <XCircle className="h-4 w-4 text-red-500" />
-    );
+  const statusConfig = {
+    ok: { icon: CheckCircle2, color: "text-success" },
+    recommended: { icon: CheckCircle2, color: "text-success" },
+    minimum: { icon: CheckCircle2, color: "text-warning" },
+    old: { icon: XCircle, color: "text-warning" },
+    missing: { icon: XCircle, color: "text-destructive" },
+  };
+
+  const { icon: Icon, color } = statusConfig[status];
 
   return (
-    <div className="flex items-center justify-between rounded-lg border border-border p-3">
+    <div className="flex items-center justify-between p-4 rounded-lg border border-border bg-card/50 hover:bg-card transition-colors">
       <div className="flex items-center gap-3">
-        {icon}
+        <Icon className={cn("h-5 w-5", color)} />
         <div>
-          <p className="text-sm font-medium">
+          <p className="text-sm font-medium text-foreground">
             {label}
             {version && (
-              <span className="ml-2 text-xs text-muted-foreground">
-                {version}
+              <span className="ml-2 text-xs font-mono text-muted-foreground">
+                v{version}
               </span>
             )}
           </p>
@@ -406,9 +478,9 @@ function PrereqRow({
 
 function PrereqSkeleton() {
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-border p-3">
-      <Skeleton className="h-4 w-4 rounded-full" />
-      <div className="space-y-1">
+    <div className="flex items-center gap-3 p-4 rounded-lg border border-border">
+      <Skeleton className="h-5 w-5 rounded-full" />
+      <div className="space-y-2 flex-1">
         <Skeleton className="h-4 w-24" />
         <Skeleton className="h-3 w-32" />
       </div>

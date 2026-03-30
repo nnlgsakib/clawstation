@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useConfig, useSaveConfig, useValidateConfig } from "@/hooks/use-config";
 import { useGatewayConfig, useGatewayConfigPatch } from "@/hooks/use-gateway";
 import { useGatewayStore } from "@/stores/use-gateway-store";
@@ -11,12 +11,23 @@ import { AgentsSection } from "@/components/config/agents-section";
 import { DynamicConfigSection } from "@/components/config/dynamic-config-section";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { showError } from "@/lib/toast-errors";
-import { Save, Loader2, Globe } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { showError } from "@/lib/toast-errors";
+import {
+  Save,
+  Loader2,
+  Globe,
+  Settings,
+  Shield,
+  Wrench,
+  Users,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export function Configure() {
   const gatewayConnected = useGatewayStore((s) => s.connected);
@@ -25,23 +36,27 @@ export function Configure() {
   const { data: config, isLoading, error, isError } = useConfig();
   const saveConfig = useSaveConfig();
   const validateConfig = useValidateConfig();
-  const { config: storeConfig, isDirty, setConfig, markClean, updateField } = useConfigStore();
+  const { config: storeConfig, isDirty, setConfig, markClean, updateField } =
+    useConfigStore();
   const schema = useConfigSchema();
   const [isSaving, setIsSaving] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
-  const baseHash = (gatewayConfig as Record<string, unknown> | undefined)?.baseHash as string ?? "";
+  const baseHash =
+    ((gatewayConfig as Record<string, unknown> | undefined)?.baseHash as string) ?? "";
 
-  // Load config into store on mount — prefer Gateway config over file config
+  // Load config into store on mount
   useEffect(() => {
     if (gatewayConnected && gatewayConfig) {
-      const gwConf = ((gatewayConfig as Record<string, unknown> | undefined)?.config ?? gatewayConfig) as unknown as OpenClawConfig;
+      const gwConf = (
+        (gatewayConfig as Record<string, unknown> | undefined)?.config ?? gatewayConfig
+      ) as unknown as OpenClawConfig;
       setConfig(gwConf);
     } else if (config) {
       setConfig(config);
     }
   }, [config, gatewayConfig, gatewayConnected, setConfig]);
 
-  // Show error if query fails
   if (isError && error) {
     showError(error);
   }
@@ -51,7 +66,6 @@ export function Configure() {
 
     setIsSaving(true);
     try {
-      // First validate
       const validation = await validateConfig.mutateAsync(storeConfig);
 
       if (!validation.valid && validation.errors.length > 0) {
@@ -63,14 +77,12 @@ export function Configure() {
         return;
       }
 
-      // Prefer Gateway hot-reload when connected
       if (gatewayConnected && baseHash) {
         const raw = JSON.stringify(storeConfig);
         await gatewayPatch.mutateAsync({ raw, baseHash });
         markClean();
         toast.success("Configuration applied via Gateway hot-reload");
       } else {
-        // Fall back to file-based save
         await saveConfig.mutateAsync(storeConfig);
         markClean();
         toast.success("Configuration saved (will apply on next Gateway start)");
@@ -82,58 +94,73 @@ export function Configure() {
     }
   };
 
+  const advancedSections = schema.filter((s) => s.category === "advanced");
+  const infrastructureSections = schema.filter((s) => s.category === "infrastructure");
+  const coreSections = schema.filter(
+    (s) =>
+      s.category === "core" &&
+      !["agents", "models", "tools", "sandbox"].includes(s.id)
+  );
+
   return (
     <div className="space-y-6">
+      {/* Page header */}
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            Configure
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Configure your OpenClaw AI provider and sandbox settings
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {gatewayConnected && (
+            <Badge variant="success">
+              <Globe className="mr-1 h-3 w-3" />
+              Hot-reload active
+            </Badge>
+          )}
+          <Button onClick={handleSave} disabled={!isDirty || isSaving}>
+            {isSaving ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="mr-2 h-4 w-4" />
+            )}
+            {isSaving ? "Saving..." : "Save Changes"}
+          </Button>
+        </div>
+      </div>
+
       {/* Gateway status banner */}
       {!gatewayConnected && (
-        <Alert>
-          <Globe className="h-4 w-4" />
-          <AlertDescription>
-            Gateway not connected — changes will be saved to file and apply on next Gateway start.
+        <Alert className="border-warning/30 bg-warning/5">
+          <Globe className="h-4 w-4 text-warning" />
+          <AlertDescription className="text-muted-foreground">
+            Gateway not connected — changes will be saved to file and apply on next
+            Gateway start.
           </AlertDescription>
         </Alert>
       )}
 
-      {/* Header with Save button */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Configure</h1>
-          <p className="text-muted-foreground">
-            Configure your OpenClaw AI provider and sandbox settings
-            {gatewayConnected && (
-              <span className="ml-2 text-green-500">(Gateway hot-reload active)</span>
-            )}
-          </p>
-        </div>
-        <Button
-          onClick={handleSave}
-          disabled={!isDirty || isSaving}
-        >
-          {isSaving ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Save className="mr-2 h-4 w-4" />
-          )}
-          Save
-        </Button>
-      </div>
-
-      {/* Loading state — skeleton matching config sections layout */}
+      {/* Loading state */}
       {isLoading && <ConfigureSkeleton />}
 
       {/* Configuration sections */}
       {!isLoading && (
-        <div className="space-y-6">
-          {/* Existing polished sections */}
-          <ProviderSection />
-          <SandboxSection />
-          <ToolsSection />
-          <AgentsSection />
-
-          {/* Dynamic sections — Core (skip those handled by existing sections) */}
-          {schema
-            .filter(s => s.category === "core" && !["agents","models","tools","sandbox"].includes(s.id))
-            .map(section => (
+        <div className="space-y-8">
+          {/* Core sections with icons */}
+          <SectionGroup
+            icon={Settings}
+            title="Core Settings"
+            description="Essential configuration for AI providers and capabilities"
+          >
+            <ProviderSection />
+            <SandboxSection />
+            <ToolsSection />
+            <AgentsSection />
+            {coreSections.map((section) => (
               <DynamicConfigSection
                 key={section.id}
                 section={section}
@@ -141,12 +168,16 @@ export function Configure() {
                 onUpdate={updateField}
               />
             ))}
+          </SectionGroup>
 
-          {/* Dynamic sections — Infrastructure */}
-          {schema.filter(s => s.category === "infrastructure").length > 0 && (
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold">Infrastructure</h2>
-              {schema.filter(s => s.category === "infrastructure").map(section => (
+          {/* Infrastructure sections */}
+          {infrastructureSections.length > 0 && (
+            <SectionGroup
+              icon={Shield}
+              title="Infrastructure"
+              description="System and network configuration"
+            >
+              {infrastructureSections.map((section) => (
                 <DynamicConfigSection
                   key={section.id}
                   section={section}
@@ -154,26 +185,50 @@ export function Configure() {
                   onUpdate={updateField}
                 />
               ))}
-            </div>
+            </SectionGroup>
           )}
 
-          {/* Dynamic sections — Advanced (collapsible group) */}
-          {schema.filter(s => s.category === "advanced").length > 0 && (
-            <details className="space-y-4">
-              <summary className="cursor-pointer text-lg font-semibold text-muted-foreground hover:text-foreground">
-                Advanced Settings ({schema.filter(s => s.category === "advanced").length} sections)
-              </summary>
-              <div className="space-y-4 pl-2">
-                {schema.filter(s => s.category === "advanced").map(section => (
-                  <DynamicConfigSection
-                    key={section.id}
-                    section={section}
-                    config={storeConfig}
-                    onUpdate={updateField}
-                  />
-                ))}
-              </div>
-            </details>
+          {/* Advanced sections — collapsible */}
+          {advancedSections.length > 0 && (
+            <div className="space-y-4">
+              <button
+                onClick={() => setShowAdvanced(!showAdvanced)}
+                className={cn(
+                  "flex items-center gap-2 w-full p-4 rounded-xl",
+                  "border border-border bg-card/50",
+                  "hover:bg-card hover:border-border-hover",
+                  "transition-all duration-200"
+                )}
+              >
+                <Wrench className="h-5 w-5 text-muted-foreground" />
+                <div className="flex-1 text-left">
+                  <h3 className="font-semibold text-foreground">
+                    Advanced Settings
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    {advancedSections.length} additional configuration sections
+                  </p>
+                </div>
+                {showAdvanced ? (
+                  <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                )}
+              </button>
+
+              {showAdvanced && (
+                <div className="space-y-4 pl-4 border-l-2 border-border">
+                  {advancedSections.map((section) => (
+                    <DynamicConfigSection
+                      key={section.id}
+                      section={section}
+                      config={storeConfig}
+                      onUpdate={updateField}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}
@@ -181,14 +236,43 @@ export function Configure() {
   );
 }
 
-/**
- * Skeleton loading state matching the configuration page layout.
- * Shows 4 section skeletons matching ProviderSection, SandboxSection,
- * ToolsSection, and AgentsSection.
- */
+interface SectionGroupProps {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}
+
+function SectionGroup({ icon: Icon, title, description, children }: SectionGroupProps) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10">
+          <Icon className="h-4 w-4 text-primary" />
+        </div>
+        <div>
+          <h2 className="font-semibold text-foreground">{title}</h2>
+          <p className="text-xs text-muted-foreground">{description}</p>
+        </div>
+      </div>
+      <div className="space-y-4">{children}</div>
+    </div>
+  );
+}
+
 function ConfigureSkeleton() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Section header skeleton */}
+      <div className="flex items-center gap-3">
+        <Skeleton className="h-8 w-8 rounded-lg" />
+        <div className="space-y-1">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-3 w-48" />
+        </div>
+      </div>
+
+      {/* Card skeletons */}
       {Array.from({ length: 4 }).map((_, i) => (
         <Card key={i}>
           <CardHeader>
@@ -198,15 +282,15 @@ function ConfigureSkeleton() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-9 w-full" />
+              <Skeleton className="h-10 w-full rounded-lg" />
             </div>
             <div className="space-y-2">
               <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-9 w-full" />
+              <Skeleton className="h-10 w-full rounded-lg" />
             </div>
             <div className="flex items-center justify-between">
               <Skeleton className="h-4 w-36" />
-              <Skeleton className="h-5 w-10 rounded-full" />
+              <Skeleton className="h-6 w-11 rounded-full" />
             </div>
           </CardContent>
         </Card>

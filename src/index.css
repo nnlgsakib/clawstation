@@ -1,39 +1,235 @@
 @import "tailwindcss";
 
-/* Geist font stack */
+/* ClawStation Design System — Refined Dark Theme */
 @theme {
-  --font-sans: "Geist", system-ui, -apple-system, sans-serif;
-  --font-mono: "Geist Mono", ui-monospace, monospace;
-  --sidebar-width: 13.75rem;
+  /* Typography */
+  --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
 
-  --color-background: #0e1015;
-  --color-foreground: #d4d4d8;
-  --color-card: #161920;
-  --color-card-foreground: #d4d4d8;
-  --color-primary: #ff5c5c;
+  /* Layout */
+  --sidebar-width: 15rem;
+  --header-height: 3.5rem;
+
+  /* Core palette — refined dark with warm undertones */
+  --color-background: #0a0b0f;
+  --color-foreground: #e8e8ed;
+  --color-card: #111318;
+  --color-card-foreground: #e8e8ed;
+  --color-popover: #16181d;
+  --color-popover-foreground: #e8e8ed;
+
+  /* Primary — refined crimson accent */
+  --color-primary: #e5484d;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #1e2028;
-  --color-secondary-foreground: #d4d4d8;
-  --color-muted: #1e2028;
-  --color-muted-foreground: #71717a;
-  --color-accent: #27272a;
-  --color-accent-foreground: #d4d4d8;
-  --color-destructive: #ef4444;
+  --color-primary-hover: #f05559;
+  --color-primary-muted: rgba(229, 72, 77, 0.15);
+  --color-primary-subtle: rgba(229, 72, 77, 0.08);
+
+  /* Secondary — cool slate for supporting elements */
+  --color-secondary: #1a1d24;
+  --color-secondary-foreground: #c8c8cd;
+
+  /* Muted — subtle surfaces */
+  --color-muted: #14161b;
+  --color-muted-foreground: #8b8d98;
+
+  /* Accent — hover states and emphasis */
+  --color-accent: #1c1f26;
+  --color-accent-foreground: #e8e8ed;
+
+  /* Destructive — error states */
+  --color-destructive: #e5484d;
   --color-destructive-foreground: #ffffff;
-  --color-border: #27272a;
-  --color-input: #27272a;
-  --color-ring: #ff5c5c;
-  --radius: 0.5rem;
+
+  /* Success — positive feedback */
+  --color-success: #30a46c;
+  --color-success-foreground: #ffffff;
+  --color-success-muted: rgba(48, 164, 108, 0.15);
+
+  /* Warning — caution states */
+  --color-warning: #f5a623;
+  --color-warning-foreground: #1a1a1a;
+  --color-warning-muted: rgba(245, 166, 35, 0.15);
+
+  /* Info — informational states */
+  --color-info: #3e8bf0;
+  --color-info-foreground: #ffffff;
+  --color-info-muted: rgba(62, 139, 240, 0.15);
+
+  /* Borders & Inputs */
+  --color-border: #252830;
+  --color-border-hover: #363940;
+  --color-input: #1a1d24;
+  --color-ring: #e5484d;
+
+  /* Sidebar specific */
+  --color-sidebar: #0d0e12;
+  --color-sidebar-hover: #181a20;
+  --color-sidebar-active: #1c1f26;
+  --color-sidebar-border: #1a1c22;
+
+  /* Status colors */
+  --color-status-running: #30a46c;
+  --color-status-stopped: #8b8d98;
+  --color-status-warning: #f5a623;
+  --color-status-error: #e5484d;
+
+  /* Border radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 20px rgba(229, 72, 77, 0.15);
 }
 
 @layer base {
   * {
     border-color: var(--color-border);
   }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
     color-scheme: dark;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Focus styles for accessibility */
+  *:focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+
+  /* Selection styling */
+  ::selection {
+    background-color: var(--color-primary-muted);
+    color: var(--color-foreground);
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-border-hover);
+  }
+
+  /* Smooth scrolling with reduced motion support */
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+}
+
+@layer utilities {
+  /* Glass morphism effect */
+  .glass {
+    background: rgba(17, 19, 24, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  /* Subtle gradient backgrounds */
+  .gradient-subtle {
+    background: linear-gradient(180deg, rgba(229, 72, 77, 0.03) 0%, transparent 100%);
+  }
+
+  .gradient-card {
+    background: linear-gradient(145deg, var(--color-card) 0%, rgba(17, 19, 24, 0.95) 100%);
+  }
+
+  /* Glow effects */
+  .glow-primary {
+    box-shadow: 0 0 20px rgba(229, 72, 77, 0.15), 0 0 40px rgba(229, 72, 77, 0.05);
+  }
+
+  .glow-success {
+    box-shadow: 0 0 20px rgba(48, 164, 108, 0.15), 0 0 40px rgba(48, 164, 108, 0.05);
+  }
+
+  /* Animated gradient border */
+  .border-gradient {
+    position: relative;
+    border: none;
+    background: linear-gradient(var(--color-card), var(--color-card)) padding-box,
+                linear-gradient(135deg, var(--color-primary), transparent 50%) border-box;
+  }
+
+  /* Text gradients */
+  .text-gradient {
+    background: linear-gradient(135deg, var(--color-primary) 0%, #ff7e7e 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Pulse animation for status indicators */
+  .pulse-status {
+    animation: pulse-status 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse-status {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  /* Subtle hover lift */
+  .hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Shimmer loading effect */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      var(--color-muted) 0%,
+      var(--color-secondary) 50%,
+      var(--color-muted) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
   }
 }

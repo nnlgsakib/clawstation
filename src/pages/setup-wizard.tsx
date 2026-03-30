@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowLeft, ArrowRight, Download, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Download, Loader2, Check } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -25,17 +25,25 @@ const STEP_LABELS = [
 
 export default function SetupWizard() {
   const navigate = useNavigate();
-  const { currentStep, nextStep, prevStep, goToStep, getGeneratedConfig, workspacePath, apiKey, modelProvider, selectedModel, customModelId } =
-    useWizardStore();
+  const {
+    currentStep,
+    nextStep,
+    prevStep,
+    goToStep,
+    getGeneratedConfig,
+    workspacePath,
+    apiKey,
+    modelProvider,
+    selectedModel,
+    customModelId,
+  } = useWizardStore();
   const [isInstalling, setIsInstalling] = useState(false);
 
   const handleInstall = async () => {
     setIsInstalling(true);
     try {
       const config = getGeneratedConfig();
-      // Save OpenClaw config
       await invoke("write_config", { config });
-      // Save desktop config
       await invoke("write_desktop_config", {
         config: {
           workspacePath: workspacePath || null,
@@ -46,7 +54,6 @@ export default function SetupWizard() {
           selectedModel: customModelId || selectedModel || null,
         },
       });
-      // Write API key to OpenClaw's auth store so the gateway can find it
       if (apiKey && modelProvider) {
         const provider = MODEL_PROVIDERS.find((p) => p.id === modelProvider);
         if (provider && provider.authType === "api-key") {
@@ -55,7 +62,6 @@ export default function SetupWizard() {
             apiKey,
             mode: "api_key",
           });
-          // Also write to .env as fallback
           if (provider.envVar) {
             await invoke("write_env_key", {
               envVar: provider.envVar,
@@ -83,10 +89,10 @@ export default function SetupWizard() {
   ];
 
   return (
-    <div className="flex min-h-[calc(100vh-3rem)] flex-col">
+    <div className="flex min-h-[calc(100vh-3.5rem)] flex-col bg-background">
       {/* Progress bar */}
-      <div className="border-b border-border px-6 py-4">
-        <div className="mx-auto max-w-2xl">
+      <div className="border-b border-border bg-card/50 backdrop-blur-sm px-6 py-5">
+        <div className="mx-auto max-w-3xl">
           <div className="flex items-center justify-between">
             {STEP_LABELS.map((label, i) => (
               <button
@@ -94,31 +100,25 @@ export default function SetupWizard() {
                 onClick={() => i < currentStep && goToStep(i)}
                 disabled={i > currentStep}
                 className={cn(
-                  "flex flex-col items-center gap-1.5 transition-colors",
-                  i <= currentStep
-                    ? "cursor-pointer"
-                    : "cursor-not-allowed opacity-40"
+                  "flex flex-col items-center gap-2 transition-all duration-200",
+                  i <= currentStep ? "cursor-pointer" : "cursor-not-allowed opacity-40"
                 )}
               >
                 <div
                   className={cn(
-                    "flex h-8 w-8 items-center justify-center rounded-full border-2 text-sm font-medium transition-colors",
+                    "flex h-9 w-9 items-center justify-center rounded-full text-sm font-medium transition-all duration-200",
                     i < currentStep
-                      ? "border-primary bg-primary text-primary-foreground"
+                      ? "bg-success text-success-foreground shadow-sm"
                       : i === currentStep
-                      ? "border-primary text-primary"
-                      : "border-muted text-muted-foreground"
+                      ? "bg-primary text-primary-foreground ring-4 ring-primary/20"
+                      : "bg-muted text-muted-foreground"
                   )}
                 >
-                  {i < currentStep ? (
-                    <Check className="h-4 w-4" />
-                  ) : (
-                    i + 1
-                  )}
+                  {i < currentStep ? <Check className="h-4 w-4" /> : i + 1}
                 </div>
                 <span
                   className={cn(
-                    "text-xs",
+                    "text-xs transition-colors",
                     i === currentStep
                       ? "font-medium text-foreground"
                       : "text-muted-foreground"
@@ -129,16 +129,24 @@ export default function SetupWizard() {
               </button>
             ))}
           </div>
+
           {/* Progress line */}
-          <div className="mt-2 h-0.5 w-full rounded-full bg-muted">
+          <div className="mt-4 h-1 w-full rounded-full bg-muted overflow-hidden">
             <motion.div
-              className="h-full rounded-full bg-primary"
+              className="h-full rounded-full bg-gradient-to-r from-primary to-primary/80"
               initial={false}
               animate={{
                 width: `${(currentStep / (TOTAL_STEPS - 1)) * 100}%`,
               }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
             />
+          </div>
+
+          {/* Step counter */}
+          <div className="flex justify-center mt-3">
+            <span className="text-xs text-muted-foreground">
+              Step {currentStep + 1} of {TOTAL_STEPS}
+            </span>
           </div>
         </div>
       </div>
@@ -147,13 +155,21 @@ export default function SetupWizard() {
       <div className="flex-1 px-6 py-8">
         <div className="mx-auto max-w-2xl">
           <AnimatePresence mode="wait">
-            {steps[currentStep]}
+            <motion.div
+              key={currentStep}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              {steps[currentStep]}
+            </motion.div>
           </AnimatePresence>
         </div>
       </div>
 
       {/* Navigation buttons */}
-      <div className="border-t border-border px-6 py-4">
+      <div className="border-t border-border bg-card/30 backdrop-blur-sm px-6 py-4">
         <div className="mx-auto flex max-w-2xl items-center justify-between">
           <Button
             variant="ghost"
@@ -165,17 +181,26 @@ export default function SetupWizard() {
             Back
           </Button>
 
+          {/* Step dots for mobile */}
+          <div className="flex items-center gap-1.5 sm:hidden">
+            {STEP_LABELS.map((_, i) => (
+              <div
+                key={i}
+                className={cn(
+                  "h-1.5 w-1.5 rounded-full transition-colors",
+                  i === currentStep ? "bg-primary" : "bg-muted-foreground/30"
+                )}
+              />
+            ))}
+          </div>
+
           {currentStep < TOTAL_STEPS - 1 ? (
             <Button onClick={nextStep} className="gap-2">
               Next
               <ArrowRight className="h-4 w-4" />
             </Button>
           ) : (
-            <Button
-              onClick={handleInstall}
-              disabled={isInstalling}
-              className="gap-2"
-            >
+            <Button onClick={handleInstall} disabled={isInstalling} className="gap-2">
               {isInstalling ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
@@ -187,19 +212,5 @@ export default function SetupWizard() {
         </div>
       </div>
     </div>
-  );
-}
-
-function Check({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={3}
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-    </svg>
   );
 }
