@@ -123,10 +123,12 @@ const DOCKER_NETWORKS: {
 ];
 
 function SandboxImageCheck() {
-  const { data: imageExists, isLoading: checking } = useSandboxImageExists();
-  const { isPending: pulling, mutate: pullImage } = usePullSandboxImage();
+  const { data: imageExists, isLoading: checking, refetch: recheckImage } = useSandboxImageExists();
+  const { mutate: pullImage } = usePullSandboxImage();
   const [pullLog, setPullLog] = React.useState<string[]>([]);
   const [pullComplete, setPullComplete] = React.useState(false);
+  const [pulling, setPulling] = React.useState(false);
+  const [pullError, setPullError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     const unlisten = listen<string>("sandbox-pull-output", (event) => {
@@ -138,13 +140,29 @@ function SandboxImageCheck() {
   React.useEffect(() => {
     if (imageExists) {
       setPullComplete(true);
+      setPulling(false);
     }
   }, [imageExists]);
 
   const handlePull = () => {
     setPullLog([]);
     setPullComplete(false);
-    pullImage();
+    setPullError(null);
+    setPulling(true);
+    pullImage(undefined, {
+      onSuccess: (result) => {
+        if (result) {
+          setPullComplete(true);
+        }
+        setPulling(false);
+        recheckImage();
+      },
+      onError: (err) => {
+        setPulling(false);
+        const message = err instanceof Error ? err.message : String(err);
+        setPullError(message || "Failed to pull sandbox image");
+      },
+    });
   };
 
   if (checking) {
@@ -173,9 +191,22 @@ function SandboxImageCheck() {
           className="mt-3 flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
         >
           {pulling ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-          {pulling ? "Pulling..." : "Get Sandbox Image"}
+          {pulling ? "Pulling image..." : "Get Sandbox Image"}
         </button>
       </div>
+
+      {pullError && (
+        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3">
+          <p className="text-sm font-medium text-destructive">Pull Failed</p>
+          <p className="mt-1 text-xs text-muted-foreground">{pullError}</p>
+          <button
+            onClick={handlePull}
+            className="mt-2 text-xs text-primary hover:underline"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {pullLog.length > 0 && (
         <pre className="max-h-32 overflow-auto rounded-md border border-border bg-black p-2 text-xs text-green-400">

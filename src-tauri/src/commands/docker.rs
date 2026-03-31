@@ -276,48 +276,89 @@ pub async fn pull_sandbox_image(app_handle: tauri::AppHandle) -> Result<bool, Ap
     cmd.stdout(std::process::Stdio::piped());
     cmd.stderr(std::process::Stdio::piped());
 
-    match cmd.spawn() {
-        Ok(mut child) => {
-            use tokio::io::{AsyncBufReadExt, BufReader};
+    let mut child = cmd.spawn().map_err(|e| {
+        let _ = crate::install::progress::emit_progress(
+            &app_handle,
+            "pulling_sandbox",
+            100,
+            &format!("Error pulling sandbox: {e}"),
+        );
+        AppError::InstallationFailed {
+            reason: format!("Failed to spawn docker pull: {e}"),
+            suggestion: "Ensure Docker is installed and running".into(),
+        }
+    })?;
 
-            let stdout = child.stdout.take();
-            let _stderr = child.stderr.take();
+    use tokio::io::{AsyncBufReadExt, BufReader};
 
-            if let Some(stdout) = stdout {
-                let mut reader = BufReader::new(stdout).lines();
-                while let Ok(Some(line)) = reader.next_line().await {
-                    let _ = tauri::Emitter::emit(&app_handle, "sandbox-pull-output", line);
-                }
-            }
+    let stdout = child.stdout.take();
+    let stderr = child.stderr.take();
 
-            let status = child.wait().await;
-
-            if status.is_ok() && status.unwrap().success() {
-                crate::install::progress::emit_progress(
-                    &app_handle,
-                    "pulling_sandbox",
-                    100,
-                    "Sandbox image pulled successfully!",
-                );
-                Ok(true)
-            } else {
-                crate::install::progress::emit_progress(
-                    &app_handle,
-                    "pulling_sandbox",
-                    100,
-                    "Failed to pull sandbox image",
-                );
-                Ok(false)
+    // Read stdout and stderr concurrently to prevent buffer deadlock
+    let app_out = app_handle.clone();
+    let stdout_task = tokio::spawn(async move {
+        if let Some(stdout) = stdout {
+            let mut reader = BufReader::new(stdout).lines();
+            while let Ok(Some(line)) = reader.next_line().await {
+                let _ = tauri::Emitter::emit(&app_out, "sandbox-pull-output", &line);
             }
         }
-        Err(e) => {
-            crate::install::progress::emit_progress(
-                &app_handle,
-                "pulling_sandbox",
-                100,
-                &format!("Error pulling sandbox: {}", e),
-            );
-            Ok(false)
+    });
+
+    let app_err = app_handle.clone();
+    let stderr_task = tokio::spawn(async move {
+        let mut stderr_lines = Vec::new();
+        if let Some(stderr) = stderr {
+            let mut reader = BufReader::new(stderr).lines();
+            while let Ok(Some(line)) = reader.next_line().await {
+                let _ = tauri::Emitter::emit(&app_err, "sandbox-pull-output", &line);
+                stderr_lines.push(line);
+            }
         }
+        stderr_lines
+    });
+
+    let (_, stderr_result) = tokio::join!(stdout_task, stderr_task);
+    let stderr_lines = stderr_result.unwrap_or_default();
+
+    let status = child.wait().await.map_err(|e| {
+        let _ = crate::install::progress::emit_progress(
+            &app_handle,
+            "pulling_sandbox",
+            100,
+            "Failed to pull sandbox image",
+        );
+        AppError::InstallationFailed {
+            reason: format!("Failed to wait for docker pull: {e}"),
+            suggestion: "Check Docker logs for details".into(),
+        }
+    })?;
+
+    if status.success() {
+        crate::install::progress::emit_progress(
+            &app_handle,
+            "pulling_sandbox",
+            100,
+            "Sandbox image pulled successfully!",
+        );
+        Ok(true)
+    } else {
+        let error_detail = if stderr_lines.is_empty() {
+            "docker pull exited with non-zero status".to_string()
+        } else {
+            stderr_lines.join("; ")
+        };
+        crate::install::progress::emit_progress(
+            &app_handle,
+            "pulling_sandbox",
+            100,
+            "Failed to pull sandbox image",
+        );
+        Err(AppError::InstallationFailed {
+            reason: format!("docker pull openclaw-sandbox:bookworm-slim failed: {error_detail}"),
+            suggestion:
+                "Check your internet connection and ensure Docker is running. Try: docker pull openclaw-sandbox:bookworm-slim"
+                    .into(),
+        })
     }
 }
