@@ -102,8 +102,10 @@ pub async fn update_openclaw(
         "docker" => update_docker(&app_handle).await,
         "native" => update_native(&app_handle).await,
         _ => Err(AppError::InstallationFailed {
-            reason: "OpenClaw is not installed or install method is unknown".into(),
-            suggestion: "Install OpenClaw first from the Install page.".into(),
+            reason: "Cannot determine how OpenClaw was installed.".into(),
+            suggestion:
+                "If you installed via npm, ensure openclaw is on your PATH and try: npm install -g openclaw@latest"
+                    .into(),
         }),
     }
 }
@@ -274,8 +276,10 @@ async fn detect_install_method() -> (String, String) {
         None => return ("unknown".into(), "unknown".into()),
     };
 
+    let openclaw_dir = home.join(".openclaw");
+
     // Check for Docker install
-    let compose_path = home.join(".openclaw").join("docker-compose.yml");
+    let compose_path = openclaw_dir.join("docker-compose.yml");
     if compose_path.exists() {
         let version = get_docker_version()
             .await
@@ -283,7 +287,7 @@ async fn detect_install_method() -> (String, String) {
         return ("docker".into(), version);
     }
 
-    // Check for native install
+    // Check for native install: openclaw binary on PATH
     let mut cmd = silent_cmd("openclaw");
     cmd.arg("--version");
     let output = run_with_timeout(&mut cmd, QUICK_TIMEOUT).await;
@@ -294,15 +298,31 @@ async fn detect_install_method() -> (String, String) {
         }
     }
 
-    // Fallback: npx openclaw --version
-    if cfg!(target_os = "windows") {
+    // Fallback: npx openclaw --version (all platforms, not just Windows)
+    let mut npx_cmd = if cfg!(target_os = "windows") {
         let mut cmd = silent_cmd("cmd");
         cmd.args(["/c", "npx", "openclaw", "--version"]);
-        if let Ok(output) = run_with_timeout(&mut cmd, QUICK_TIMEOUT).await {
-            if output.status.success() {
-                let version = String::from_utf8_lossy(&output.stdout).trim().to_string();
-                return ("native".into(), version);
-            }
+        cmd
+    } else {
+        let mut cmd = silent_cmd("npx");
+        cmd.args(["openclaw", "--version"]);
+        cmd
+    };
+    if let Ok(output) = run_with_timeout(&mut npx_cmd, QUICK_TIMEOUT).await {
+        if output.status.success() {
+            let version = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            return ("native".into(), version);
+        }
+    }
+
+    // If ~/.openclaw exists with config files, assume native install
+    if openclaw_dir.exists() {
+        let has_config = openclaw_dir.join("openclaw.json").exists()
+            || openclaw_dir.join("config.yaml").exists()
+            || openclaw_dir.join("config.yml").exists()
+            || openclaw_dir.join("config.json").exists();
+        if has_config {
+            return ("native".into(), "unknown".into());
         }
     }
 

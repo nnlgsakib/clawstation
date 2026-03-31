@@ -70,7 +70,7 @@ export const errorMessages: Record<string, AppError> = {
   },
   update_failed: {
     message: "OpenClaw update failed.",
-    suggestion: "Check your internet connection and Docker access. For Docker installs, try: docker compose pull && docker compose up -d. For native installs, try: npm install -g openclaw@latest",
+    suggestion: "Check your internet connection and try again. For native installs, run: npm install -g openclaw@latest",
   },
   version_check_failed: {
     message: "Could not check for updates.",
