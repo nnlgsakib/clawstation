@@ -1,5 +1,6 @@
+import React from "react";
 import { motion } from "motion/react";
-import { Shield, ShieldAlert, ShieldOff, FolderOpen } from "lucide-react";
+import { Shield, ShieldAlert, ShieldOff, FolderOpen, Container, Terminal, Box, Plus, X } from "lucide-react";
 import { useWizardStore } from "@/stores/use-wizard-store";
 import { cn } from "@/lib/utils";
 import { open } from "@tauri-apps/plugin-dialog";
@@ -76,6 +77,44 @@ const WORKSPACE_ACCESS: {
   },
 ];
 
+const SANDBOX_BACKENDS: {
+  value: "docker" | "ssh" | "openshell";
+  label: string;
+  description: string;
+  icon: typeof Container;
+  recommended?: boolean;
+}[] = [
+  {
+    value: "docker",
+    label: "Docker",
+    description: "Isolated containers — best security. Requires Docker installed.",
+    icon: Container,
+    recommended: true,
+  },
+  {
+    value: "ssh",
+    label: "SSH",
+    description: "Run on a remote machine via SSH. Requires SSH access configured.",
+    icon: Terminal,
+  },
+  {
+    value: "openshell",
+    label: "OpenShell",
+    description: "OpenClaw's managed shell sandbox. Requires OpenShell plugin.",
+    icon: Box,
+  },
+];
+
+const DOCKER_NETWORKS: {
+  value: "none" | "bridge" | "host";
+  label: string;
+  description: string;
+}[] = [
+  { value: "none", label: "None", description: "No network access — most secure" },
+  { value: "bridge", label: "Bridge", description: "Isolated network — can access internet" },
+  { value: "host", label: "Host", description: "Full network access — least secure" },
+];
+
 export function SandboxStep() {
   const {
     sandboxMode,
@@ -86,7 +125,16 @@ export function SandboxStep() {
     setWorkspaceAccess,
     workspacePath,
     setWorkspacePath,
+    sandboxBackend,
+    setSandboxBackend,
+    dockerNetwork,
+    setDockerNetwork,
+    dockerBinds,
+    addDockerBind,
+    removeDockerBind,
   } = useWizardStore();
+
+  const [newBind, setNewBind] = React.useState("");
 
   const handlePickWorkspace = async () => {
     try {
@@ -149,6 +197,38 @@ export function SandboxStep() {
             Reset to default
           </button>
         )}
+      </div>
+
+      {/* Sandbox Backend */}
+      <div className="space-y-3">
+        <p className="text-sm font-medium">Sandbox Backend</p>
+        <div className="grid gap-2 sm:grid-cols-3">
+          {SANDBOX_BACKENDS.map(({ value, label, description, icon: Icon, recommended }) => (
+            <button
+              key={value}
+              onClick={() => setSandboxBackend(value)}
+              className={cn(
+                "rounded-lg border p-3 text-left text-sm transition-colors relative",
+                sandboxBackend === value
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-input hover:bg-accent"
+              )}
+            >
+              {recommended && (
+                <span className="absolute -top-2 right-2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-medium text-primary-foreground">
+                  Recommended
+                </span>
+              )}
+              <div className="flex items-center gap-2">
+                <Icon className="h-4 w-4" />
+                <p className="font-medium">{label}</p>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {description}
+              </p>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Sandbox Mode */}
@@ -226,14 +306,117 @@ export function SandboxStep() {
         </div>
       </div>
 
-      <div className="rounded-lg border border-border bg-accent/30 p-4">
-        <p className="text-sm font-medium">Network: Disabled by Default</p>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Sandbox network is set to <code>"none"</code> for maximum security.
-          Agents cannot make network requests from within the sandbox unless you
-          override this later.
-        </p>
-      </div>
+      {/* Docker-specific settings */}
+      {sandboxBackend === "docker" && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          exit={{ opacity: 0, height: 0 }}
+          className="space-y-4"
+        >
+          {/* Network Mode */}
+          <div className="space-y-3">
+            <p className="text-sm font-medium">Docker Network Mode</p>
+            <div className="grid gap-2 sm:grid-cols-3">
+              {DOCKER_NETWORKS.map(({ value, label, description }) => (
+                <button
+                  key={value}
+                  onClick={() => setDockerNetwork(value)}
+                  className={cn(
+                    "rounded-lg border p-3 text-left text-sm transition-colors",
+                    dockerNetwork === value
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-input hover:bg-accent"
+                  )}
+                >
+                  <p className="font-medium">{label}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {description}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Bind Mounts */}
+          <div className="space-y-3">
+            <p className="text-sm font-medium">Bind Mounts</p>
+            <p className="text-xs text-muted-foreground">
+              Host directories accessible inside the sandbox (format: /host/path:/container/path).
+            </p>
+            {dockerBinds.length > 0 && (
+              <div className="space-y-1">
+                {dockerBinds.map((bind, i) => (
+                  <div key={i} className="flex items-center gap-2 rounded-md border border-input bg-background px-3 py-1.5 text-sm">
+                    <code className="flex-1 text-xs">{bind}</code>
+                    <button
+                      onClick={() => removeDockerBind(i)}
+                      className="text-muted-foreground hover:text-destructive"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={newBind}
+                onChange={(e) => setNewBind(e.target.value)}
+                placeholder="/host/path:/container/path"
+                className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm"
+              />
+              <button
+                onClick={() => {
+                  if (newBind.includes(":")) {
+                    addDockerBind(newBind);
+                    setNewBind("");
+                  } else {
+                    toast.error("Bind format: /host/path:/container/path");
+                  }
+                }}
+                className="flex items-center gap-1 rounded-md border border-input bg-background px-3 py-2 text-sm transition-colors hover:bg-accent"
+              >
+                <Plus className="h-3 w-3" />
+                Add
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* SSH-specific settings */}
+      {sandboxBackend === "ssh" && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          exit={{ opacity: 0, height: 0 }}
+          className="rounded-lg border border-border bg-accent/30 p-4"
+        >
+          <p className="text-sm font-medium">SSH Backend</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            SSH sandbox configuration will be available after installation in the Settings page.
+            Configure the target host, workspace path, and SSH key in the sandbox settings.
+          </p>
+        </motion.div>
+      )}
+
+      {/* OpenShell info */}
+      {sandboxBackend === "openshell" && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          exit={{ opacity: 0, height: 0 }}
+          className="rounded-lg border border-border bg-accent/30 p-4"
+        >
+          <p className="text-sm font-medium">OpenShell Backend</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            OpenShell requires the OpenShell plugin to be installed in OpenClaw.
+            Configuration will be available in the Settings page after installation.
+          </p>
+        </motion.div>
+      )}
     </motion.div>
   );
 }
