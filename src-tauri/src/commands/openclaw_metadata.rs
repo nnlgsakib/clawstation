@@ -70,7 +70,12 @@ pub struct OpenClawMetadata {
 
 // ─── Helpers ───────────────────────────────────────────────────────
 
-fn password_field(key: &str, label: &str, required: bool, placeholder: Option<&str>) -> ConfigFieldMeta {
+fn password_field(
+    key: &str,
+    label: &str,
+    required: bool,
+    placeholder: Option<&str>,
+) -> ConfigFieldMeta {
     ConfigFieldMeta {
         key: key.to_string(),
         label: label.to_string(),
@@ -85,7 +90,12 @@ fn password_field(key: &str, label: &str, required: bool, placeholder: Option<&s
     }
 }
 
-fn text_field(key: &str, label: &str, required: bool, placeholder: Option<&str>) -> ConfigFieldMeta {
+fn text_field(
+    key: &str,
+    label: &str,
+    required: bool,
+    placeholder: Option<&str>,
+) -> ConfigFieldMeta {
     ConfigFieldMeta {
         key: key.to_string(),
         label: label.to_string(),
@@ -100,7 +110,12 @@ fn text_field(key: &str, label: &str, required: bool, placeholder: Option<&str>)
     }
 }
 
-fn select_field(key: &str, label: &str, options: Vec<&str>, default: Option<serde_json::Value>) -> ConfigFieldMeta {
+fn select_field(
+    key: &str,
+    label: &str,
+    options: Vec<&str>,
+    default: Option<serde_json::Value>,
+) -> ConfigFieldMeta {
     ConfigFieldMeta {
         key: key.to_string(),
         label: label.to_string(),
@@ -140,11 +155,43 @@ fn built_in_channels() -> Vec<ChannelMetadata> {
             description: "Connect a Telegram bot via Bot API".into(),
             docs_url: "https://docs.openclaw.ai/channels/telegram".into(),
             config_fields: vec![
-                password_field("botToken", "Bot Token", true, Some("123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11")),
-                text_field("webhookUrl", "Webhook URL", false, Some("https://your-domain.com/webhook")),
-                select_field("allowedUpdates", "Allowed Updates", vec!["message", "edited_message", "channel_post", "edited_channel_post", "inline_query", "callback_query"], None),
-                select_field("groupPolicy", "Group Policy", vec!["allowlist", "all", "off"], Some(serde_json::json!("allowlist"))),
-                select_field("streaming", "Streaming", vec!["off", "on"], Some(serde_json::json!("off"))),
+                password_field(
+                    "botToken",
+                    "Bot Token",
+                    true,
+                    Some("123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"),
+                ),
+                text_field(
+                    "webhookUrl",
+                    "Webhook URL",
+                    false,
+                    Some("https://your-domain.com/webhook"),
+                ),
+                select_field(
+                    "allowedUpdates",
+                    "Allowed Updates",
+                    vec![
+                        "message",
+                        "edited_message",
+                        "channel_post",
+                        "edited_channel_post",
+                        "inline_query",
+                        "callback_query",
+                    ],
+                    None,
+                ),
+                select_field(
+                    "groupPolicy",
+                    "Group Policy",
+                    vec!["allowlist", "all", "off"],
+                    Some(serde_json::json!("allowlist")),
+                ),
+                select_field(
+                    "streaming",
+                    "Streaming",
+                    vec!["off", "on"],
+                    Some(serde_json::json!("off")),
+                ),
             ],
             is_builtin: true,
             is_extension: false,
@@ -157,8 +204,18 @@ fn built_in_channels() -> Vec<ChannelMetadata> {
             description: "Connect via WhatsApp Web pairing".into(),
             docs_url: "https://docs.openclaw.ai/channels/whatsapp".into(),
             config_fields: vec![
-                select_field("pairingMethod", "Pairing Method", vec!["qr", "link"], Some(serde_json::json!("qr"))),
-                text_field("allowFrom", "Allow From", false, Some("+1234567890 (comma-separated)")),
+                select_field(
+                    "pairingMethod",
+                    "Pairing Method",
+                    vec!["qr", "link"],
+                    Some(serde_json::json!("qr")),
+                ),
+                text_field(
+                    "allowFrom",
+                    "Allow From",
+                    false,
+                    Some("+1234567890 (comma-separated)"),
+                ),
             ],
             is_builtin: true,
             is_extension: false,
@@ -173,7 +230,12 @@ fn built_in_channels() -> Vec<ChannelMetadata> {
             config_fields: vec![
                 password_field("token", "Bot Token", true, Some("MTIz...")),
                 bool_field("previewStreaming", "Preview Streaming", true),
-                select_field("rateLimit", "Rate Limit", vec!["relaxed", "normal", "strict"], Some(serde_json::json!("normal"))),
+                select_field(
+                    "rateLimit",
+                    "Rate Limit",
+                    vec!["relaxed", "normal", "strict"],
+                    Some(serde_json::json!("normal")),
+                ),
             ],
             is_builtin: true,
             is_extension: false,
@@ -203,7 +265,12 @@ fn built_in_channels() -> Vec<ChannelMetadata> {
             config_fields: vec![
                 text_field("cliPath", "CLI Path", false, Some("signal-cli")),
                 text_field("number", "Phone Number", true, Some("+1234567890")),
-                select_field("groupPolicy", "Group Policy", vec!["allowlist", "all", "off"], Some(serde_json::json!("allowlist"))),
+                select_field(
+                    "groupPolicy",
+                    "Group Policy",
+                    vec!["allowlist", "all", "off"],
+                    Some(serde_json::json!("allowlist")),
+                ),
             ],
             is_builtin: true,
             is_extension: false,
@@ -217,7 +284,12 @@ fn built_in_channels() -> Vec<ChannelMetadata> {
             docs_url: "https://docs.openclaw.ai/channels/imessage".into(),
             config_fields: vec![
                 text_field("cliPath", "CLI Path", false, Some("imsg")),
-                select_field("groupPolicy", "Group Policy", vec!["allowlist", "all", "off"], Some(serde_json::json!("allowlist"))),
+                select_field(
+                    "groupPolicy",
+                    "Group Policy",
+                    vec!["allowlist", "all", "off"],
+                    Some(serde_json::json!("allowlist")),
+                ),
             ],
             is_builtin: true,
             is_extension: false,
@@ -245,9 +317,7 @@ fn built_in_channels() -> Vec<ChannelMetadata> {
             name: "Google Chat".into(),
             description: "Google Chat integration".into(),
             docs_url: "https://docs.openclaw.ai/channels/googlechat".into(),
-            config_fields: vec![
-                text_field("spaceName", "Space Name", true, None),
-            ],
+            config_fields: vec![text_field("spaceName", "Space Name", true, None)],
             is_builtin: true,
             is_extension: false,
             provider_id: None,
@@ -293,7 +363,12 @@ fn extension_channels() -> Vec<ChannelMetadata> {
             description: "Matrix protocol via mautrix".into(),
             docs_url: "https://docs.openclaw.ai/channels/matrix".into(),
             config_fields: vec![
-                text_field("homeserver", "Homeserver URL", true, Some("https://matrix.org")),
+                text_field(
+                    "homeserver",
+                    "Homeserver URL",
+                    true,
+                    Some("https://matrix.org"),
+                ),
                 password_field("accessToken", "Access Token", true, None),
             ],
             is_builtin: false,
@@ -486,7 +561,11 @@ fn extension_channels() -> Vec<ChannelMetadata> {
 // ─── Data: Providers ──────────────────────────────────────────────
 
 fn model(id: &str, name: &str) -> ModelEntry {
-    ModelEntry { id: id.to_string(), name: name.to_string(), reasoning: false }
+    ModelEntry {
+        id: id.to_string(),
+        name: name.to_string(),
+        reasoning: false,
+    }
 }
 
 fn all_providers() -> Vec<ProviderMetadata> {
@@ -569,7 +648,10 @@ fn all_providers() -> Vec<ProviderMetadata> {
             docs_url: "https://docs.anthropic.com/en/docs/claude-on-vertex-ai".into(),
             models: vec![
                 model("anthropic-vertex/claude-opus-4-6", "Claude Opus 4 (Vertex)"),
-                model("anthropic-vertex/claude-sonnet-4-6", "Claude Sonnet 4 (Vertex)"),
+                model(
+                    "anthropic-vertex/claude-sonnet-4-6",
+                    "Claude Sonnet 4 (Vertex)",
+                ),
             ],
             category: "major".into(),
             is_extension: true,
@@ -584,7 +666,10 @@ fn all_providers() -> Vec<ProviderMetadata> {
             key_placeholder: "sk-or-v1-xxxxxxxxxxxxxxxx".into(),
             docs_url: "https://openrouter.ai/".into(),
             models: vec![
-                model("openrouter/anthropic/claude-sonnet-4-6", "Claude Sonnet (OR)"),
+                model(
+                    "openrouter/anthropic/claude-sonnet-4-6",
+                    "Claude Sonnet (OR)",
+                ),
                 model("openrouter/openai/gpt-5.2", "GPT-5.2 (OR)"),
                 model("openrouter/google/gemini-2.5-pro", "Gemini Pro (OR)"),
             ],
@@ -616,9 +701,10 @@ fn all_providers() -> Vec<ProviderMetadata> {
             key_format: "...".into(),
             key_placeholder: "Your Vercel AI Gateway key".into(),
             docs_url: "https://docs.openclaw.ai/concepts/model-providers".into(),
-            models: vec![
-                model("vercel-ai-gateway/anthropic/claude-opus-4.6", "Claude Opus (Vercel)"),
-            ],
+            models: vec![model(
+                "vercel-ai-gateway/anthropic/claude-opus-4.6",
+                "Claude Opus (Vercel)",
+            )],
             category: "multi-provider".into(),
             is_extension: true,
         },
@@ -663,9 +749,7 @@ fn all_providers() -> Vec<ProviderMetadata> {
             key_format: "...".into(),
             key_placeholder: "Your Mistral API key".into(),
             docs_url: "https://docs.openclaw.ai/concepts/model-providers".into(),
-            models: vec![
-                model("mistral/mistral-large-latest", "Mistral Large"),
-            ],
+            models: vec![model("mistral/mistral-large-latest", "Mistral Large")],
             category: "other".into(),
             is_extension: false,
         },
@@ -678,9 +762,7 @@ fn all_providers() -> Vec<ProviderMetadata> {
             key_format: "gsk_...".into(),
             key_placeholder: "gsk_xxxxxxxxxxxxxxxx".into(),
             docs_url: "https://docs.openclaw.ai/concepts/model-providers".into(),
-            models: vec![
-                model("groq/llama-3.3-70b-versatile", "Llama 3.3 70B"),
-            ],
+            models: vec![model("groq/llama-3.3-70b-versatile", "Llama 3.3 70B")],
             category: "other".into(),
             is_extension: false,
         },
@@ -709,9 +791,10 @@ fn all_providers() -> Vec<ProviderMetadata> {
             key_format: "...".into(),
             key_placeholder: "Your Together API key".into(),
             docs_url: "https://docs.openclaw.ai/concepts/model-providers".into(),
-            models: vec![
-                model("together/meta-llama/Llama-3.3-70B-Instruct-Turbo", "Llama 3.3 70B"),
-            ],
+            models: vec![model(
+                "together/meta-llama/Llama-3.3-70B-Instruct-Turbo",
+                "Llama 3.3 70B",
+            )],
             category: "other".into(),
             is_extension: true,
         },
@@ -724,9 +807,7 @@ fn all_providers() -> Vec<ProviderMetadata> {
             key_format: "xai-...".into(),
             key_placeholder: "xai-xxxxxxxxxxxxxxxx".into(),
             docs_url: "https://docs.openclaw.ai/concepts/model-providers".into(),
-            models: vec![
-                model("xai/grok-3", "Grok 3"),
-            ],
+            models: vec![model("xai/grok-3", "Grok 3")],
             category: "other".into(),
             is_extension: false,
         },
@@ -739,9 +820,7 @@ fn all_providers() -> Vec<ProviderMetadata> {
             key_format: "hf_...".into(),
             key_placeholder: "hf_xxxxxxxxxxxxxxxx".into(),
             docs_url: "https://docs.openclaw.ai/concepts/model-providers".into(),
-            models: vec![
-                model("huggingface/deepseek-ai/DeepSeek-R1", "DeepSeek R1"),
-            ],
+            models: vec![model("huggingface/deepseek-ai/DeepSeek-R1", "DeepSeek R1")],
             category: "other".into(),
             is_extension: false,
         },
@@ -754,9 +833,7 @@ fn all_providers() -> Vec<ProviderMetadata> {
             key_format: "sk-...".into(),
             key_placeholder: "sk-xxxxxxxxxxxxxxxx".into(),
             docs_url: "https://docs.openclaw.ai/concepts/model-providers".into(),
-            models: vec![
-                model("moonshot/kimi-k2.5", "Kimi K2.5"),
-            ],
+            models: vec![model("moonshot/kimi-k2.5", "Kimi K2.5")],
             category: "other".into(),
             is_extension: false,
         },
@@ -769,9 +846,7 @@ fn all_providers() -> Vec<ProviderMetadata> {
             key_format: "nvapi-...".into(),
             key_placeholder: "nvapi-xxxxxxxxxxxx".into(),
             docs_url: "https://docs.openclaw.ai/concepts/model-providers".into(),
-            models: vec![
-                model("nvidia/meta/llama-3.3-70b-instruct", "Llama 3.3 70B"),
-            ],
+            models: vec![model("nvidia/meta/llama-3.3-70b-instruct", "Llama 3.3 70B")],
             category: "other".into(),
             is_extension: true,
         },
@@ -784,9 +859,7 @@ fn all_providers() -> Vec<ProviderMetadata> {
             key_format: "...".into(),
             key_placeholder: "Your Chutes API key".into(),
             docs_url: "https://docs.openclaw.ai/concepts/model-providers".into(),
-            models: vec![
-                model("chutes/deepseek-ai/DeepSeek-R1", "DeepSeek R1"),
-            ],
+            models: vec![model("chutes/deepseek-ai/DeepSeek-R1", "DeepSeek R1")],
             category: "other".into(),
             is_extension: true,
         },
@@ -799,9 +872,7 @@ fn all_providers() -> Vec<ProviderMetadata> {
             key_format: "csk-...".into(),
             key_placeholder: "csk-xxxxxxxxxxxxxxxx".into(),
             docs_url: "https://docs.openclaw.ai/concepts/model-providers".into(),
-            models: vec![
-                model("cerebras/llama3.3-70b", "Llama 3.3 70B (Cerebras)"),
-            ],
+            models: vec![model("cerebras/llama3.3-70b", "Llama 3.3 70B (Cerebras)")],
             category: "other".into(),
             is_extension: false,
         },
@@ -814,9 +885,7 @@ fn all_providers() -> Vec<ProviderMetadata> {
             key_format: "...".into(),
             key_placeholder: "Your Z.AI API key".into(),
             docs_url: "https://docs.openclaw.ai/concepts/model-providers".into(),
-            models: vec![
-                model("zai/glm-5", "GLM-5"),
-            ],
+            models: vec![model("zai/glm-5", "GLM-5")],
             category: "other".into(),
             is_extension: false,
         },
@@ -829,9 +898,7 @@ fn all_providers() -> Vec<ProviderMetadata> {
             key_format: "...".into(),
             key_placeholder: "Your MiniMax API key".into(),
             docs_url: "https://docs.openclaw.ai/providers/minimax".into(),
-            models: vec![
-                model("minimax/MiniMax-M2.5", "MiniMax M2.5"),
-            ],
+            models: vec![model("minimax/MiniMax-M2.5", "MiniMax M2.5")],
             category: "other".into(),
             is_extension: false,
         },
@@ -857,9 +924,10 @@ fn all_providers() -> Vec<ProviderMetadata> {
             key_format: "AWS credentials".into(),
             key_placeholder: "AWS access key".into(),
             docs_url: "https://docs.openclaw.ai/concepts/model-providers".into(),
-            models: vec![
-                model("amazon-bedrock/anthropic.claude-sonnet-4-20250514-v1:0", "Claude Sonnet 4"),
-            ],
+            models: vec![model(
+                "amazon-bedrock/anthropic.claude-sonnet-4-20250514-v1:0",
+                "Claude Sonnet 4",
+            )],
             category: "major".into(),
             is_extension: true,
         },
@@ -872,9 +940,7 @@ fn all_providers() -> Vec<ProviderMetadata> {
             key_format: "...".into(),
             key_placeholder: "Your Azure API key".into(),
             docs_url: "https://docs.openclaw.ai/concepts/model-providers".into(),
-            models: vec![
-                model("microsoft/gpt-4o", "GPT-4o (Azure)"),
-            ],
+            models: vec![model("microsoft/gpt-4o", "GPT-4o (Azure)")],
             category: "major".into(),
             is_extension: true,
         },
@@ -1011,9 +1077,7 @@ fn all_providers() -> Vec<ProviderMetadata> {
             key_format: "...".into(),
             key_placeholder: "vllm-local".into(),
             docs_url: "https://docs.openclaw.ai/providers/vllm".into(),
-            models: vec![
-                model("vllm/your-model-id", "Custom (vLLM)"),
-            ],
+            models: vec![model("vllm/your-model-id", "Custom (vLLM)")],
             category: "local".into(),
             is_extension: false,
         },
@@ -1026,9 +1090,7 @@ fn all_providers() -> Vec<ProviderMetadata> {
             key_format: "...".into(),
             key_placeholder: "sglang-local".into(),
             docs_url: "https://docs.openclaw.ai/providers/sglang".into(),
-            models: vec![
-                model("sglang/your-model-id", "Custom (SGLang)"),
-            ],
+            models: vec![model("sglang/your-model-id", "Custom (SGLang)")],
             category: "local".into(),
             is_extension: false,
         },
@@ -1055,13 +1117,31 @@ pub async fn get_openclaw_metadata() -> Result<OpenClawMetadata, AppError> {
     channels.extend(extension_channels());
 
     let channel_order = vec![
-        "telegram".into(), "whatsapp".into(), "discord".into(), "slack".into(),
-        "signal".into(), "imessage".into(), "irc".into(), "googlechat".into(),
-        "line".into(), "msteams".into(), "matrix".into(), "mattermost".into(),
-        "feishu".into(), "twitch".into(), "nostr".into(), "bluebubbles".into(),
-        "synology-chat".into(), "nextcloud-talk".into(), "zalo".into(),
-        "zalouser".into(), "voice-call".into(), "openshell".into(),
-        "tlon".into(), "device-pair".into(), "phone-control".into(),
+        "telegram".into(),
+        "whatsapp".into(),
+        "discord".into(),
+        "slack".into(),
+        "signal".into(),
+        "imessage".into(),
+        "irc".into(),
+        "googlechat".into(),
+        "line".into(),
+        "msteams".into(),
+        "matrix".into(),
+        "mattermost".into(),
+        "feishu".into(),
+        "twitch".into(),
+        "nostr".into(),
+        "bluebubbles".into(),
+        "synology-chat".into(),
+        "nextcloud-talk".into(),
+        "zalo".into(),
+        "zalouser".into(),
+        "voice-call".into(),
+        "openshell".into(),
+        "tlon".into(),
+        "device-pair".into(),
+        "phone-control".into(),
     ];
 
     Ok(OpenClawMetadata {

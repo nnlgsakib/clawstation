@@ -243,10 +243,8 @@ async fn monitor_gateway_health(app: tauri::AppHandle, port: u16) {
                                 "gateway-startup-phase",
                                 serde_json::json!({ "phase": "ready" }),
                             );
-                            let _ = app.emit(
-                                "gateway-status",
-                                serde_json::json!({ "connected": true }),
-                            );
+                            let _ = app
+                                .emit("gateway-status", serde_json::json!({ "connected": true }));
                             break;
                         }
                     }
