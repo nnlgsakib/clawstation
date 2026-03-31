@@ -191,6 +191,7 @@ Last activity: 2026-03-31
 | 260329-kep | Push all Phase 16 changes - OpenClaw full integration | 2026-03-29 | ba2b0aa | [260329-kep-push-all-phase-16-changes](./quick/260329-kep-push-all-phase-16-changes/) |
 | 260331-qcf | Run cargo fmt, clippy and fix things | 2026-03-31 | b6f7d51 | [260331-qcf-run-cargo-fmt-clippy-and-fix](./quick/260331-qcf-run-cargo-fmt-clippy-and-fix/) |
 | 260331-g5h | Publish the current branch | 2026-03-31 | 2c3072f | [260331-g5h-publish-the-current-branch](./quick/260331-g5h-publish-the-current-branch/) |
+| 260331-i16 | Fix 502 NATS no-responders error with provider error classification | 2026-03-31 | 1408b6d | [260331-i16-fix-502-nats-no-responders-error-when-se](./quick/260331-i16-fix-502-nats-no-responders-error-when-se/) |
 
 ## Session Continuity
 
