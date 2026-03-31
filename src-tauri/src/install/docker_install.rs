@@ -482,27 +482,17 @@ pub async fn docker_install(
                     );
 
                     let dockerfile = repo_dir.join("Dockerfile.sandbox");
-                    let dockerfile_content = r#"FROM debian:bookworm-slim
+                    let dockerfile_content = r#"FROM node:20-slim
 
-# Install Node.js and required utilities
-RUN apt-get update && apt-get install -y \
-    nodejs \
-    npm \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
-# Create node user with proper UID/GID
-RUN groupadd -g 1000 node || true && \
-    useradd -r -u 1000 -g node -m -s /bin/bash node || true
+RUN groupadd -g 1000 node || true && useradd -r -u 1000 -g node -m -s /bin/bash node || true
 
-# Set working directory and permissions
 WORKDIR /home/node
 RUN chown -R node:node /home/node
 
-# Switch to node user
 USER node
 
-# Default command
 CMD ["/bin/bash"]
 "#;
 
