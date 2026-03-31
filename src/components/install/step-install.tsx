@@ -18,6 +18,7 @@ import {
   type InstallMethod,
 } from "@/hooks/use-install";
 import { useOnboardingStore } from "@/stores/use-onboarding-store";
+import { useWizardStore } from "@/stores/use-wizard-store";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DockerLogViewer } from "@/components/ui/log-viewer";
@@ -120,6 +121,14 @@ export function StepInstall({ method }: StepInstallProps) {
 
   const installDir = storeInstallDir || getDefaultInstallDir();
 
+  const {
+    sandboxMode,
+    sandboxBackend,
+    dockerImage,
+    dockerNetwork,
+    dockerBinds,
+  } = useWizardStore();
+
   const handleSelectDir = useCallback(async () => {
     try {
       const selected = await open({
@@ -152,8 +161,17 @@ export function StepInstall({ method }: StepInstallProps) {
 
   const handleStartInstall = useCallback(() => {
     setIsInstalling(true);
+
+    const sandboxConfig = (sandboxMode && sandboxMode !== "off") ? {
+      mode: sandboxMode,
+      backend: sandboxBackend || "docker",
+      dockerImage: dockerImage || "openclaw-sandbox:bookworm-slim",
+      dockerNetwork: dockerNetwork || "none",
+      dockerBinds: dockerBinds,
+    } : undefined;
+
     mutate(
-      { method, installDir, workspacePath },
+      { method, installDir, workspacePath, sandboxConfig },
       {
         onSuccess: () => {
           setIsInstalling(false);
@@ -165,7 +183,7 @@ export function StepInstall({ method }: StepInstallProps) {
         },
       }
     );
-  }, [method, installDir, workspacePath, mutate, transitionToVerify, transitionToError, setIsInstalling]);
+  }, [method, installDir, workspacePath, sandboxMode, sandboxBackend, dockerImage, dockerNetwork, dockerBinds, mutate, transitionToVerify, transitionToError, setIsInstalling]);
 
   const handleCancel = useCallback(async () => {
     try {

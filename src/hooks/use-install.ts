@@ -18,10 +18,19 @@ export interface InstallResult {
   gatewayToken: string | null;
 }
 
+interface SandboxConfig {
+  mode: string;
+  backend: string;
+  dockerImage?: string;
+  dockerNetwork?: string;
+  dockerBinds?: string[];
+}
+
 interface InstallRequest {
   method: InstallMethod;
   workspacePath?: string;
   installDir?: string;
+  sandboxConfig?: SandboxConfig;
 }
 
 interface DesktopConfig {
