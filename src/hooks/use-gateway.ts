@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useGatewayStore } from "@/stores/use-gateway-store";
+import { isProviderError, getProviderGuidance, extractProviderErrorMessage } from "@/lib/provider-errors";
 import type { GatewayStartupPhase } from "@/stores/use-gateway-store";
 
 // ─── Types ────────────────────────────────────────────────────────
@@ -204,6 +205,27 @@ export function useGatewayConnection() {
 }
 
 /**
+ * A provider error with structured metadata for the frontend to detect.
+ */
+export interface ProviderError extends Error {
+  isProviderError: true;
+  providerGuidance: { title: string; steps: string[] };
+  providerMessage: string;
+}
+
+function wrapProviderError(error: unknown): never {
+  if (isProviderError(error)) {
+    const message = extractProviderErrorMessage(error) ?? "Provider error";
+    const err = new Error(message) as ProviderError;
+    err.isProviderError = true;
+    err.providerGuidance = getProviderGuidance();
+    err.providerMessage = message;
+    throw err;
+  }
+  throw error;
+}
+
+/**
  * Generic hook for making Gateway WebSocket API calls.
  */
 export function useGatewayCall<T>(
@@ -216,11 +238,15 @@ export function useGatewayCall<T>(
   return useQuery<T>({
     queryKey: ["gateway", method, params],
     queryFn: async () => {
-      const response = await invoke<{ result: T }>("gateway_ws_call", {
-        method,
-        params: params ?? {},
-      });
-      return (response as { result: T }).result ?? (response as T);
+      try {
+        const response = await invoke<{ result: T }>("gateway_ws_call", {
+          method,
+          params: params ?? {},
+        });
+        return (response as { result: T }).result ?? (response as T);
+      } catch (e) {
+        wrapProviderError(e);
+      }
     },
     enabled: connected && (options?.enabled ?? true),
     staleTime: options?.staleTime ?? 30000,
@@ -249,13 +275,45 @@ export function useGatewayConfigPatch() {
 
   return useMutation({
     mutationFn: async ({ raw, baseHash }: { raw: string; baseHash: string }) => {
-      return await invoke("gateway_ws_call", {
-        method: "config.patch",
-        params: { raw, baseHash },
-      });
+      try {
+        return await invoke("gateway_ws_call", {
+          method: "config.patch",
+          params: { raw, baseHash },
+        });
+      } catch (e) {
+        wrapProviderError(e);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["gateway", "config.get"] });
     },
+  });
+}
+
+/**
+ * Generic mutation hook for Gateway WebSocket calls that modify state (chat, config patches, etc.).
+ * Includes the same provider error detection as useGatewayCall.
+ */
+export function useGatewayMutation<TData = unknown, TVariables = Record<string, unknown>>(
+  method: string,
+  options?: {
+    onSuccess?: (data: TData) => void;
+    onError?: (error: Error) => void;
+  }
+) {
+  return useMutation<TData, Error, TVariables>({
+    mutationFn: async (variables) => {
+      try {
+        const response = await invoke<{ result: TData }>("gateway_ws_call", {
+          method,
+          params: variables ?? {},
+        });
+        return (response as { result: TData }).result ?? (response as TData);
+      } catch (e) {
+        wrapProviderError(e);
+      }
+    },
+    onSuccess: options?.onSuccess,
+    onError: options?.onError,
   });
 }
