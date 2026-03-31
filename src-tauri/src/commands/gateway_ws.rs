@@ -41,10 +41,7 @@ fn classify_gateway_response(response: &serde_json::Value) -> Option<String> {
     }
 
     // Check nested error patterns in /error/message
-    if let Some(err_msg) = response
-        .pointer("/error/message")
-        .and_then(|v| v.as_str())
-    {
+    if let Some(err_msg) = response.pointer("/error/message").and_then(|v| v.as_str()) {
         let msg_lower = err_msg.to_lowercase();
         if msg_lower.contains("no responders")
             || msg_lower.contains("nats")
@@ -55,15 +52,9 @@ fn classify_gateway_response(response: &serde_json::Value) -> Option<String> {
     }
 
     // Check for server_error type with provider context
-    if let Some(err_type) = response
-        .pointer("/error/type")
-        .and_then(|v| v.as_str())
-    {
+    if let Some(err_type) = response.pointer("/error/type").and_then(|v| v.as_str()) {
         if err_type == "server_error" {
-            if let Some(msg) = response
-                .pointer("/error/message")
-                .and_then(|v| v.as_str())
-            {
+            if let Some(msg) = response.pointer("/error/message").and_then(|v| v.as_str()) {
                 let msg_lower = msg.to_lowercase();
                 if msg_lower.contains("provider")
                     || msg_lower.contains("upstream")

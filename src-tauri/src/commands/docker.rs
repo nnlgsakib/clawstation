@@ -300,7 +300,9 @@ pub async fn pull_sandbox_image(app_handle: tauri::AppHandle) -> Result<bool, Ap
             );
             return run_build_command(
                 &app_handle,
-                silent_cmd("bash").arg(&sandbox_script).current_dir(&repo_dir),
+                silent_cmd("bash")
+                    .arg(&sandbox_script)
+                    .current_dir(&repo_dir),
             )
             .await;
         }
@@ -388,7 +390,7 @@ async fn run_build_command(
     cmd.stderr(std::process::Stdio::piped());
 
     let mut child = cmd.spawn().map_err(|e| {
-        let _ = crate::install::progress::emit_progress(
+        crate::install::progress::emit_progress(
             app_handle,
             "pulling_sandbox",
             100,
@@ -430,12 +432,7 @@ async fn run_build_command(
     let stderr_lines = stderr_result.unwrap_or_default();
 
     let status = child.wait().await.map_err(|e| {
-        let _ = crate::install::progress::emit_progress(
-            app_handle,
-            "pulling_sandbox",
-            100,
-            "Build failed",
-        );
+        crate::install::progress::emit_progress(app_handle, "pulling_sandbox", 100, "Build failed");
         AppError::InstallationFailed {
             reason: format!("Failed to wait for sandbox build: {e}"),
             suggestion: "Check Docker logs for details".into(),
@@ -456,12 +453,7 @@ async fn run_build_command(
         } else {
             stderr_lines.join("; ")
         };
-        crate::install::progress::emit_progress(
-            app_handle,
-            "pulling_sandbox",
-            100,
-            "Build failed",
-        );
+        crate::install::progress::emit_progress(app_handle, "pulling_sandbox", 100, "Build failed");
         Err(AppError::InstallationFailed {
             reason: format!("Sandbox image build failed: {error_detail}"),
             suggestion:
