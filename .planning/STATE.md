@@ -181,6 +181,7 @@ Last activity: 2026-03-30
 | 260329-0mn | Fix CI compilation errors in uninstall.rs Linux-specific pgrep/pkill | 2026-03-28 | c97b040 | [260329-0mn-fix-ci-compilation-errors-in-uninstall-r](./quick/260329-0mn-fix-ci-compilation-errors-in-uninstall-r/) |
 | 260329-1af | Fix release.yml to publish as latest release instead of pre-release | 2026-03-28 | c8e5612 | [260329-1af-fix-release-yml-to-publish-as-latest-rel](./quick/260329-1af-fix-release-yml-to-publish-as-latest-rel/) |
 | 260329-kep | Push all Phase 16 changes - OpenClaw full integration | 2026-03-29 | ba2b0aa | [260329-kep-push-all-phase-16-changes](./quick/260329-kep-push-all-phase-16-changes/) |
+| 260331-qcf | Run cargo fmt, clippy and fix things | 2026-03-31 | b6f7d51 | [260331-qcf-run-cargo-fmt-clippy-and-fix](./quick/260331-qcf-run-cargo-fmt-clippy-and-fix/) |
 
 ## Session Continuity
 
