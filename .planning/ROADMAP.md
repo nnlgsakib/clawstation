@@ -263,6 +263,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
+| 18. Docker Sandbox Integration | — | 1/3 | In Progress | — |
 | 17. Gateway Startup UX Fix | — | 3/3 | Complete    | 2026-03-30 |
 | 16. OpenClaw Full Integration | v2.0 | 4/4 | Complete   | 2026-03-29 |
 | 15. Production Build Fixes | — | 1/4 | In Progress | — |
@@ -372,7 +373,7 @@ Plans:
 **Plans:** 3 plans in 2 waves
 
 Plans:
-- [ ] 18-docker-sandbox-integration-01-PLAN.md — Fix getGeneratedConfig() sandbox block & extend Rust validation
+- [x] 18-docker-sandbox-integration-01-PLAN.md — Fix getGeneratedConfig() sandbox block & extend Rust validation
 - [ ] 18-docker-sandbox-integration-02-PLAN.md — Backend selector UI & Docker-specific settings in wizard
 - [ ] 18-docker-sandbox-integration-03-PLAN.md — Integrate sandbox setup scripts in installation flow
 

@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: UX Polish & Channels
 status: executing
-last_updated: "2026-03-30T16:59:17.883Z"
-last_activity: 2026-03-30
+last_updated: "2026-03-31T03:04:57.424Z"
+last_activity: 2026-03-31 — Plan 18-01 complete (sandbox config generation + validation)
 progress:
   total_phases: 11
   completed_phases: 7
   total_plans: 35
-  completed_plans: 23
+  completed_plans: 24
 ---
 
 # STATE: ClawStation
@@ -17,15 +17,15 @@ progress:
 ## Project Reference
 
 **Core Value:** Make OpenClaw installable and manageable by anyone — from download to daily use — without touching a terminal.
-**Current Focus:** Phase 17 — gateway-startup-ux-fix
+**Current Focus:** Phase 18 — docker-sandbox-integration
 **Tech Stack:** Tauri v2 + React 19 + TypeScript + Tailwind v4 + shadcn/ui + bollard (Rust Docker client)
 
 ## Current Position
 
-Phase: 17
-Plan: Not started
-Status: Executing Phase 17
-Last activity: 2026-03-30
+Phase: 18 (docker-sandbox-integration) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-03-31 — Plan 18-01 complete (sandbox config generation + validation)
 
 ## Performance Metrics
 
@@ -68,8 +68,13 @@ Last activity: 2026-03-30
 | Phase 16-openclaw-full-integration P04 | 5min | 2 tasks | 3 files |
 | Phase 17-gateway-startup-ux-fix P01 | 8min | 3 tasks | 1 files |
 | Phase 17-gateway-startup-ux-fix P02 | 4min | 4 tasks | 2 files |
+| Phase 18-docker-sandbox-integration P01 | 8min | 2 tasks | 2 files |
 
 ## Accumulated Context
+
+### Roadmap Evolution
+
+- Phase 18 added: Docker Sandbox Integration (backend selection, sandbox setup scripts, wizard config generation)
 
 ### Key Decisions
 
