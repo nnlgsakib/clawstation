@@ -218,7 +218,7 @@ pub async fn validate_config(
                 if let Some(docker) = sandbox.get("docker") {
                     if let Some(network) = docker.get("network") {
                         if let Some(net_str) = network.as_str() {
-                            let valid_networks = ["none", "bridge", "host"];
+                            let valid_networks = ["none", "bridge"];
                             if !valid_networks.contains(&net_str) {
                                 errors.push(ValidationError {
                                     field: "agents.defaults.sandbox.docker.network".into(),

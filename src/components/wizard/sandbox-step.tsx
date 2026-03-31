@@ -106,13 +106,12 @@ const SANDBOX_BACKENDS: {
 ];
 
 const DOCKER_NETWORKS: {
-  value: "none" | "bridge" | "host";
+  value: "none" | "bridge";
   label: string;
   description: string;
 }[] = [
-  { value: "none", label: "None", description: "No network access — most secure" },
+  { value: "none", label: "None", description: "No network access — most secure (Recommended)" },
   { value: "bridge", label: "Bridge", description: "Isolated network — can access internet" },
-  { value: "host", label: "Host", description: "Full network access — least secure" },
 ];
 
 export function SandboxStep() {
