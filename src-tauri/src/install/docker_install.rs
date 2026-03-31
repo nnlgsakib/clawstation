@@ -473,12 +473,60 @@ pub async fn docker_install(
                         }
                     }
                 } else {
-                    // No script found — try direct docker build
+                    // No script found — create Dockerfile.sandbox with node user and build
+                    emit_progress(
+                        app_handle,
+                        "sandbox_setup",
+                        92,
+                        "Creating sandbox Dockerfile...",
+                    );
+
+                    let dockerfile = repo_dir.join("Dockerfile.sandbox");
+                    let dockerfile_content = r#"FROM debian:bookworm-slim
+
+# Install Node.js and required utilities
+RUN apt-get update && apt-get install -y \
+    nodejs \
+    npm \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create node user with proper UID/GID
+RUN groupadd -g 1000 node || true && \
+    useradd -r -u 1000 -g node -m -s /bin/bash node || true
+
+# Set working directory and permissions
+WORKDIR /home/node
+RUN chown -R node:node /home/node
+
+# Switch to node user
+USER node
+
+# Default command
+CMD ["/bin/bash"]
+"#;
+
+                    // Write Dockerfile.sandbox
+                    if let Err(e) = std::fs::write(&dockerfile, dockerfile_content) {
+                        emit_progress(
+                            app_handle,
+                            "sandbox_setup",
+                            98,
+                            &format!("Failed to create sandbox Dockerfile: {e}"),
+                        );
+                        return Ok(InstallResult {
+                            method: "docker".into(),
+                            version: Some("latest".into()),
+                            gateway_url: "http://127.0.0.1:18789".to_string(),
+                            gateway_token: None,
+                        });
+                    }
+
                     emit_progress(
                         app_handle,
                         "sandbox_setup",
                         93,
-                        "Building sandbox image directly...",
+                        "Building sandbox image...",
                     );
 
                     let mut cmd = silent_cmd("docker");
