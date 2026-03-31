@@ -263,6 +263,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
+| 19. Configure Page Dual-Mode | — | 0/3 | 🔲 | — |
 | 18. Docker Sandbox Integration | — | 3/3 | Complete | 2026-03-31 |
 | 17. Gateway Startup UX Fix | — | 3/3 | Complete    | 2026-03-30 |
 | 16. OpenClaw Full Integration | v2.0 | 4/4 | Complete   | 2026-03-29 |
@@ -376,6 +377,21 @@ Plans:
 - [x] 18-docker-sandbox-integration-01-PLAN.md — Fix getGeneratedConfig() sandbox block & extend Rust validation
 - [x] 18-docker-sandbox-integration-02-PLAN.md — Backend selector UI & Docker-specific settings in wizard
 - [x] 18-docker-sandbox-integration-03-PLAN.md — Integrate sandbox setup scripts in installation flow
+
+---
+
+### Phase 19: Configure Page Dual-Mode Editor
+
+**Goal:** Fix the configure page with two editing modes (UI mode with polished form fields, JSON mode with raw config editor) and add a "Restart Gateway" action that navigates to the monitor page and auto-triggers restart.
+
+**Requirements:** CONF-FIX-01, CONF-FIX-02, CONF-FIX-03
+**Depends on:** Phase 16, Phase 18
+**Plans:** 3 plans in 3 waves
+
+Plans:
+- [ ] 19-configure-page-dual-mode-01-PLAN.md — JSON editor component + mode toggle (UI/JSON)
+- [ ] 19-configure-page-dual-mode-02-PLAN.md — Restart Gateway button + monitor auto-trigger
+- [ ] 19-configure-page-dual-mode-03-PLAN.md — Integration verification + polish
 
 ---
 

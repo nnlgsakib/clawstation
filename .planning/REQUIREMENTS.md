@@ -129,6 +129,12 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **PLAT-02**: App works on Linux (native + Docker)
 - [x] **PLAT-03**: App detects platform and adjusts install flow accordingly
 
+## Configure Page Fix Requirements
+
+- [ ] **CONF-FIX-01**: Configure page has a toggle between UI mode (form fields/toggles) and JSON mode (raw config editor)
+- [ ] **CONF-FIX-02**: JSON mode shows the entire config as an editable code snippet with syntax highlighting, and saves on user action
+- [ ] **CONF-FIX-03**: A "Restart Gateway" button saves config, navigates to monitor page, and auto-triggers the gateway restart
+
 ## v1.2 Requirements
 
 Requirements for OpenClaw branding/theme redesign.
