@@ -363,6 +363,19 @@ Plans:
 
 **Coverage:** 0/7 full integration requirements planned ✓
 
+### Phase 18: Docker Sandbox Integration
+
+**Goal:** Fix Docker sandbox backend selection, integrate sandbox setup scripts, and ensure wizard generates complete sandbox config with proper Docker image building.
+
+**Requirements**: sandbox-config
+**Depends on:** Phase 17
+**Plans:** 3 plans in 2 waves
+
+Plans:
+- [ ] 18-docker-sandbox-integration-01-PLAN.md — Fix getGeneratedConfig() sandbox block & extend Rust validation
+- [ ] 18-docker-sandbox-integration-02-PLAN.md — Backend selector UI & Docker-specific settings in wizard
+- [ ] 18-docker-sandbox-integration-03-PLAN.md — Integrate sandbox setup scripts in installation flow
+
 ---
 
 *For v1.0 phase details, see `.planning/milestones/v1.0-ROADMAP.md`*
