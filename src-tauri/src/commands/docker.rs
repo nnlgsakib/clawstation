@@ -261,40 +261,143 @@ pub async fn check_sandbox_image_exists() -> Result<bool, AppError> {
     }
 }
 
-/// Pull the sandbox Docker image with real-time progress.
+/// Build the sandbox Docker image locally with real-time progress.
+///
+/// The openclaw-sandbox image is a local build (not on Docker Hub).
+/// This tries, in order:
+/// 1. Run `scripts/sandbox-setup.sh` if it exists in the repo
+/// 2. Build from existing `Dockerfile.sandbox` in the repo
+/// 3. Create `Dockerfile.sandbox` inline, then build
 #[tauri::command]
 pub async fn pull_sandbox_image(app_handle: tauri::AppHandle) -> Result<bool, AppError> {
+    let image = "openclaw-sandbox:bookworm-slim";
+    let repo_dir = dirs::home_dir()
+        .ok_or_else(|| AppError::Internal {
+            message: "Cannot find home directory".into(),
+            suggestion: "Ensure HOME environment variable is set".into(),
+        })?
+        .join(".openclaw")
+        .join("repo");
+
+    if !repo_dir.exists() {
+        return Err(AppError::InstallationFailed {
+            reason: "OpenClaw repo not found at ~/.openclaw/repo. Run the Docker installation first.".into(),
+            suggestion: "Complete the Docker installation to clone the OpenClaw repository, then try again.".into(),
+        });
+    }
+
     crate::install::progress::emit_progress(
         &app_handle,
         "pulling_sandbox",
-        50,
-        "Pulling openclaw-sandbox image...",
+        10,
+        "Building openclaw-sandbox image...",
     );
 
-    let mut cmd = silent_cmd("docker");
-    cmd.args(["pull", "openclaw-sandbox:bookworm-slim"]);
+    let sandbox_script = repo_dir.join("scripts").join("sandbox-setup.sh");
+    let dockerfile = repo_dir.join("Dockerfile.sandbox");
+
+    if sandbox_script.exists() {
+        // Option 1: Run sandbox-setup.sh
+        crate::install::progress::emit_progress(
+            &app_handle,
+            "pulling_sandbox",
+            30,
+            "Running sandbox setup script...",
+        );
+        run_build_command(
+            &app_handle,
+            silent_cmd("bash").arg(&sandbox_script).current_dir(&repo_dir),
+        )
+        .await
+    } else if dockerfile.exists() {
+        // Option 2: Build from existing Dockerfile.sandbox
+        crate::install::progress::emit_progress(
+            &app_handle,
+            "pulling_sandbox",
+            30,
+            "Building from Dockerfile.sandbox...",
+        );
+        run_build_command(
+            &app_handle,
+            silent_cmd("docker")
+                .args(["build", "-t", image, "-f", "Dockerfile.sandbox", "."])
+                .current_dir(&repo_dir),
+        )
+        .await
+    } else {
+        // Option 3: Create Dockerfile.sandbox inline, then build
+        crate::install::progress::emit_progress(
+            &app_handle,
+            "pulling_sandbox",
+            20,
+            "Creating sandbox Dockerfile...",
+        );
+
+        let dockerfile_content = r#"FROM node:20-slim
+
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+RUN groupadd -g 1000 node || true && useradd -r -u 1000 -g node -m -s /bin/bash node || true
+
+WORKDIR /home/node
+RUN chown -R node:node /home/node
+
+USER node
+
+CMD ["/bin/bash"]
+"#;
+
+        tokio::fs::write(&dockerfile, dockerfile_content)
+            .await
+            .map_err(|e| AppError::InstallationFailed {
+                reason: format!("Failed to create Dockerfile.sandbox: {e}"),
+                suggestion: "Check write permissions for ~/.openclaw/repo".into(),
+            })?;
+
+        crate::install::progress::emit_progress(
+            &app_handle,
+            "pulling_sandbox",
+            30,
+            "Building sandbox image...",
+        );
+
+        run_build_command(
+            &app_handle,
+            silent_cmd("docker")
+                .args(["build", "-t", image, "-f", "Dockerfile.sandbox", "."])
+                .current_dir(&repo_dir),
+        )
+        .await
+    }
+}
+
+/// Helper: spawn a build command, stream stdout/stderr as sandbox-pull-output events,
+/// and return Ok(true) on success or Err on failure.
+async fn run_build_command(
+    app_handle: &tauri::AppHandle,
+    cmd: &mut tokio::process::Command,
+) -> Result<bool, AppError> {
+    use tokio::io::{AsyncBufReadExt, BufReader};
+
     cmd.stdout(std::process::Stdio::piped());
     cmd.stderr(std::process::Stdio::piped());
 
     let mut child = cmd.spawn().map_err(|e| {
         let _ = crate::install::progress::emit_progress(
-            &app_handle,
+            app_handle,
             "pulling_sandbox",
             100,
-            &format!("Error pulling sandbox: {e}"),
+            &format!("Error: {e}"),
         );
         AppError::InstallationFailed {
-            reason: format!("Failed to spawn docker pull: {e}"),
+            reason: format!("Failed to spawn sandbox build command: {e}"),
             suggestion: "Ensure Docker is installed and running".into(),
         }
     })?;
 
-    use tokio::io::{AsyncBufReadExt, BufReader};
-
     let stdout = child.stdout.take();
     let stderr = child.stderr.take();
 
-    // Read stdout and stderr concurrently to prevent buffer deadlock
     let app_out = app_handle.clone();
     let stdout_task = tokio::spawn(async move {
         if let Some(stdout) = stdout {
@@ -323,41 +426,41 @@ pub async fn pull_sandbox_image(app_handle: tauri::AppHandle) -> Result<bool, Ap
 
     let status = child.wait().await.map_err(|e| {
         let _ = crate::install::progress::emit_progress(
-            &app_handle,
+            app_handle,
             "pulling_sandbox",
             100,
-            "Failed to pull sandbox image",
+            "Build failed",
         );
         AppError::InstallationFailed {
-            reason: format!("Failed to wait for docker pull: {e}"),
+            reason: format!("Failed to wait for sandbox build: {e}"),
             suggestion: "Check Docker logs for details".into(),
         }
     })?;
 
     if status.success() {
         crate::install::progress::emit_progress(
-            &app_handle,
+            app_handle,
             "pulling_sandbox",
             100,
-            "Sandbox image pulled successfully!",
+            "Sandbox image ready!",
         );
         Ok(true)
     } else {
         let error_detail = if stderr_lines.is_empty() {
-            "docker pull exited with non-zero status".to_string()
+            "build exited with non-zero status".to_string()
         } else {
             stderr_lines.join("; ")
         };
         crate::install::progress::emit_progress(
-            &app_handle,
+            app_handle,
             "pulling_sandbox",
             100,
-            "Failed to pull sandbox image",
+            "Build failed",
         );
         Err(AppError::InstallationFailed {
-            reason: format!("docker pull openclaw-sandbox:bookworm-slim failed: {error_detail}"),
+            reason: format!("Sandbox image build failed: {error_detail}"),
             suggestion:
-                "Check your internet connection and ensure Docker is running. Try: docker pull openclaw-sandbox:bookworm-slim"
+                "Ensure Docker is running and you have internet access for downloading base images."
                     .into(),
         })
     }

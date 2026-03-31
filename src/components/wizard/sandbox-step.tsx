@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { Shield, ShieldAlert, ShieldOff, FolderOpen, Container, Terminal, Box, Plus, X, Monitor, Loader2, Download } from "lucide-react";
 import { useWizardStore } from "@/stores/use-wizard-store";
 import { useSandboxImageExists, usePullSandboxImage } from "@/hooks/use-docker";
+import { extractTauriErrorMessage } from "@/lib/tauri-errors";
 import { listen } from "@tauri-apps/api/event";
 import { cn } from "@/lib/utils";
 import { open } from "@tauri-apps/plugin-dialog";
@@ -159,8 +160,7 @@ function SandboxImageCheck() {
       },
       onError: (err) => {
         setPulling(false);
-        const message = err instanceof Error ? err.message : String(err);
-        setPullError(message || "Failed to pull sandbox image");
+        setPullError(extractTauriErrorMessage(err) || "Failed to build sandbox image");
       },
     });
   };
@@ -183,7 +183,7 @@ function SandboxImageCheck() {
       <div className="rounded-lg border border-yellow-500/50 bg-yellow-500/10 p-4">
         <p className="text-sm font-medium text-yellow-600">Sandbox Image Required</p>
         <p className="mt-1 text-xs text-muted-foreground">
-          The openclaw-sandbox image is not found. Pull it now or skip Docker sandboxing.
+          The openclaw-sandbox image is not found. Build it now or skip Docker sandboxing.
         </p>
         <button
           onClick={handlePull}
@@ -191,13 +191,13 @@ function SandboxImageCheck() {
           className="mt-3 flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
         >
           {pulling ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-          {pulling ? "Pulling image..." : "Get Sandbox Image"}
+          {pulling ? "Building image..." : "Build Sandbox Image"}
         </button>
       </div>
 
       {pullError && (
         <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3">
-          <p className="text-sm font-medium text-destructive">Pull Failed</p>
+          <p className="text-sm font-medium text-destructive">Build Failed</p>
           <p className="mt-1 text-xs text-muted-foreground">{pullError}</p>
           <button
             onClick={handlePull}
