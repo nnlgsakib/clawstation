@@ -22,7 +22,7 @@ pub async fn native_install(app_handle: &tauri::AppHandle) -> Result<InstallResu
         return Err(AppError::NodeVersionTooOld {
             current: node_version,
             minimum: MIN_NODE_VERSION.into(),
-            suggestion: "Download Node.js 22+ from https://nodejs.org or use your package manager"
+            suggestion: "Download Node.js 20+ from https://nodejs.org or use your package manager"
                 .into(),
         });
     }
@@ -125,10 +125,12 @@ async fn get_node_version() -> Result<String, AppError> {
 }
 
 /// Get the installed OpenClaw version string.
+/// Uses direct openclaw command (not npx) to avoid npx cache issues.
 async fn get_openclaw_version() -> Result<String, AppError> {
+    // Try direct openclaw command first (works on all platforms after npm -g install)
     let mut cmd = if cfg!(target_os = "windows") {
         let mut c = silent_cmd("cmd");
-        c.args(["/c", "npx", "openclaw", "--version"]);
+        c.args(["/c", "openclaw", "--version"]);
         c
     } else {
         let mut c = silent_cmd("openclaw");
@@ -144,8 +146,33 @@ async fn get_openclaw_version() -> Result<String, AppError> {
                 .into(),
         })?;
 
+    if !output.status.success() {
+        return Err(AppError::InstallationFailed {
+            reason: "openclaw --version failed".into(),
+            suggestion: "The installation may have failed. Try: npm install -g openclaw@latest"
+                .into(),
+        });
+    }
+
     let version_str = String::from_utf8_lossy(&output.stdout).trim().to_string();
-    Ok(version_str.trim_start_matches('v').to_string())
+    // Extract just the version number (e.g., "2026.3.31" from "OpenClaw 2026.3.31 (213a704)")
+    Ok(extract_version_number(&version_str).to_string())
+}
+
+/// Extract version number from full openclaw --version output.
+fn extract_version_number(s: &str) -> &str {
+    for word in s.split_whitespace() {
+        if word.contains('.')
+            && word
+                .chars()
+                .next()
+                .map(|c| c.is_ascii_digit())
+                .unwrap_or(false)
+        {
+            return word;
+        }
+    }
+    s.trim_start_matches('v')
 }
 
 /// Check if a version string meets the minimum semver requirement.

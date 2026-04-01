@@ -22,6 +22,48 @@ pub struct OpenClawInfo {
     pub version: Option<String>,
 }
 
+/// Extract just the version number from openclaw --version output.
+/// Input: "OpenClaw 2026.3.31 (213a704)" -> Output: "2026.3.31"
+fn extract_openclaw_version(raw: &str) -> String {
+    // Split by whitespace and find the version-like token
+    for word in raw.split_whitespace() {
+        // Skip "OpenClaw" prefix
+        if word.eq_ignore_ascii_case("openclaw") {
+            continue;
+        }
+        // Check if it looks like a version (contains dots and starts with digit)
+        if word.contains('.') && word.chars().next().map(|c| c.is_ascii_digit()).unwrap_or(false) {
+            // Remove any trailing parenthetical like "(213a704)"
+            return word.to_string();
+        }
+    }
+    // Fallback: return original trimmed
+    raw.trim().to_string()
+}
+
+/// Get the npm global prefix path.
+pub(crate) async fn get_npm_global_prefix() -> Option<String> {
+    let mut cmd = if cfg!(target_os = "windows") {
+        let mut c = silent_cmd("cmd");
+        c.args(["/c", "npm", "prefix", "-g"]);
+        c
+    } else {
+        let mut c = silent_cmd("npm");
+        c.args(["prefix", "-g"]);
+        c
+    };
+
+    if let Ok(out) = run_with_timeout(&mut cmd, QUICK_TIMEOUT).await {
+        if out.status.success() {
+            let prefix = String::from_utf8_lossy(&out.stdout).trim().to_string();
+            if !prefix.is_empty() {
+                return Some(prefix);
+            }
+        }
+    }
+    None
+}
+
 /// Combined prerequisites check result.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -69,35 +111,70 @@ pub async fn check_nodejs() -> Result<NodeJsInfo, String> {
 
 /// Check if OpenClaw is installed.
 ///
-/// Tries multiple methods:
-/// 1. `openclaw --version` (global install)
-/// 2. `npx openclaw --version` (npx fallback)
-/// 3. Filesystem search for openclaw binary
+/// Uses the GLOBAL npm openclaw installation (not local node_modules).
+/// On Windows, npm installs openclaw as a .cmd script in the global bin folder.
 #[tauri::command]
 pub async fn check_openclaw() -> Result<OpenClawInfo, String> {
-    let attempts: Vec<(&str, Vec<&str>)> = if cfg!(target_os = "windows") {
-        vec![
-            ("cmd", vec!["/c", "openclaw", "--version"]),
-            ("cmd", vec!["/c", "npx", "openclaw", "--version"]),
-        ]
-    } else {
-        vec![
-            ("openclaw", vec!["--version"]),
-            ("npx", vec!["openclaw", "--version"]),
-        ]
-    };
+    // Get npm global prefix to find the GLOBAL openclaw binary
+    let npm_prefix = get_npm_global_prefix().await;
 
-    for (cmd_name, args) in &attempts {
-        let mut cmd = silent_cmd(cmd_name);
-        cmd.args(args);
+    // Try the global openclaw binary first
+    if let Some(ref prefix) = npm_prefix {
+        let global_bin = if cfg!(target_os = "windows") {
+            format!("{}\\openclaw.cmd", prefix)
+        } else {
+            format!("{}/bin/openclaw", prefix)
+        };
+
+        let mut cmd = if cfg!(target_os = "windows") {
+            let mut c = silent_cmd("cmd");
+            c.args(["/c", &global_bin, "--version"]);
+            c
+        } else {
+            let mut c = silent_cmd(&global_bin);
+            c.arg("--version");
+            c
+        };
+
         if let Ok(out) = run_with_timeout(&mut cmd, QUICK_TIMEOUT).await {
             if out.status.success() {
-                let version = String::from_utf8_lossy(&out.stdout).trim().to_string();
-                if !version.is_empty() {
+                let raw_version = String::from_utf8_lossy(&out.stdout).trim().to_string();
+                if !raw_version.is_empty() {
+                    let version = extract_openclaw_version(&raw_version);
                     return Ok(OpenClawInfo {
                         installed: true,
                         version: Some(version),
                     });
+                }
+            }
+        }
+    }
+
+    // Fallback: try openclaw on PATH, but verify it's not a local node_modules binary.
+    // Local project dependencies (node_modules/.bin/openclaw) should NOT count as "installed".
+    if let Some(resolved_path) = resolve_command_path("openclaw") {
+        // Skip if the resolved binary is inside a node_modules directory
+        if !resolved_path.contains("node_modules") {
+            let mut cmd = if cfg!(target_os = "windows") {
+                let mut c = silent_cmd("cmd");
+                c.args(["/c", "openclaw", "--version"]);
+                c
+            } else {
+                let mut c = silent_cmd("openclaw");
+                c.arg("--version");
+                c
+            };
+
+            if let Ok(out) = run_with_timeout(&mut cmd, QUICK_TIMEOUT).await {
+                if out.status.success() {
+                    let raw_version = String::from_utf8_lossy(&out.stdout).trim().to_string();
+                    if !raw_version.is_empty() {
+                        let version = extract_openclaw_version(&raw_version);
+                        return Ok(OpenClawInfo {
+                            installed: true,
+                            version: Some(version),
+                        });
+                    }
                 }
             }
         }
@@ -109,8 +186,9 @@ pub async fn check_openclaw() -> Result<OpenClawInfo, String> {
         cmd.arg("--version");
         if let Ok(out) = run_with_timeout(&mut cmd, QUICK_TIMEOUT).await {
             if out.status.success() {
-                let version = String::from_utf8_lossy(&out.stdout).trim().to_string();
-                if !version.is_empty() {
+                let raw_version = String::from_utf8_lossy(&out.stdout).trim().to_string();
+                if !raw_version.is_empty() {
+                    let version = extract_openclaw_version(&raw_version);
                     return Ok(OpenClawInfo {
                         installed: true,
                         version: Some(version),
@@ -239,6 +317,21 @@ pub async fn install_openclaw_script(app: tauri::AppHandle) -> Result<String, St
 
     let _ = app.emit("install-output", "Installing OpenClaw...".to_string());
 
+    // Clear npm cache for openclaw to ensure we get the actual latest version
+    if managers.iter().any(|m| m == "npm") {
+        let _ = app.emit("install-output", "Clearing npm cache for openclaw...".to_string());
+        let mut cache_cmd = if cfg!(target_os = "windows") {
+            let mut c = silent_cmd("cmd");
+            c.args(["/c", "npm", "cache", "clean", "--force"]);
+            c
+        } else {
+            let mut c = silent_cmd("npm");
+            c.args(["cache", "clean", "--force"]);
+            c
+        };
+        let _ = run_with_timeout(&mut cache_cmd, QUICK_TIMEOUT).await;
+    }
+
     // Track failures for final error message
     let mut failures: Vec<String> = Vec::new();
 
@@ -246,7 +339,7 @@ pub async fn install_openclaw_script(app: tauri::AppHandle) -> Result<String, St
         let install_args: Vec<&str> = match pkg_manager.as_str() {
             "pnpm" => vec!["add", "-g", "openclaw@latest"],
             "yarn" => vec!["global", "add", "openclaw@latest"],
-            "npm" => vec!["install", "-g", "openclaw@latest"],
+            "npm" => vec!["install", "-g", "openclaw@latest", "--prefer-online"],
             _ => continue,
         };
 
@@ -502,6 +595,36 @@ async fn run_package_manager(
 
 // ─── Private helpers ──────────────────────────────────────────────
 
+/// Resolve the full path of a command by searching PATH.
+/// Returns the resolved path if found, None otherwise.
+pub fn resolve_command_path(command: &str) -> Option<String> {
+    if cfg!(target_os = "windows") {
+        let mut cmd = std::process::Command::new("cmd");
+        cmd.args(["/c", "where", command])
+            .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::null());
+        if let Ok(out) = cmd.output() {
+            if out.status.success() {
+                let path = String::from_utf8_lossy(&out.stdout);
+                // `where` may return multiple paths; take the first one
+                return path.lines().next().map(|s| s.trim().to_string());
+            }
+        }
+    } else {
+        let mut cmd = std::process::Command::new("which");
+        cmd.arg(command)
+            .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::null());
+        if let Ok(out) = cmd.output() {
+            if out.status.success() {
+                let path = String::from_utf8_lossy(&out.stdout);
+                return Some(path.trim().to_string());
+            }
+        }
+    }
+    None
+}
+
 fn parse_node_version(version: &str) -> (bool, bool) {
     let parts: Vec<u32> = version.split('.').filter_map(|s| s.parse().ok()).collect();
 
@@ -616,5 +739,22 @@ mod tests {
     fn parse_node_version_detects_recommended() {
         assert!(parse_node_version("24.0.0").1);
         assert!(!parse_node_version("23.9.9").1);
+    }
+
+    #[test]
+    fn extract_openclaw_version_extracts_from_full_output() {
+        assert_eq!(extract_openclaw_version("OpenClaw 2026.3.31 (213a704)"), "2026.3.31");
+        assert_eq!(extract_openclaw_version("OpenClaw 2026.3.24 (cff6dc9)"), "2026.3.24");
+    }
+
+    #[test]
+    fn extract_openclaw_version_handles_plain_version() {
+        assert_eq!(extract_openclaw_version("2026.3.31"), "2026.3.31");
+        assert_eq!(extract_openclaw_version("v2026.3.31"), "v2026.3.31");
+    }
+
+    #[test]
+    fn extract_openclaw_version_handles_name_only() {
+        assert_eq!(extract_openclaw_version("OpenClaw 2026.3.31"), "2026.3.31");
     }
 }

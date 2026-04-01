@@ -14,6 +14,7 @@ import {
   Download,
   Sparkles,
   RefreshCw,
+  Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,7 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { useInstallStore, type PrerequisitesInfo } from "@/stores/use-install-store";
 import { cn } from "@/lib/utils";
-import { useOpenClawUpdateCheck } from "@/hooks/use-update";
+import type { OpenClawUpdateCheck } from "@/hooks/use-update";
 
 export function Install() {
   const navigate = useNavigate();
@@ -42,11 +43,9 @@ export function Install() {
   const hasCheckedPrereqs = useRef(false);
   const [showLogs, setShowLogs] = useState(false);
 
-  // Update check for OpenClaw (enabled only when installed)
-  const {
-    data: updateCheck,
-    refetch: refetchUpdate,
-  } = useOpenClawUpdateCheck();
+  // Manual update check state (only runs when user clicks "Check for Updates")
+  const [updateCheck, setUpdateCheck] = useState<OpenClawUpdateCheck | null>(null);
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
 
   // Check prerequisites only once
   useEffect(() => {
@@ -102,13 +101,28 @@ export function Install() {
     try {
       const result = await invoke<PrerequisitesInfo>("check_prerequisites");
       setPrereqs(result);
-      // Refetch update check after prereqs (will show update availability if OpenClaw is installed)
-      if (result.openclaw.installed) {
-        refetchUpdate();
-      }
+      // Reset update check when prereqs change (user may have installed/reinstalled)
+      setUpdateCheck(null);
     } catch (e) {
       toast.error(`Failed to check prerequisites: ${e}`);
       setLoading(false);
+    }
+  };
+
+  const handleCheckForUpdates = async () => {
+    setCheckingUpdate(true);
+    try {
+      const result = await invoke<OpenClawUpdateCheck>("check_openclaw_update");
+      setUpdateCheck(result);
+      if (result.updateAvailable) {
+        toast.success(`Update available: ${result.currentVersion} → ${result.latestVersion}`);
+      } else {
+        toast.info("OpenClaw is up to date");
+      }
+    } catch (e) {
+      toast.error(`Failed to check for updates: ${e}`);
+    } finally {
+      setCheckingUpdate(false);
     }
   };
 
@@ -250,32 +264,45 @@ export function Install() {
                   detail={
                     prereqs?.openclaw.installed
                       ? updateCheck?.updateAvailable
-                        ? `Update available: ${prereqs.openclaw.version} → ${updateCheck.latestVersion}`
-                        : "Installed (latest)"
+                        ? `Update available: ${updateCheck.currentVersion} → ${updateCheck.latestVersion}`
+                        : updateCheck
+                        ? "Up to date"
+                        : "Installed"
                       : "Not installed"
                   }
                   action={
-                    installing ? (
+                    installing || checkingUpdate ? (
                       <Button size="sm" disabled>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Working...
+                        {checkingUpdate ? "Checking..." : "Working..."}
                       </Button>
                     ) : prereqs?.openclaw.installed ? (
                       <div className="flex gap-2">
+                        {/* Show Check for Updates if we haven't checked yet */}
+                        {!updateCheck && (
+                          <Button size="sm" variant="outline" onClick={handleCheckForUpdates}>
+                            <Search className="mr-2 h-4 w-4" />
+                            Check for Updates
+                          </Button>
+                        )}
+                        {/* Show Update button if update is available */}
                         {updateCheck?.updateAvailable && (
                           <Button size="sm" onClick={handleUpdateOpenClaw}>
                             <Download className="mr-2 h-4 w-4" />
                             Update
                           </Button>
                         )}
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={handleReinstallOpenClaw}
-                        >
-                          <RefreshCw className="mr-2 h-4 w-4" />
-                          Reinstall
-                        </Button>
+                        {/* Always show Reinstall after check is done, or if no update available */}
+                        {updateCheck && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={handleReinstallOpenClaw}
+                          >
+                            <RefreshCw className="mr-2 h-4 w-4" />
+                            Reinstall
+                          </Button>
+                        )}
                       </div>
                     ) : (
                       <Button size="sm" onClick={handleInstallOpenClaw}>

@@ -2,6 +2,7 @@ use bollard::Docker;
 use serde::{Deserialize, Serialize};
 use tauri::AppHandle;
 
+use super::nodejs::{get_npm_global_prefix, resolve_command_path};
 use super::silent::{run_with_timeout, silent_cmd, INSTALL_TIMEOUT, QUICK_TIMEOUT};
 use crate::error::AppError;
 use crate::install::progress::emit_progress;
@@ -10,6 +11,7 @@ use crate::install::verify::verify_gateway_health;
 const OPENCLAW_IMAGE: &str = "ghcr.io/openclaw/openclaw";
 const OPENCLAW_TAG: &str = "latest";
 const GITHUB_RELEASES_URL: &str = "https://api.github.com/repos/openclaw/openclaw/releases/latest";
+const NPM_REGISTRY_URL: &str = "https://registry.npmjs.org/openclaw/latest";
 
 // ─── Types ────────────────────────────────────────────────────────
 
@@ -38,12 +40,19 @@ struct GithubRelease {
     tag_name: String,
 }
 
+/// npm registry API response (subset we need).
+#[derive(Debug, Deserialize)]
+struct NpmPackageInfo {
+    version: String,
+}
+
 // ─── Commands ─────────────────────────────────────────────────────
 
 /// Check if a newer version of OpenClaw is available.
 ///
 /// Detects the install method (Docker vs native) and compares
 /// the current version against the latest release.
+/// For native installs, uses npm registry (not GitHub) to ensure version parity.
 #[tauri::command]
 pub async fn check_openclaw_update() -> Result<OpenClawUpdateCheck, AppError> {
     let (install_method, current_version) = detect_install_method().await;
@@ -57,13 +66,17 @@ pub async fn check_openclaw_update() -> Result<OpenClawUpdateCheck, AppError> {
         });
     }
 
-    let latest_version = fetch_latest_version().await.unwrap_or_else(|_| {
-        if install_method == "docker" {
-            OPENCLAW_TAG.to_string()
-        } else {
-            "unknown".to_string()
-        }
-    });
+    // Use appropriate source for latest version based on install method
+    let latest_version = if install_method == "native" {
+        // For native installs (npm), use npm registry as the source of truth
+        fetch_npm_latest_version().await.unwrap_or_else(|_| {
+            // Fallback to GitHub if npm registry fails
+            futures::executor::block_on(fetch_latest_version()).unwrap_or_else(|_| "unknown".to_string())
+        })
+    } else {
+        // For Docker, use GitHub releases
+        fetch_latest_version().await.unwrap_or_else(|_| OPENCLAW_TAG.to_string())
+    };
 
     let update_available = if install_method == "docker" {
         // For Docker, always report true (pulling latest ensures freshness)
@@ -227,19 +240,26 @@ async fn update_docker(app_handle: &AppHandle) -> Result<UpdateResult, AppError>
 async fn update_native(app_handle: &AppHandle) -> Result<UpdateResult, AppError> {
     emit_progress(
         app_handle,
-        "downloading",
-        20,
-        "Downloading latest version...",
+        "checking",
+        10,
+        "Checking for latest version...",
     );
 
-    // Get the download URL for the latest release
-    let latest_tag = fetch_latest_version().await?;
+    // Try to get exact version from GitHub, fall back to @latest if API fails
+    // This matches the behavior of install_openclaw_script which uses @latest directly
+    let version_spec = match fetch_latest_version().await {
+        Ok(tag) => format!("openclaw@{}", tag),
+        Err(_) => {
+            // GitHub API failed (rate limit, network, etc.) - use @latest and let npm resolve
+            "openclaw@latest".to_string()
+        }
+    };
 
     // Run npm update for the openclaw package
-    emit_progress(app_handle, "installing", 70, "Installing update...");
+    emit_progress(app_handle, "installing", 30, "Installing update...");
 
     let mut cmd = silent_cmd("npm");
-    cmd.args(["install", "-g", &format!("openclaw@{latest_tag}")]);
+    cmd.args(["install", "-g", &version_spec]);
     let output = run_with_timeout(&mut cmd, INSTALL_TIMEOUT)
         .await
         .map_err(|e| AppError::InstallationFailed {
@@ -258,27 +278,123 @@ async fn update_native(app_handle: &AppHandle) -> Result<UpdateResult, AppError>
         });
     }
 
+    // Get the actual installed version after update
+    emit_progress(app_handle, "verifying", 90, "Verifying update...");
+    let new_version = get_native_installed_version().await;
+
     emit_progress(app_handle, "complete", 100, "Update complete!");
 
     Ok(UpdateResult {
         success: true,
-        new_version: Some(latest_tag),
+        new_version,
         method: "native".into(),
     })
 }
 
+/// Get the currently installed native openclaw version.
+/// Uses direct openclaw command (not npx) to avoid npx cache issues.
+/// Skips local node_modules binaries to report the global installation version.
+async fn get_native_installed_version() -> Option<String> {
+    // Skip local node_modules binaries - we want the global installation version
+    if let Some(resolved_path) = resolve_command_path("openclaw") {
+        if resolved_path.contains("node_modules") {
+            return None;
+        }
+    }
+
+    // On Windows, npm installs openclaw as a .cmd script, so we need cmd /c
+    let mut cmd = if cfg!(target_os = "windows") {
+        let mut c = silent_cmd("cmd");
+        c.args(["/c", "openclaw", "--version"]);
+        c
+    } else {
+        let mut c = silent_cmd("openclaw");
+        c.arg("--version");
+        c
+    };
+
+    if let Ok(output) = run_with_timeout(&mut cmd, QUICK_TIMEOUT).await {
+        if output.status.success() {
+            let raw_version = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            if !raw_version.is_empty() {
+                // Extract just the version number (e.g., "2026.3.31" from "OpenClaw 2026.3.31 (213a704)")
+                return Some(extract_version_number(&raw_version).to_string());
+            }
+        }
+    }
+
+    None
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────
 
-/// Detect the install method by checking for docker-compose.yml or native binary.
+/// Detect the install method by checking for native binary first, then Docker.
+/// Native install takes priority because user may have both (Docker image + npm global).
 async fn detect_install_method() -> (String, String) {
+    // Check for native install FIRST: use npm global prefix to find the binary directly
+    // (bypasses PATH issues in dev mode where process PATH may not include npm global bin)
+    if let Some(prefix) = get_npm_global_prefix().await {
+        let global_bin = if cfg!(target_os = "windows") {
+            format!("{}\\openclaw.cmd", prefix)
+        } else {
+            format!("{}/bin/openclaw", prefix)
+        };
+
+        if std::path::Path::new(&global_bin).exists() {
+            let mut cmd = if cfg!(target_os = "windows") {
+                let mut c = silent_cmd("cmd");
+                c.args(["/c", &global_bin, "--version"]);
+                c
+            } else {
+                let mut c = silent_cmd(&global_bin);
+                c.arg("--version");
+                c
+            };
+
+            if let Ok(output) = run_with_timeout(&mut cmd, QUICK_TIMEOUT).await {
+                if output.status.success() {
+                    let raw_version = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                    if !raw_version.is_empty() {
+                        let version = extract_version_number(&raw_version).to_string();
+                        return ("native".into(), version);
+                    }
+                }
+            }
+        }
+    }
+
+    // Fallback: try resolve_command_path (skips node_modules)
+    if let Some(resolved_path) = resolve_command_path("openclaw") {
+        if !resolved_path.contains("node_modules") {
+            let mut cmd = if cfg!(target_os = "windows") {
+                let mut c = silent_cmd("cmd");
+                c.args(["/c", "openclaw", "--version"]);
+                c
+            } else {
+                let mut c = silent_cmd("openclaw");
+                c.arg("--version");
+                c
+            };
+
+            if let Ok(output) = run_with_timeout(&mut cmd, QUICK_TIMEOUT).await {
+                if output.status.success() {
+                    let raw_version = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                    if !raw_version.is_empty() {
+                        let version = extract_version_number(&raw_version).to_string();
+                        return ("native".into(), version);
+                    }
+                }
+            }
+        }
+    }
+
+    // No native binary found - check for Docker install
     let home = match dirs::home_dir() {
         Some(h) => h,
         None => return ("unknown".into(), "unknown".into()),
     };
 
     let openclaw_dir = home.join(".openclaw");
-
-    // Check for Docker install
     let compose_path = openclaw_dir.join("docker-compose.yml");
     if compose_path.exists() {
         let version = get_docker_version()
@@ -287,35 +403,7 @@ async fn detect_install_method() -> (String, String) {
         return ("docker".into(), version);
     }
 
-    // Check for native install: openclaw binary on PATH
-    let mut cmd = silent_cmd("openclaw");
-    cmd.arg("--version");
-    let output = run_with_timeout(&mut cmd, QUICK_TIMEOUT).await;
-    if let Ok(output) = output {
-        if output.status.success() {
-            let version = String::from_utf8_lossy(&output.stdout).trim().to_string();
-            return ("native".into(), version);
-        }
-    }
-
-    // Fallback: npx openclaw --version (all platforms, not just Windows)
-    let mut npx_cmd = if cfg!(target_os = "windows") {
-        let mut cmd = silent_cmd("cmd");
-        cmd.args(["/c", "npx", "openclaw", "--version"]);
-        cmd
-    } else {
-        let mut cmd = silent_cmd("npx");
-        cmd.args(["openclaw", "--version"]);
-        cmd
-    };
-    if let Ok(output) = run_with_timeout(&mut npx_cmd, QUICK_TIMEOUT).await {
-        if output.status.success() {
-            let version = String::from_utf8_lossy(&output.stdout).trim().to_string();
-            return ("native".into(), version);
-        }
-    }
-
-    // If ~/.openclaw exists with config files, assume native install
+    // If ~/.openclaw exists with config files, assume native install without binary on PATH
     if openclaw_dir.exists() {
         let has_config = openclaw_dir.join("openclaw.json").exists()
             || openclaw_dir.join("config.yaml").exists()
@@ -373,10 +461,44 @@ async fn fetch_latest_version() -> Result<String, AppError> {
     Ok(tag)
 }
 
+/// Fetch the latest version from npm registry (for native installs).
+/// This is more reliable than GitHub for npm-installed packages.
+async fn fetch_npm_latest_version() -> Result<String, AppError> {
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(10))
+        .build()
+        .map_err(|e| AppError::Internal {
+            message: format!("Failed to build HTTP client: {e}"),
+            suggestion: "This is an internal error. Please report it.".into(),
+        })?;
+
+    let package_info: NpmPackageInfo = client
+        .get(NPM_REGISTRY_URL)
+        .header("User-Agent", "clawstation")
+        .send()
+        .await
+        .map_err(|e| AppError::InstallationFailed {
+            reason: format!("Failed to fetch npm package info: {e}"),
+            suggestion: "Check your internet connection and try again.".into(),
+        })?
+        .json()
+        .await
+        .map_err(|e| AppError::InstallationFailed {
+            reason: format!("Failed to parse npm package info: {e}"),
+            suggestion: "npm registry may be unavailable. Try again later.".into(),
+        })?;
+
+    Ok(package_info.version)
+}
+
 /// Simple semver comparison: returns true if `latest` is newer than `current`.
+/// Handles version strings that may contain prefixes like "OpenClaw" or suffixes like "(cff6dc9)".
 fn semver_newer(latest: &str, current: &str) -> bool {
     let parse = |s: &str| -> (u32, u32, u32) {
-        let parts: Vec<&str> = s.split('.').collect();
+        // Extract version number from strings like "OpenClaw 2026.3.24 (cff6dc9)" or "2026.3.31"
+        // Find the first sequence that looks like a version (digits.digits.digits)
+        let version_str = extract_version_number(s);
+        let parts: Vec<&str> = version_str.split('.').collect();
         let major = parts.first().and_then(|p| p.parse().ok()).unwrap_or(0);
         let minor = parts.get(1).and_then(|p| p.parse().ok()).unwrap_or(0);
         let patch = parts.get(2).and_then(|p| p.parse().ok()).unwrap_or(0);
@@ -387,6 +509,28 @@ fn semver_newer(latest: &str, current: &str) -> bool {
     let (c_major, c_minor, c_patch) = parse(current);
 
     (l_major, l_minor, l_patch) > (c_major, c_minor, c_patch)
+}
+
+/// Extract a version number from a string that may contain other text.
+/// E.g., "OpenClaw 2026.3.24 (cff6dc9)" -> "2026.3.24"
+/// E.g., "v2026.3.31" -> "2026.3.31"
+/// E.g., "2026.3.31" -> "2026.3.31"
+fn extract_version_number(s: &str) -> &str {
+    // Try to find a pattern like "YYYY.M.D" or "X.Y.Z"
+    for word in s.split_whitespace() {
+        // Strip leading 'v' if present
+        let word = word.trim_start_matches('v');
+        // Check if it looks like a version (contains at least one dot and starts with digit)
+        if word.contains('.') && word.chars().next().map(|c| c.is_ascii_digit()).unwrap_or(false) {
+            // Remove any trailing parenthetical like "(cff6dc9)"
+            if let Some(idx) = word.find('(') {
+                return &word[..idx];
+            }
+            return word;
+        }
+    }
+    // Fallback: return the original string trimmed
+    s.trim()
 }
 
 /// Connect to Docker using platform-appropriate method.
@@ -453,6 +597,29 @@ mod tests {
     #[test]
     fn semver_newer_false_when_older() {
         assert!(!semver_newer("1.0.0", "2.0.0"));
+    }
+
+    #[test]
+    fn semver_newer_handles_openclaw_version_format() {
+        // Real-world case: installed version has "OpenClaw" prefix and commit hash
+        assert!(!semver_newer("2026.3.31", "OpenClaw 2026.3.31 (cff6dc9)"));
+        assert!(semver_newer("2026.3.31", "OpenClaw 2026.3.24 (cff6dc9)"));
+        assert!(!semver_newer("2026.3.24", "OpenClaw 2026.3.31 (cff6dc9)"));
+    }
+
+    #[test]
+    fn semver_newer_handles_year_based_versions() {
+        assert!(semver_newer("2026.3.31", "2026.3.24"));
+        assert!(!semver_newer("2026.3.24", "2026.3.31"));
+        assert!(!semver_newer("2026.3.31", "2026.3.31"));
+    }
+
+    #[test]
+    fn extract_version_number_works() {
+        assert_eq!(extract_version_number("2026.3.31"), "2026.3.31");
+        assert_eq!(extract_version_number("v2026.3.31"), "2026.3.31");
+        assert_eq!(extract_version_number("OpenClaw 2026.3.24 (cff6dc9)"), "2026.3.24");
+        assert_eq!(extract_version_number("OpenClaw 2026.3.31"), "2026.3.31");
     }
 
     #[test]
