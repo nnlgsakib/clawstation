@@ -25,7 +25,7 @@ export function StepError() {
     if (installMethod === "docker") {
       // Show a helpful message about docker compose logs
       alert(
-        "Run this command in your terminal:\n\ndocker compose -f ~/.openclaw/docker-compose.yml logs openclaw-gateway"
+        "Run this command in your terminal:\n\ndocker compose -f ~/.openclaw/docker-compose.yml logs openclaw-gateway",
       );
     }
   }, [installMethod]);

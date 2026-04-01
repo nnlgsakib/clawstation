@@ -1,22 +1,41 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { useConfigStore, type AgentsConfig } from "@/stores/use-config-store";
 
 const SANDBOX_MODES = [
   { value: "docker", label: "Docker", description: "Full container isolation" },
   { value: "ssh", label: "SSH", description: "Remote execution via SSH" },
-  { value: "none", label: "None", description: "No sandboxing (not recommended)" },
+  {
+    value: "none",
+    label: "None",
+    description: "No sandboxing (not recommended)",
+  },
 ];
 
 const AUTONOMY_LEVELS = [
   { value: "low", label: "Low", description: "Ask before every action" },
-  { value: "medium", label: "Medium", description: "Ask before destructive actions" },
+  {
+    value: "medium",
+    label: "Medium",
+    description: "Ask before destructive actions",
+  },
   { value: "high", label: "High", description: "Autonomous execution" },
 ];
 
-const DEFAULT_AGENTS: AgentsConfig = { sandboxMode: "docker", autonomy: "medium" };
+const DEFAULT_AGENTS: AgentsConfig = {
+  sandboxMode: "docker",
+  autonomy: "medium",
+};
 
 export function AgentsSection() {
-  const configAgents = useConfigStore((s) => s.config.agents) as Partial<AgentsConfig> | undefined;
+  const configAgents = useConfigStore((s) => s.config.agents) as
+    | Partial<AgentsConfig>
+    | undefined;
   const agents: AgentsConfig = { ...DEFAULT_AGENTS, ...configAgents };
   const setAgents = useConfigStore((s) => s.setAgents);
 
@@ -24,7 +43,9 @@ export function AgentsSection() {
     <Card>
       <CardHeader>
         <CardTitle>Agent Defaults</CardTitle>
-        <CardDescription>Default settings for new agent sessions</CardDescription>
+        <CardDescription>
+          Default settings for new agent sessions
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Sandbox Mode */}

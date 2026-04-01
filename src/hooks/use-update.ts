@@ -1,5 +1,5 @@
-import { useQuery, useMutation } from "@tanstack/react-query"
-import { invoke } from "@tauri-apps/api/core"
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { invoke } from "@tauri-apps/api/core";
 
 // ─── Types ────────────────────────────────────────────────────────
 
@@ -8,10 +8,10 @@ import { invoke } from "@tauri-apps/api/core"
  * Matches Rust OpenClawUpdateCheck struct (serde rename_all = "camelCase").
  */
 export interface OpenClawUpdateCheck {
-  currentVersion: string
-  latestVersion: string
-  updateAvailable: boolean
-  installMethod: string
+  currentVersion: string;
+  latestVersion: string;
+  updateAvailable: boolean;
+  installMethod: string;
 }
 
 /**
@@ -19,9 +19,9 @@ export interface OpenClawUpdateCheck {
  * Matches Rust UpdateResult struct (serde rename_all = "camelCase").
  */
 export interface UpdateResult {
-  success: boolean
-  newVersion: string | null
-  method: string
+  success: boolean;
+  newVersion: string | null;
+  method: string;
 }
 
 // ─── Hooks ────────────────────────────────────────────────────────
@@ -37,7 +37,7 @@ export function useOpenClawUpdateCheck() {
     queryFn: () => invoke("check_openclaw_update"),
     staleTime: 5 * 60 * 1000, // 5 min
     refetchOnWindowFocus: false,
-  })
+  });
 }
 
 /**
@@ -48,5 +48,5 @@ export function useOpenClawUpdateCheck() {
 export function useUpdateOpenClaw() {
   return useMutation<UpdateResult>({
     mutationFn: () => invoke("update_openclaw"),
-  })
+  });
 }

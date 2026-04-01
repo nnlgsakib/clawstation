@@ -71,11 +71,14 @@ pub async fn check_openclaw_update() -> Result<OpenClawUpdateCheck, AppError> {
         // For native installs (npm), use npm registry as the source of truth
         fetch_npm_latest_version().await.unwrap_or_else(|_| {
             // Fallback to GitHub if npm registry fails
-            futures::executor::block_on(fetch_latest_version()).unwrap_or_else(|_| "unknown".to_string())
+            futures::executor::block_on(fetch_latest_version())
+                .unwrap_or_else(|_| "unknown".to_string())
         })
     } else {
         // For Docker, use GitHub releases
-        fetch_latest_version().await.unwrap_or_else(|_| OPENCLAW_TAG.to_string())
+        fetch_latest_version()
+            .await
+            .unwrap_or_else(|_| OPENCLAW_TAG.to_string())
     };
 
     let update_available = if install_method == "docker" {
@@ -238,12 +241,7 @@ async fn update_docker(app_handle: &AppHandle) -> Result<UpdateResult, AppError>
 // ─── Native Update ────────────────────────────────────────────────
 
 async fn update_native(app_handle: &AppHandle) -> Result<UpdateResult, AppError> {
-    emit_progress(
-        app_handle,
-        "checking",
-        10,
-        "Checking for latest version...",
-    );
+    emit_progress(app_handle, "checking", 10, "Checking for latest version...");
 
     // Try to get exact version from GitHub, fall back to @latest if API fails
     // This matches the behavior of install_openclaw_script which uses @latest directly
@@ -521,7 +519,13 @@ fn extract_version_number(s: &str) -> &str {
         // Strip leading 'v' if present
         let word = word.trim_start_matches('v');
         // Check if it looks like a version (contains at least one dot and starts with digit)
-        if word.contains('.') && word.chars().next().map(|c| c.is_ascii_digit()).unwrap_or(false) {
+        if word.contains('.')
+            && word
+                .chars()
+                .next()
+                .map(|c| c.is_ascii_digit())
+                .unwrap_or(false)
+        {
             // Remove any trailing parenthetical like "(cff6dc9)"
             if let Some(idx) = word.find('(') {
                 return &word[..idx];
@@ -618,7 +622,10 @@ mod tests {
     fn extract_version_number_works() {
         assert_eq!(extract_version_number("2026.3.31"), "2026.3.31");
         assert_eq!(extract_version_number("v2026.3.31"), "2026.3.31");
-        assert_eq!(extract_version_number("OpenClaw 2026.3.24 (cff6dc9)"), "2026.3.24");
+        assert_eq!(
+            extract_version_number("OpenClaw 2026.3.24 (cff6dc9)"),
+            "2026.3.24"
+        );
         assert_eq!(extract_version_number("OpenClaw 2026.3.31"), "2026.3.31");
     }
 

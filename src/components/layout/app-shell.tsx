@@ -16,9 +16,10 @@ interface AppShellProps {
 export function AppShell({ children }: AppShellProps) {
   const { connected, startupPhase } = useGatewayStore();
 
-  const isStarting = startupPhase === 'starting' || startupPhase === 'health_checking';
-  const isReady = connected || startupPhase === 'ready';
-  const isFailed = startupPhase === 'failed';
+  const isStarting =
+    startupPhase === "starting" || startupPhase === "health_checking";
+  const isReady = connected || startupPhase === "ready";
+  const isFailed = startupPhase === "failed";
 
   return (
     <div className="flex h-screen flex-col bg-background">
@@ -33,17 +34,19 @@ export function AppShell({ children }: AppShellProps) {
 
           {/* Gateway connection status */}
           <div className="border-t border-sidebar-border p-3 mt-auto">
-            <div className={cn(
-              "flex items-center gap-2.5 px-3 py-2.5 rounded-lg",
-              "transition-all duration-200",
-              isReady
-                ? "bg-success-muted/50 text-success"
-                : isStarting
-                ? "bg-warning-muted/50 text-warning"
-                : isFailed
-                ? "bg-destructive/10 text-destructive"
-                : "bg-muted text-muted-foreground"
-            )}>
+            <div
+              className={cn(
+                "flex items-center gap-2.5 px-3 py-2.5 rounded-lg",
+                "transition-all duration-200",
+                isReady
+                  ? "bg-success-muted/50 text-success"
+                  : isStarting
+                    ? "bg-warning-muted/50 text-warning"
+                    : isFailed
+                      ? "bg-destructive/10 text-destructive"
+                      : "bg-muted text-muted-foreground",
+              )}
+            >
               <div className="relative">
                 {isStarting ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -61,10 +64,10 @@ export function AppShell({ children }: AppShellProps) {
                     connected
                       ? "bg-success"
                       : isStarting
-                      ? "bg-warning pulse-status"
-                      : isFailed
-                      ? "bg-destructive"
-                      : "bg-muted-foreground"
+                        ? "bg-warning pulse-status"
+                        : isFailed
+                          ? "bg-destructive"
+                          : "bg-muted-foreground",
                   )}
                 />
               </div>
@@ -73,19 +76,19 @@ export function AppShell({ children }: AppShellProps) {
                   {connected
                     ? "Gateway Connected"
                     : isStarting
-                    ? "Starting..."
-                    : isFailed
-                    ? "Startup Failed"
-                    : "Disconnected"}
+                      ? "Starting..."
+                      : isFailed
+                        ? "Startup Failed"
+                        : "Disconnected"}
                 </span>
                 <span className="text-[10px] opacity-60">
                   {connected
                     ? "All systems operational"
                     : isStarting
-                    ? "Health check in progress"
-                    : isFailed
-                    ? "Click to retry"
-                    : "Click to reconnect"}
+                      ? "Health check in progress"
+                      : isFailed
+                        ? "Click to retry"
+                        : "Click to reconnect"}
                 </span>
               </div>
             </div>
@@ -96,9 +99,7 @@ export function AppShell({ children }: AppShellProps) {
         <main className="flex-1 overflow-y-auto bg-background">
           {/* Subtle gradient overlay at the top */}
           <div className="sticky top-0 z-10 h-px bg-gradient-to-r from-transparent via-primary/10 to-transparent" />
-          <div className="p-6 lg:p-8 max-w-7xl mx-auto">
-            {children}
-          </div>
+          <div className="p-6 lg:p-8 max-w-7xl mx-auto">{children}</div>
         </main>
       </div>
     </div>

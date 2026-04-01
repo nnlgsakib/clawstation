@@ -44,7 +44,7 @@ export function Header() {
           size="sm"
           className={cn(
             "text-muted-foreground hover:text-foreground",
-            "hidden sm:flex"
+            "hidden sm:flex",
           )}
           asChild
         >

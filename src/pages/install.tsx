@@ -17,11 +17,20 @@ import {
   Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { useInstallStore, type PrerequisitesInfo } from "@/stores/use-install-store";
+import {
+  useInstallStore,
+  type PrerequisitesInfo,
+} from "@/stores/use-install-store";
 import { cn } from "@/lib/utils";
 import type { OpenClawUpdateCheck } from "@/hooks/use-update";
 
@@ -44,7 +53,9 @@ export function Install() {
   const [showLogs, setShowLogs] = useState(false);
 
   // Manual update check state (only runs when user clicks "Check for Updates")
-  const [updateCheck, setUpdateCheck] = useState<OpenClawUpdateCheck | null>(null);
+  const [updateCheck, setUpdateCheck] = useState<OpenClawUpdateCheck | null>(
+    null,
+  );
   const [checkingUpdate, setCheckingUpdate] = useState(false);
 
   // Check prerequisites only once
@@ -55,7 +66,7 @@ export function Install() {
     } else if (prereqs) {
       setLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Listen for install output
@@ -66,7 +77,7 @@ export function Install() {
     return () => {
       unlisten.then((fn) => fn());
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Listen for gateway output
@@ -83,12 +94,12 @@ export function Install() {
           setStep("connected");
           setTimeout(() => navigate("/"), 2000);
         }
-      }
+      },
     );
     return () => {
       unlisten.then((fn) => fn());
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate]);
 
   // Auto-scroll logs
@@ -115,7 +126,9 @@ export function Install() {
       const result = await invoke<OpenClawUpdateCheck>("check_openclaw_update");
       setUpdateCheck(result);
       if (result.updateAvailable) {
-        toast.success(`Update available: ${result.currentVersion} → ${result.latestVersion}`);
+        toast.success(
+          `Update available: ${result.currentVersion} → ${result.latestVersion}`,
+        );
       } else {
         toast.info("OpenClaw is up to date");
       }
@@ -242,8 +255,8 @@ export function Install() {
                       ? prereqs.nodejs.meetsRecommended
                         ? "recommended"
                         : prereqs.nodejs.meetsMinimum
-                        ? "minimum"
-                        : "old"
+                          ? "minimum"
+                          : "old"
                       : "missing"
                   }
                   version={prereqs?.nodejs.version ?? undefined}
@@ -252,8 +265,8 @@ export function Install() {
                       ? prereqs.nodejs.meetsRecommended
                         ? "Recommended version (24+)"
                         : prereqs.nodejs.meetsMinimum
-                        ? "Minimum version met (22.14+)"
-                        : "Version too old — 22.14+ required"
+                          ? "Minimum version met (22.14+)"
+                          : "Version too old — 22.14+ required"
                       : "Not found in PATH"
                   }
                 />
@@ -266,8 +279,8 @@ export function Install() {
                       ? updateCheck?.updateAvailable
                         ? `Update available: ${updateCheck.currentVersion} → ${updateCheck.latestVersion}`
                         : updateCheck
-                        ? "Up to date"
-                        : "Installed"
+                          ? "Up to date"
+                          : "Installed"
                       : "Not installed"
                   }
                   action={
@@ -280,7 +293,11 @@ export function Install() {
                       <div className="flex gap-2">
                         {/* Show Check for Updates if we haven't checked yet */}
                         {!updateCheck && (
-                          <Button size="sm" variant="outline" onClick={handleCheckForUpdates}>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={handleCheckForUpdates}
+                          >
                             <Search className="mr-2 h-4 w-4" />
                             Check for Updates
                           </Button>
@@ -317,7 +334,10 @@ export function Install() {
 
             {prereqs?.nodejs.installed && prereqs?.openclaw.installed && (
               <div className="pt-4 border-t border-border">
-                <Button onClick={handleStartGateway} className="gap-2 w-full sm:w-auto">
+                <Button
+                  onClick={handleStartGateway}
+                  className="gap-2 w-full sm:w-auto"
+                >
                   <Play className="h-4 w-4" />
                   Start Gateway
                 </Button>
@@ -332,7 +352,8 @@ export function Install() {
                   className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <Terminal className="h-4 w-4" />
-                  {showLogs ? "Hide" : "View"} Installation Logs ({logs.length} lines)
+                  {showLogs ? "Hide" : "View"} Installation Logs ({logs.length}{" "}
+                  lines)
                   {showLogs ? (
                     <ChevronUp className="h-3 w-3" />
                   ) : (
@@ -347,7 +368,9 @@ export function Install() {
                         <span className="h-2.5 w-2.5 rounded-full bg-yellow-500/80" />
                         <span className="h-2.5 w-2.5 rounded-full bg-green-500/80" />
                       </div>
-                      <span className="text-[10px] text-muted-foreground ml-2">install.log</span>
+                      <span className="text-[10px] text-muted-foreground ml-2">
+                        install.log
+                      </span>
                     </div>
                     <div className="max-h-64 overflow-auto p-4 font-mono text-xs text-foreground/80">
                       {logs.map((line, i) => (
@@ -374,9 +397,7 @@ export function Install() {
                 <div
                   className={cn(
                     "flex items-center justify-center w-10 h-10 rounded-lg",
-                    step === "connected"
-                      ? "bg-success/10"
-                      : "bg-primary/10"
+                    step === "connected" ? "bg-success/10" : "bg-primary/10",
                   )}
                 >
                   {step === "connected" ? (
@@ -424,7 +445,9 @@ export function Install() {
                   <span className="h-2.5 w-2.5 rounded-full bg-yellow-500/80" />
                   <span className="h-2.5 w-2.5 rounded-full bg-green-500/80" />
                 </div>
-                <span className="text-[10px] text-muted-foreground ml-2">gateway.log</span>
+                <span className="text-[10px] text-muted-foreground ml-2">
+                  gateway.log
+                </span>
               </div>
               <div className="max-h-64 overflow-auto p-4 font-mono text-xs">
                 {logs.length === 0 && (
@@ -433,7 +456,10 @@ export function Install() {
                   </p>
                 )}
                 {logs.map((line, i) => (
-                  <div key={i} className="whitespace-pre-wrap text-foreground/80">
+                  <div
+                    key={i}
+                    className="whitespace-pre-wrap text-foreground/80"
+                  >
                     {line}
                   </div>
                 ))}
@@ -466,8 +492,8 @@ function StepIndicator({
           completed
             ? "bg-success text-success-foreground"
             : active
-            ? "bg-primary text-primary-foreground ring-4 ring-primary/20"
-            : "bg-muted text-muted-foreground"
+              ? "bg-primary text-primary-foreground ring-4 ring-primary/20"
+              : "bg-muted text-muted-foreground",
         )}
       >
         {completed ? <CheckCircle2 className="h-4 w-4" /> : step}
@@ -475,7 +501,7 @@ function StepIndicator({
       <span
         className={cn(
           "text-sm hidden sm:inline",
-          active ? "font-medium text-foreground" : "text-muted-foreground"
+          active ? "font-medium text-foreground" : "text-muted-foreground",
         )}
       >
         {label}
@@ -489,7 +515,7 @@ function StepConnector({ completed }: { completed: boolean }) {
     <div
       className={cn(
         "h-px flex-1 transition-colors duration-200",
-        completed ? "bg-success" : "bg-border"
+        completed ? "bg-success" : "bg-border",
       )}
     />
   );

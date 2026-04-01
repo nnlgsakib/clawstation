@@ -55,7 +55,7 @@ interface ConfigState {
 function setNestedValue(
   obj: Record<string, unknown>,
   path: string,
-  value: unknown
+  value: unknown,
 ): Record<string, unknown> {
   const result = { ...obj };
   const keys = path.split(".");

@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useConfig, useSaveConfig, useValidateConfig } from "@/hooks/use-config";
+import {
+  useConfig,
+  useSaveConfig,
+  useValidateConfig,
+} from "@/hooks/use-config";
 import { useGatewayConfig, useGatewayConfigPatch } from "@/hooks/use-gateway";
 import { useGatewayStore } from "@/stores/use-gateway-store";
 import { useConfigStore, type OpenClawConfig } from "@/stores/use-config-store";
@@ -40,22 +44,27 @@ export function Configure() {
   const { data: config, isLoading, error, isError } = useConfig();
   const saveConfig = useSaveConfig();
   const validateConfig = useValidateConfig();
-  const { config: storeConfig, isDirty, setConfig, markClean, updateField } =
-    useConfigStore();
+  const {
+    config: storeConfig,
+    isDirty,
+    setConfig,
+    markClean,
+    updateField,
+  } = useConfigStore();
   const schema = useConfigSchema();
   const [isSaving, setIsSaving] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [mode, setMode] = useState<"ui" | "json">("ui");
 
   const baseHash =
-    ((gatewayConfig as Record<string, unknown> | undefined)?.baseHash as string) ?? "";
+    ((gatewayConfig as Record<string, unknown> | undefined)
+      ?.baseHash as string) ?? "";
 
   // Load config into store on mount
   useEffect(() => {
     if (gatewayConnected && gatewayConfig) {
-      const gwConf = (
-        (gatewayConfig as Record<string, unknown> | undefined)?.config ?? gatewayConfig
-      ) as unknown as OpenClawConfig;
+      const gwConf = ((gatewayConfig as Record<string, unknown> | undefined)
+        ?.config ?? gatewayConfig) as unknown as OpenClawConfig;
       setConfig(gwConf);
     } else if (config) {
       setConfig(config);
@@ -166,11 +175,13 @@ export function Configure() {
   };
 
   const advancedSections = schema.filter((s) => s.category === "advanced");
-  const infrastructureSections = schema.filter((s) => s.category === "infrastructure");
+  const infrastructureSections = schema.filter(
+    (s) => s.category === "infrastructure",
+  );
   const coreSections = schema.filter(
     (s) =>
       s.category === "core" &&
-      !["agents", "models", "tools", "sandbox"].includes(s.id)
+      !["agents", "models", "tools", "sandbox"].includes(s.id),
   );
 
   return (
@@ -202,7 +213,11 @@ export function Configure() {
             {isSaving ? "Saving..." : "Save Changes"}
           </Button>
           {gatewayConnected && (
-            <Button variant="outline" onClick={handleSaveAndRestart} disabled={isSaving}>
+            <Button
+              variant="outline"
+              onClick={handleSaveAndRestart}
+              disabled={isSaving}
+            >
               {isSaving ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
@@ -222,7 +237,7 @@ export function Configure() {
             "px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
             mode === "ui"
               ? "bg-background shadow text-foreground"
-              : "text-muted-foreground hover:text-foreground"
+              : "text-muted-foreground hover:text-foreground",
           )}
         >
           <Settings className="mr-1.5 h-3.5 w-3.5 inline-block" />
@@ -234,7 +249,7 @@ export function Configure() {
             "px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
             mode === "json"
               ? "bg-background shadow text-foreground"
-              : "text-muted-foreground hover:text-foreground"
+              : "text-muted-foreground hover:text-foreground",
           )}
         >
           <FileJson className="mr-1.5 h-3.5 w-3.5 inline-block" />
@@ -247,8 +262,8 @@ export function Configure() {
         <Alert className="border-warning/30 bg-warning/5">
           <Globe className="h-4 w-4 text-warning" />
           <AlertDescription className="text-muted-foreground">
-            Gateway not connected — changes will be saved to file and apply on next
-            Gateway start.
+            Gateway not connected — changes will be saved to file and apply on
+            next Gateway start.
           </AlertDescription>
         </Alert>
       )}
@@ -311,7 +326,7 @@ export function Configure() {
                   "flex items-center gap-2 w-full p-4 rounded-xl",
                   "border border-border bg-card/50",
                   "hover:bg-card hover:border-border-hover",
-                  "transition-all duration-200"
+                  "transition-all duration-200",
                 )}
               >
                 <Wrench className="h-5 w-5 text-muted-foreground" />
@@ -357,7 +372,12 @@ interface SectionGroupProps {
   children: React.ReactNode;
 }
 
-function SectionGroup({ icon: Icon, title, description, children }: SectionGroupProps) {
+function SectionGroup({
+  icon: Icon,
+  title,
+  description,
+  children,
+}: SectionGroupProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">

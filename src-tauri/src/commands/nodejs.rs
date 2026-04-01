@@ -32,7 +32,13 @@ fn extract_openclaw_version(raw: &str) -> String {
             continue;
         }
         // Check if it looks like a version (contains dots and starts with digit)
-        if word.contains('.') && word.chars().next().map(|c| c.is_ascii_digit()).unwrap_or(false) {
+        if word.contains('.')
+            && word
+                .chars()
+                .next()
+                .map(|c| c.is_ascii_digit())
+                .unwrap_or(false)
+        {
             // Remove any trailing parenthetical like "(213a704)"
             return word.to_string();
         }
@@ -319,7 +325,10 @@ pub async fn install_openclaw_script(app: tauri::AppHandle) -> Result<String, St
 
     // Clear npm cache for openclaw to ensure we get the actual latest version
     if managers.iter().any(|m| m == "npm") {
-        let _ = app.emit("install-output", "Clearing npm cache for openclaw...".to_string());
+        let _ = app.emit(
+            "install-output",
+            "Clearing npm cache for openclaw...".to_string(),
+        );
         let mut cache_cmd = if cfg!(target_os = "windows") {
             let mut c = silent_cmd("cmd");
             c.args(["/c", "npm", "cache", "clean", "--force"]);
@@ -437,7 +446,8 @@ pub async fn install_openclaw_script(app: tauri::AppHandle) -> Result<String, St
                 // Check for known error patterns
                 let reason = if stderr_text.contains("ENOENT") {
                     "corrupted package cache — try clearing cache".to_string()
-                } else if stderr_text.contains("EACCES") || stderr_text.contains("permission denied")
+                } else if stderr_text.contains("EACCES")
+                    || stderr_text.contains("permission denied")
                 {
                     "permission denied — try running as administrator".to_string()
                 } else if stderr_text.contains("packageManager") {
@@ -743,8 +753,14 @@ mod tests {
 
     #[test]
     fn extract_openclaw_version_extracts_from_full_output() {
-        assert_eq!(extract_openclaw_version("OpenClaw 2026.3.31 (213a704)"), "2026.3.31");
-        assert_eq!(extract_openclaw_version("OpenClaw 2026.3.24 (cff6dc9)"), "2026.3.24");
+        assert_eq!(
+            extract_openclaw_version("OpenClaw 2026.3.31 (213a704)"),
+            "2026.3.31"
+        );
+        assert_eq!(
+            extract_openclaw_version("OpenClaw 2026.3.24 (cff6dc9)"),
+            "2026.3.24"
+        );
     }
 
     #[test]

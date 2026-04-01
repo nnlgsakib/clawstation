@@ -93,7 +93,10 @@ export interface WizardState {
   setProviderSearch: (search: string) => void;
 
   // Dynamic metadata setter
-  setDynamicData: (providers: ModelProvider[], channels: ChannelOption[]) => void;
+  setDynamicData: (
+    providers: ModelProvider[],
+    channels: ChannelOption[],
+  ) => void;
 
   // Effective data getters
   getEffectiveProviders: () => ModelProvider[];
@@ -128,7 +131,12 @@ export const MODEL_PROVIDERS: ModelProvider[] = [
     id: "openai",
     name: "OpenAI",
     description: "GPT models — strong general-purpose AI",
-    models: ["openai/gpt-5.4", "openai/gpt-5.4-pro", "openai/gpt-5.2", "openai/o3"],
+    models: [
+      "openai/gpt-5.4",
+      "openai/gpt-5.4-pro",
+      "openai/gpt-5.2",
+      "openai/o3",
+    ],
     aliases: {
       "openai/gpt-5.4": "GPT-5.4",
       "openai/gpt-5.4-pro": "GPT-5.4 Pro",
@@ -146,7 +154,11 @@ export const MODEL_PROVIDERS: ModelProvider[] = [
     id: "google",
     name: "Google Gemini",
     description: "Gemini models — excellent for multimodal tasks",
-    models: ["google/gemini-3.1-pro-preview", "google/gemini-3-flash-preview", "google/gemini-2.5-pro"],
+    models: [
+      "google/gemini-3.1-pro-preview",
+      "google/gemini-3-flash-preview",
+      "google/gemini-2.5-pro",
+    ],
     aliases: {
       "google/gemini-3.1-pro-preview": "Gemini 3.1 Pro",
       "google/gemini-3-flash-preview": "Gemini 3 Flash",
@@ -180,7 +192,11 @@ export const MODEL_PROVIDERS: ModelProvider[] = [
     id: "openrouter",
     name: "OpenRouter",
     description: "Access 200+ models through one API key",
-    models: ["openrouter/anthropic/claude-sonnet-4-6", "openrouter/openai/gpt-5.2", "openrouter/google/gemini-2.5-pro"],
+    models: [
+      "openrouter/anthropic/claude-sonnet-4-6",
+      "openrouter/openai/gpt-5.2",
+      "openrouter/google/gemini-2.5-pro",
+    ],
     aliases: {
       "openrouter/anthropic/claude-sonnet-4-6": "Claude Sonnet (OR)",
       "openrouter/openai/gpt-5.2": "GPT-5.2 (OR)",
@@ -440,7 +456,12 @@ export const CHANNEL_OPTIONS: ChannelOption[] = [
     name: "WhatsApp",
     description: "Connect via WhatsApp Web pairing",
     fields: [
-      { key: "allowFrom", label: "Allow From", type: "text", placeholder: "+1234567890 (comma-separated)" },
+      {
+        key: "allowFrom",
+        label: "Allow From",
+        type: "text",
+        placeholder: "+1234567890 (comma-separated)",
+      },
     ],
   },
   {
@@ -448,7 +469,13 @@ export const CHANNEL_OPTIONS: ChannelOption[] = [
     name: "Telegram",
     description: "Connect a Telegram bot",
     fields: [
-      { key: "botToken", label: "Bot Token", type: "password", placeholder: "123456:ABC-DEF...", required: true },
+      {
+        key: "botToken",
+        label: "Bot Token",
+        type: "password",
+        placeholder: "123456:ABC-DEF...",
+        required: true,
+      },
     ],
   },
   {
@@ -456,7 +483,13 @@ export const CHANNEL_OPTIONS: ChannelOption[] = [
     name: "Discord",
     description: "Connect a Discord bot",
     fields: [
-      { key: "token", label: "Bot Token", type: "password", placeholder: "MTIz...", required: true },
+      {
+        key: "token",
+        label: "Bot Token",
+        type: "password",
+        placeholder: "MTIz...",
+        required: true,
+      },
     ],
   },
   {
@@ -464,8 +497,20 @@ export const CHANNEL_OPTIONS: ChannelOption[] = [
     name: "Slack",
     description: "Connect a Slack app (Socket Mode)",
     fields: [
-      { key: "botToken", label: "Bot Token", type: "password", placeholder: "xoxb-...", required: true },
-      { key: "appToken", label: "App Token", type: "password", placeholder: "xapp-...", required: true },
+      {
+        key: "botToken",
+        label: "Bot Token",
+        type: "password",
+        placeholder: "xoxb-...",
+        required: true,
+      },
+      {
+        key: "appToken",
+        label: "App Token",
+        type: "password",
+        placeholder: "xapp-...",
+        required: true,
+      },
     ],
   },
   {
@@ -525,7 +570,9 @@ export const useWizardStore = create<WizardState>((set, get) => ({
 
   // Setters
   setModelProvider: (provider) => {
-    const prov = get().getEffectiveProviders().find((p) => p.id === provider);
+    const prov = get()
+      .getEffectiveProviders()
+      .find((p) => p.id === provider);
     set({
       modelProvider: provider,
       selectedModel: prov?.models[0] ?? "",
@@ -544,8 +591,10 @@ export const useWizardStore = create<WizardState>((set, get) => ({
   setSandboxBackend: (backend) => set({ sandboxBackend: backend }),
   setDockerImage: (image) => set({ dockerImage: image }),
   setDockerNetwork: (network) => set({ dockerNetwork: network }),
-  addDockerBind: (bind) => set((s) => ({ dockerBinds: [...s.dockerBinds, bind] })),
-  removeDockerBind: (index) => set((s) => ({ dockerBinds: s.dockerBinds.filter((_, i) => i !== index) })),
+  addDockerBind: (bind) =>
+    set((s) => ({ dockerBinds: [...s.dockerBinds, bind] })),
+  removeDockerBind: (index) =>
+    set((s) => ({ dockerBinds: s.dockerBinds.filter((_, i) => i !== index) })),
   toggleChannel: (channelId) =>
     set((state) => {
       const isSelected = state.selectedChannels.includes(channelId);
@@ -576,11 +625,15 @@ export const useWizardStore = create<WizardState>((set, get) => ({
     set({ dynamicProviders: providers, dynamicChannels: channels }),
   getEffectiveProviders: () => {
     const state = get();
-    return state.dynamicProviders.length > 0 ? state.dynamicProviders : MODEL_PROVIDERS;
+    return state.dynamicProviders.length > 0
+      ? state.dynamicProviders
+      : MODEL_PROVIDERS;
   },
   getEffectiveChannels: () => {
     const state = get();
-    return state.dynamicChannels.length > 0 ? state.dynamicChannels : CHANNEL_OPTIONS;
+    return state.dynamicChannels.length > 0
+      ? state.dynamicChannels
+      : CHANNEL_OPTIONS;
   },
 
   // Get the effective model ID (selected or custom)
@@ -593,7 +646,9 @@ export const useWizardStore = create<WizardState>((set, get) => ({
   getGeneratedConfig: () => {
     const state = get();
     const effectiveModel = state.customModelId || state.selectedModel;
-    const provider = state.getEffectiveProviders().find((p) => p.id === state.modelProvider);
+    const provider = state
+      .getEffectiveProviders()
+      .find((p) => p.id === state.modelProvider);
     const now = new Date().toISOString();
 
     // ─── Build config matching real OpenClaw schema ────────────
@@ -628,7 +683,25 @@ export const useWizardStore = create<WizardState>((set, get) => ({
     const providersConfig: Record<string, unknown> = {};
     // Only add explicit provider config for providers that need custom base URLs
     // Bundled providers (anthropic, openai, google, etc.) work without explicit config
-    if (provider && !["anthropic", "openai", "google", "openai-codex", "openrouter", "github-copilot", "ollama", "mistral", "xai", "groq", "cerebras", "moonshot", "zai", "huggingface"].includes(provider.id)) {
+    if (
+      provider &&
+      ![
+        "anthropic",
+        "openai",
+        "google",
+        "openai-codex",
+        "openrouter",
+        "github-copilot",
+        "ollama",
+        "mistral",
+        "xai",
+        "groq",
+        "cerebras",
+        "moonshot",
+        "zai",
+        "huggingface",
+      ].includes(provider.id)
+    ) {
       // Custom/gateway providers need explicit config
       const defaultUrls: Record<string, string> = {
         kilocode: "https://api.kilo.ai/api/gateway/",

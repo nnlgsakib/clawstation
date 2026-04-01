@@ -148,7 +148,9 @@ export function StepReady() {
         <Alert>
           <AlertDescription className="text-xs">
             If the dashboard doesn&apos;t open, try running{" "}
-            <code className="rounded bg-muted px-1">openclaw gateway start</code>{" "}
+            <code className="rounded bg-muted px-1">
+              openclaw gateway start
+            </code>{" "}
             in your terminal first.
           </AlertDescription>
         </Alert>

@@ -1,11 +1,28 @@
 import { invoke } from "@tauri-apps/api/core";
-import { Globe, Play, Loader2, ExternalLink, AlertTriangle, X } from "lucide-react";
+import {
+  Globe,
+  Play,
+  Loader2,
+  ExternalLink,
+  AlertTriangle,
+  X,
+} from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useGatewayStore } from "@/stores/use-gateway-store";
-import { isProviderError, getProviderGuidance, extractProviderErrorMessage } from "@/lib/provider-errors";
+import {
+  isProviderError,
+  getProviderGuidance,
+  extractProviderErrorMessage,
+} from "@/lib/provider-errors";
 import { toast } from "sonner";
 
 export function OpenClawWebapp() {
@@ -72,8 +89,16 @@ export function OpenClawWebapp() {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center">
-            <Button onClick={handleStartGateway} disabled={starting} className="gap-2">
-              {starting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+            <Button
+              onClick={handleStartGateway}
+              disabled={starting}
+              className="gap-2"
+            >
+              {starting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Play className="h-4 w-4" />
+              )}
               {starting ? "Starting..." : "Start Gateway"}
             </Button>
           </CardContent>
@@ -122,8 +147,16 @@ export function OpenClawWebapp() {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-3">
-            <Button onClick={handleOpenUI} disabled={opening} className="gap-2 w-full">
-              {opening ? <Loader2 className="h-4 w-4 animate-spin" /> : <ExternalLink className="h-4 w-4" />}
+            <Button
+              onClick={handleOpenUI}
+              disabled={opening}
+              className="gap-2 w-full"
+            >
+              {opening ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <ExternalLink className="h-4 w-4" />
+              )}
               {opening ? "Opening..." : "Open Control UI"}
             </Button>
             <Button
@@ -140,7 +173,9 @@ export function OpenClawWebapp() {
               )}
               {checkingProvider ? "Checking..." : "Check Provider Status"}
             </Button>
-            <p className="text-xs text-muted-foreground">Opens in a new app window</p>
+            <p className="text-xs text-muted-foreground">
+              Opens in a new app window
+            </p>
           </CardContent>
         </Card>
       </div>

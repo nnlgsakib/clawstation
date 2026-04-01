@@ -49,10 +49,10 @@ export function LayerProgress({ className }: LayerProgressProps) {
   const { layers } = useDockerLayerProgress();
 
   const activeLayers = layers.filter(
-    (l) => l.description !== "Done" && l.description !== "Cached"
+    (l) => l.description !== "Done" && l.description !== "Cached",
   );
   const completedLayers = layers.filter(
-    (l) => l.description === "Done" || l.description === "Cached"
+    (l) => l.description === "Done" || l.description === "Cached",
   );
 
   if (layers.length === 0) {

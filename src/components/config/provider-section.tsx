@@ -1,7 +1,13 @@
 import { useMemo } from "react";
 import { useConfigStore, type ProviderConfig } from "@/stores/use-config-store";
 import { useOpenClawMetadata } from "@/hooks/use-openclaw-metadata";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 const PROVIDER_OPTIONS = [
   { value: "anthropic", label: "Anthropic (Claude)" },
@@ -23,13 +29,16 @@ const DEFAULT_PROVIDER: ProviderConfig = { provider: "", model: "" };
 
 export function ProviderSection() {
   const { config, setProvider } = useConfigStore();
-  const provider: ProviderConfig = { ...DEFAULT_PROVIDER, ...(config.provider as Partial<ProviderConfig> | undefined) };
+  const provider: ProviderConfig = {
+    ...DEFAULT_PROVIDER,
+    ...(config.provider as Partial<ProviderConfig> | undefined),
+  };
 
   // Dynamic metadata from OpenClaw
   const { data: metadata } = useOpenClawMetadata();
   const providerOptions = useMemo(() => {
     if (!metadata) return PROVIDER_OPTIONS;
-    return metadata.providers.map(p => ({
+    return metadata.providers.map((p) => ({
       value: p.id,
       label: p.name,
     }));
@@ -77,9 +86,7 @@ export function ProviderSection() {
     <Card>
       <CardHeader>
         <CardTitle>Provider</CardTitle>
-        <CardDescription>
-          Select your AI provider and model
-        </CardDescription>
+        <CardDescription>Select your AI provider and model</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Provider Dropdown */}
@@ -120,7 +127,10 @@ export function ProviderSection() {
         {/* API Key Environment Variable (Optional) */}
         <div className="space-y-2">
           <label htmlFor="apiKeyEnv" className="text-sm font-medium">
-            API Key Env Var <span className="text-muted-foreground font-normal">(optional)</span>
+            API Key Env Var{" "}
+            <span className="text-muted-foreground font-normal">
+              (optional)
+            </span>
           </label>
           <input
             id="apiKeyEnv"

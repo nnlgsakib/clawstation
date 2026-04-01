@@ -29,7 +29,7 @@ const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
         aria-valuenow={value}
         className={cn(
           "relative h-2 w-full overflow-hidden rounded-full bg-muted",
-          className
+          className,
         )}
       >
         <motion.div
@@ -40,7 +40,7 @@ const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
         />
       </motion.div>
     );
-  }
+  },
 );
 Progress.displayName = "Progress";
 

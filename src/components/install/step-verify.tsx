@@ -9,7 +9,10 @@ import {
   ShieldCheck,
   RefreshCw,
 } from "lucide-react";
-import { useOnboardingStore, type VerificationResult } from "@/stores/use-onboarding-store";
+import {
+  useOnboardingStore,
+  type VerificationResult,
+} from "@/stores/use-onboarding-store";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -49,7 +52,9 @@ export function StepVerify() {
 
   const verifyMutation = useMutation<VerificationResult, Error, string>({
     mutationFn: async (method: string) => {
-      return await invoke<VerificationResult>("verify_installation", { method });
+      return await invoke<VerificationResult>("verify_installation", {
+        method,
+      });
     },
     onSuccess: (result) => {
       if (result.success) {
@@ -75,7 +80,11 @@ export function StepVerify() {
 
   // Auto-start verification on mount
   useEffect(() => {
-    if (!verifyMutation.isPending && !verifyMutation.isSuccess && !verifyMutation.isError) {
+    if (
+      !verifyMutation.isPending &&
+      !verifyMutation.isSuccess &&
+      !verifyMutation.isError
+    ) {
       verifyMutation.mutate(installMethod ?? "docker");
     }
     // Only run on mount

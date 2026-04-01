@@ -13,7 +13,7 @@ export interface JsonEditorProps {
 export function JsonEditor({ onSave, isSaving }: JsonEditorProps) {
   const storeConfig = useConfigStore((s) => s.config);
   const [jsonText, setJsonText] = useState(() =>
-    JSON.stringify(storeConfig, null, 2)
+    JSON.stringify(storeConfig, null, 2),
   );
   const [parseError, setParseError] = useState<string | null>(null);
 
@@ -41,7 +41,7 @@ export function JsonEditor({ onSave, isSaving }: JsonEditorProps) {
         setParseError(`Invalid JSON: ${msg}`);
       }
     },
-    []
+    [],
   );
 
   const handleFormat = useCallback(() => {
@@ -104,7 +104,7 @@ export function JsonEditor({ onSave, isSaving }: JsonEditorProps) {
             "w-full min-h-[400px] p-4 font-mono text-sm rounded-md border bg-background",
             "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
             "resize-y",
-            parseError ? "border-destructive" : "border-input"
+            parseError ? "border-destructive" : "border-input",
           )}
           spellCheck={false}
           autoCapitalize="off"
@@ -118,4 +118,3 @@ export function JsonEditor({ onSave, isSaving }: JsonEditorProps) {
     </Card>
   );
 }
-

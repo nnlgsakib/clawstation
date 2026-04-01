@@ -26,7 +26,11 @@ export interface ChannelInfo {
 export type DmPolicy = "pairing" | "allowlist" | "open" | "disabled";
 
 // Legacy types for backward compat
-export type ChannelStatus = "connected" | "disconnected" | "expired" | "connecting";
+export type ChannelStatus =
+  | "connected"
+  | "disconnected"
+  | "expired"
+  | "connecting";
 export type ChannelType = "whatsapp" | "telegram" | "discord" | "slack";
 
 // ─── Constants ────────────────────────────────────────────────────
@@ -37,7 +41,12 @@ export const CHANNEL_PROVIDERS: Omit<ChannelInfo, "enabled" | "config">[] = [
     name: "WhatsApp",
     description: "Connect via WhatsApp Web pairing",
     setupFields: [
-      { key: "allowFrom", label: "Allow From", type: "text", placeholder: "+1234567890 (comma-separated)" },
+      {
+        key: "allowFrom",
+        label: "Allow From",
+        type: "text",
+        placeholder: "+1234567890 (comma-separated)",
+      },
     ],
     docsUrl: "https://docs.openclaw.ai/channels/whatsapp",
   },
@@ -46,7 +55,13 @@ export const CHANNEL_PROVIDERS: Omit<ChannelInfo, "enabled" | "config">[] = [
     name: "Telegram",
     description: "Connect a Telegram bot via BotFather token",
     setupFields: [
-      { key: "botToken", label: "Bot Token", type: "password", placeholder: "123456:ABC-DEF...", required: true },
+      {
+        key: "botToken",
+        label: "Bot Token",
+        type: "password",
+        placeholder: "123456:ABC-DEF...",
+        required: true,
+      },
     ],
     docsUrl: "https://docs.openclaw.ai/channels/telegram",
   },
@@ -55,7 +70,13 @@ export const CHANNEL_PROVIDERS: Omit<ChannelInfo, "enabled" | "config">[] = [
     name: "Discord",
     description: "Connect a Discord bot",
     setupFields: [
-      { key: "token", label: "Bot Token", type: "password", placeholder: "MTIz...", required: true },
+      {
+        key: "token",
+        label: "Bot Token",
+        type: "password",
+        placeholder: "MTIz...",
+        required: true,
+      },
     ],
     docsUrl: "https://docs.openclaw.ai/channels/discord",
   },
@@ -64,8 +85,20 @@ export const CHANNEL_PROVIDERS: Omit<ChannelInfo, "enabled" | "config">[] = [
     name: "Slack",
     description: "Connect a Slack app (Socket Mode)",
     setupFields: [
-      { key: "botToken", label: "Bot Token", type: "password", placeholder: "xoxb-...", required: true },
-      { key: "appToken", label: "App Token", type: "password", placeholder: "xapp-...", required: true },
+      {
+        key: "botToken",
+        label: "Bot Token",
+        type: "password",
+        placeholder: "xoxb-...",
+        required: true,
+      },
+      {
+        key: "appToken",
+        label: "App Token",
+        type: "password",
+        placeholder: "xapp-...",
+        required: true,
+      },
     ],
     docsUrl: "https://docs.openclaw.ai/channels/slack",
   },
@@ -96,18 +129,26 @@ export function useChannels() {
   return useQuery<ChannelInfo[]>({
     queryKey: ["channels"],
     queryFn: async () => {
-      const response = await invoke<unknown>("gateway_ws_call", {
+      const response = (await invoke<unknown>("gateway_ws_call", {
         method: "config.get",
         params: {},
-      }) as { result?: { config?: Record<string, unknown> }; config?: Record<string, unknown> };
+      })) as {
+        result?: { config?: Record<string, unknown> };
+        config?: Record<string, unknown>;
+      };
       const config = response?.result?.config ?? response?.config ?? {};
-      const channelsConfig = (config as Record<string, Record<string, unknown>>).channels ?? {} as Record<string, unknown>;
+      const channelsConfig =
+        (config as Record<string, Record<string, unknown>>).channels ??
+        ({} as Record<string, unknown>);
 
       return CHANNEL_PROVIDERS.map((provider) => {
-        const providerConfig = channelsConfig[provider.provider] ?? {} as Record<string, unknown>;
+        const providerConfig =
+          channelsConfig[provider.provider] ?? ({} as Record<string, unknown>);
         return {
           ...provider,
-          enabled: (providerConfig as Record<string, unknown>).enabled ?? Object.keys(providerConfig).length > 0,
+          enabled:
+            (providerConfig as Record<string, unknown>).enabled ??
+            Object.keys(providerConfig).length > 0,
           config: providerConfig,
         } as ChannelInfo;
       });
@@ -154,8 +195,18 @@ export function useDisconnectChannel() {
   const updateChannel = useUpdateChannel();
 
   return useMutation({
-    mutationFn: async ({ provider, baseHash }: { provider: string; baseHash: string }) => {
-      return updateChannel.mutateAsync({ provider, config: { enabled: false }, baseHash });
+    mutationFn: async ({
+      provider,
+      baseHash,
+    }: {
+      provider: string;
+      baseHash: string;
+    }) => {
+      return updateChannel.mutateAsync({
+        provider,
+        config: { enabled: false },
+        baseHash,
+      });
     },
   });
 }

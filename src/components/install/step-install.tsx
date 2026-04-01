@@ -105,8 +105,16 @@ interface StepInstallProps {
 }
 
 export function StepInstall({ method }: StepInstallProps) {
-  const { progress, mutate, isPending, isSuccess, isError, error, data, workspacePath } =
-    useInstallOpenClaw();
+  const {
+    progress,
+    mutate,
+    isPending,
+    isSuccess,
+    isError,
+    error,
+    data,
+    workspacePath,
+  } = useInstallOpenClaw();
   const {
     transitionToVerify,
     transitionToError,
@@ -152,7 +160,9 @@ export function StepInstall({ method }: StepInstallProps) {
       await cleanInstallDir(installDir);
     } catch (err) {
       setCleanError(
-        err instanceof Error ? err.message : "Failed to clean install directory"
+        err instanceof Error
+          ? err.message
+          : "Failed to clean install directory",
       );
     } finally {
       setIsCleaning(false);
@@ -162,13 +172,16 @@ export function StepInstall({ method }: StepInstallProps) {
   const handleStartInstall = useCallback(() => {
     setIsInstalling(true);
 
-    const sandboxConfig = (sandboxMode && sandboxMode !== "off") ? {
-      mode: sandboxMode,
-      backend: sandboxBackend || "docker",
-      dockerImage: dockerImage || "openclaw-sandbox:bookworm-slim",
-      dockerNetwork: dockerNetwork || "none",
-      dockerBinds: dockerBinds,
-    } : undefined;
+    const sandboxConfig =
+      sandboxMode && sandboxMode !== "off"
+        ? {
+            mode: sandboxMode,
+            backend: sandboxBackend || "docker",
+            dockerImage: dockerImage || "openclaw-sandbox:bookworm-slim",
+            dockerNetwork: dockerNetwork || "none",
+            dockerBinds: dockerBinds,
+          }
+        : undefined;
 
     mutate(
       { method, installDir, workspacePath, sandboxConfig },
@@ -181,9 +194,22 @@ export function StepInstall({ method }: StepInstallProps) {
           setIsInstalling(false);
           transitionToError(err.message || "Installation failed");
         },
-      }
+      },
     );
-  }, [method, installDir, workspacePath, sandboxMode, sandboxBackend, dockerImage, dockerNetwork, dockerBinds, mutate, transitionToVerify, transitionToError, setIsInstalling]);
+  }, [
+    method,
+    installDir,
+    workspacePath,
+    sandboxMode,
+    sandboxBackend,
+    dockerImage,
+    dockerNetwork,
+    dockerBinds,
+    mutate,
+    transitionToVerify,
+    transitionToError,
+    setIsInstalling,
+  ]);
 
   const handleCancel = useCallback(async () => {
     try {
@@ -218,7 +244,9 @@ export function StepInstall({ method }: StepInstallProps) {
           <CardContent className="flex flex-col gap-6 p-8">
             {/* Install directory picker */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Installation Directory</label>
+              <label className="text-sm font-medium">
+                Installation Directory
+              </label>
               <div className="flex gap-2">
                 <div className="flex-1 rounded-md border bg-muted/50 px-3 py-2 text-sm font-mono">
                   {installDir}
@@ -247,8 +275,8 @@ export function StepInstall({ method }: StepInstallProps) {
                 <p className="text-xs text-destructive">{cleanError}</p>
               )}
               <p className="text-xs text-muted-foreground">
-                Removes the directory above for a fresh start. Safe to skip if this is
-                your first install.
+                Removes the directory above for a fresh start. Safe to skip if
+                this is your first install.
               </p>
             </div>
 
@@ -314,7 +342,10 @@ export function StepInstall({ method }: StepInstallProps) {
               {getStepIcon(progress.step)}
               {progress.message}
             </CardTitle>
-            <InstallProgressBar step={progress.step} percent={progress.percent} />
+            <InstallProgressBar
+              step={progress.step}
+              percent={progress.percent}
+            />
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -362,7 +393,8 @@ export function StepInstall({ method }: StepInstallProps) {
           <XCircle className="h-4 w-4" />
           <AlertTitle>Installation Failed</AlertTitle>
           <AlertDescription>
-            {error?.message ?? "An unexpected error occurred during installation."}
+            {error?.message ??
+              "An unexpected error occurred during installation."}
           </AlertDescription>
           <div className="mt-4">
             <Button variant="outline" onClick={handleStartInstall}>

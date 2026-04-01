@@ -3,7 +3,11 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useGatewayStore } from "@/stores/use-gateway-store";
-import { isProviderError, getProviderGuidance, extractProviderErrorMessage } from "@/lib/provider-errors";
+import {
+  isProviderError,
+  getProviderGuidance,
+  extractProviderErrorMessage,
+} from "@/lib/provider-errors";
 import type { GatewayStartupPhase } from "@/stores/use-gateway-store";
 
 // ─── Types ────────────────────────────────────────────────────────
@@ -42,7 +46,7 @@ export function useGatewayStatusListener() {
     invoke<GatewayStatusResult>("get_gateway_status")
       .then((status) => {
         if (status.running) {
-          if (status.startupPhase === 'ready') {
+          if (status.startupPhase === "ready") {
             setConnected();
           } else if (status.startupPhase) {
             useGatewayStore.getState().setStartupPhase(status.startupPhase);
@@ -59,21 +63,27 @@ export function useGatewayStatusListener() {
     });
 
     // Listen for startup phase changes from backend health check
-    const unlisten_startup = listen<{ phase: GatewayStartupPhase }>("gateway-startup-phase", (event) => {
-      useGatewayStore.getState().setStartupPhase(event.payload.phase);
-    });
+    const unlisten_startup = listen<{ phase: GatewayStartupPhase }>(
+      "gateway-startup-phase",
+      (event) => {
+        useGatewayStore.getState().setStartupPhase(event.payload.phase);
+      },
+    );
 
     // Listen for gateway output that indicates ready
-    const unlisten2 = listen<{ line: string; stream: string }>("gateway-output", (event) => {
-      if (
-        event.payload.line.includes("Gateway listening") ||
-        event.payload.line.includes("listening on") ||
-        event.payload.line.includes("ready") ||
-        event.payload.line.includes("Gateway already running")
-      ) {
-        setConnected();
-      }
-    });
+    const unlisten2 = listen<{ line: string; stream: string }>(
+      "gateway-output",
+      (event) => {
+        if (
+          event.payload.line.includes("Gateway listening") ||
+          event.payload.line.includes("listening on") ||
+          event.payload.line.includes("ready") ||
+          event.payload.line.includes("Gateway already running")
+        ) {
+          setConnected();
+        }
+      },
+    );
 
     // Listen for gateway stopped
     const unlisten3 = listen("gateway-stopped", () => {
@@ -81,9 +91,12 @@ export function useGatewayStatusListener() {
     });
 
     // Listen for health check failure
-    const unlisten_failed = listen<{ reason: string }>("gateway-health-failed", (event) => {
-      useGatewayStore.getState().setError(event.payload.reason);
-    });
+    const unlisten_failed = listen<{ reason: string }>(
+      "gateway-health-failed",
+      (event) => {
+        useGatewayStore.getState().setError(event.payload.reason);
+      },
+    );
 
     return () => {
       unlisten1.then((fn) => fn());
@@ -98,13 +111,16 @@ export function useGatewayStatusListener() {
   useEffect(() => {
     const pollInterval = setInterval(() => {
       const { startupPhase, connected } = useGatewayStore.getState();
-      if (!connected && (startupPhase === 'starting' || startupPhase === 'health_checking')) {
+      if (
+        !connected &&
+        (startupPhase === "starting" || startupPhase === "health_checking")
+      ) {
         invoke<GatewayStatusResult>("get_gateway_status")
           .then((status) => {
-            if (status.running && status.startupPhase === 'ready') {
+            if (status.running && status.startupPhase === "ready") {
               useGatewayStore.getState().setConnected();
-            } else if (status.startupPhase === 'health_checking') {
-              useGatewayStore.getState().setStartupPhase('health_checking');
+            } else if (status.startupPhase === "health_checking") {
+              useGatewayStore.getState().setStartupPhase("health_checking");
             }
           })
           .catch(() => {});
@@ -123,7 +139,7 @@ export function useGatewayActions() {
 
   const start = useCallback(async () => {
     try {
-      useGatewayStore.getState().setStartupPhase('starting');
+      useGatewayStore.getState().setStartupPhase("starting");
       await invoke("start_gateway", { port: 18789 });
       // Do NOT call setConnected() - wait for gateway-status event from health check
     } catch (e) {
@@ -144,7 +160,7 @@ export function useGatewayActions() {
     try {
       const { setStartupPhase } = useGatewayStore.getState();
       setDisconnected();
-      setStartupPhase('starting');
+      setStartupPhase("starting");
       await invoke("restart_gateway", { port: 18789 });
       // Do NOT call setConnected() - wait for gateway-status event
     } catch (e) {
@@ -168,13 +184,23 @@ export function useGatewayActions() {
  * Manages Gateway WebSocket connection lifecycle.
  */
 export function useGatewayConnection() {
-  const { connected, connecting, error, setConnected, setConnecting, setError, incrementReconnect, reconnectAttempts } =
-    useGatewayStore();
+  const {
+    connected,
+    connecting,
+    error,
+    setConnected,
+    setConnecting,
+    setError,
+    incrementReconnect,
+    reconnectAttempts,
+  } = useGatewayStore();
 
   const connect = useCallback(async () => {
     setConnecting();
     try {
-      await invoke<GatewayConnectionResult>("gateway_ws_connect", { port: 18789 });
+      await invoke<GatewayConnectionResult>("gateway_ws_connect", {
+        port: 18789,
+      });
       setConnected();
     } catch (e) {
       setError(String(e));
@@ -182,16 +208,19 @@ export function useGatewayConnection() {
   }, [setConnecting, setConnected, setError]);
 
   useEffect(() => {
-    const unlisten = listen<GatewayWsStatusEvent>("gateway-ws-status", (event) => {
-      if (event.payload.connected) {
-        setConnected();
-      } else {
-        setError(event.payload.error ?? "Disconnected");
-        const delay = Math.min(2000 * Math.pow(2, reconnectAttempts), 30000);
-        incrementReconnect();
-        setTimeout(() => connect(), delay);
-      }
-    });
+    const unlisten = listen<GatewayWsStatusEvent>(
+      "gateway-ws-status",
+      (event) => {
+        if (event.payload.connected) {
+          setConnected();
+        } else {
+          setError(event.payload.error ?? "Disconnected");
+          const delay = Math.min(2000 * Math.pow(2, reconnectAttempts), 30000);
+          incrementReconnect();
+          setTimeout(() => connect(), delay);
+        }
+      },
+    );
 
     connect();
 
@@ -231,7 +260,7 @@ function wrapProviderError(error: unknown): never {
 export function useGatewayCall<T>(
   method: string,
   params?: Record<string, unknown>,
-  options?: { enabled?: boolean; staleTime?: number }
+  options?: { enabled?: boolean; staleTime?: number },
 ) {
   const connected = useGatewayStore((s) => s.connected);
 
@@ -258,7 +287,7 @@ export function useGatewayConfig() {
   return useGatewayCall<{ config: Record<string, unknown>; baseHash: string }>(
     "config.get",
     {},
-    { staleTime: 30000 }
+    { staleTime: 30000 },
   );
 }
 
@@ -266,7 +295,7 @@ export function useGatewaySessions() {
   return useGatewayCall<{ sessions: unknown[] }>(
     "sessions.list",
     {},
-    { staleTime: 5000 }
+    { staleTime: 5000 },
   );
 }
 
@@ -274,7 +303,13 @@ export function useGatewayConfigPatch() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ raw, baseHash }: { raw: string; baseHash: string }) => {
+    mutationFn: async ({
+      raw,
+      baseHash,
+    }: {
+      raw: string;
+      baseHash: string;
+    }) => {
       try {
         return await invoke("gateway_ws_call", {
           method: "config.patch",
@@ -294,12 +329,15 @@ export function useGatewayConfigPatch() {
  * Generic mutation hook for Gateway WebSocket calls that modify state (chat, config patches, etc.).
  * Includes the same provider error detection as useGatewayCall.
  */
-export function useGatewayMutation<TData = unknown, TVariables = Record<string, unknown>>(
+export function useGatewayMutation<
+  TData = unknown,
+  TVariables = Record<string, unknown>,
+>(
   method: string,
   options?: {
     onSuccess?: (data: TData) => void;
     onError?: (error: Error) => void;
-  }
+  },
 ) {
   return useMutation<TData, Error, TVariables>({
     mutationFn: async (variables) => {

@@ -1,6 +1,19 @@
 import React from "react";
 import { motion } from "motion/react";
-import { Shield, ShieldAlert, ShieldOff, FolderOpen, Container, Terminal, Box, Plus, X, Monitor, Loader2, Download } from "lucide-react";
+import {
+  Shield,
+  ShieldAlert,
+  ShieldOff,
+  FolderOpen,
+  Container,
+  Terminal,
+  Box,
+  Plus,
+  X,
+  Monitor,
+  Loader2,
+  Download,
+} from "lucide-react";
 import { useWizardStore } from "@/stores/use-wizard-store";
 import { useSandboxImageExists, usePullSandboxImage } from "@/hooks/use-docker";
 import { extractTauriErrorMessage } from "@/lib/tauri-errors";
@@ -8,7 +21,11 @@ import { listen } from "@tauri-apps/api/event";
 import { cn } from "@/lib/utils";
 import { open } from "@tauri-apps/plugin-dialog";
 import { toast } from "sonner";
-import type { SandboxMode, SandboxScope, WorkspaceAccess } from "@/stores/use-wizard-store";
+import type {
+  SandboxMode,
+  SandboxScope,
+  WorkspaceAccess,
+} from "@/stores/use-wizard-store";
 
 const SANDBOX_MODES: {
   value: SandboxMode;
@@ -90,14 +107,16 @@ const SANDBOX_BACKENDS: {
   {
     value: "docker",
     label: "Docker",
-    description: "Isolated containers — best security. Requires Docker installed.",
+    description:
+      "Isolated containers — best security. Requires Docker installed.",
     icon: Container,
     recommended: true,
   },
   {
     value: "ssh",
     label: "SSH",
-    description: "Run on a remote machine via SSH. Requires SSH access configured.",
+    description:
+      "Run on a remote machine via SSH. Requires SSH access configured.",
     icon: Terminal,
   },
   {
@@ -109,7 +128,8 @@ const SANDBOX_BACKENDS: {
   {
     value: "native",
     label: "Local",
-    description: "Run agents directly on host — no Docker, fastest but least isolated.",
+    description:
+      "Run agents directly on host — no Docker, fastest but least isolated.",
     icon: Monitor,
   },
 ];
@@ -119,12 +139,24 @@ const DOCKER_NETWORKS: {
   label: string;
   description: string;
 }[] = [
-  { value: "none", label: "None", description: "No network access — most secure (Recommended)" },
-  { value: "bridge", label: "Bridge", description: "Isolated network — can access internet" },
+  {
+    value: "none",
+    label: "None",
+    description: "No network access — most secure (Recommended)",
+  },
+  {
+    value: "bridge",
+    label: "Bridge",
+    description: "Isolated network — can access internet",
+  },
 ];
 
 function SandboxImageCheck() {
-  const { data: imageExists, isLoading: checking, refetch: recheckImage } = useSandboxImageExists();
+  const {
+    data: imageExists,
+    isLoading: checking,
+    refetch: recheckImage,
+  } = useSandboxImageExists();
   const { mutate: pullImage } = usePullSandboxImage();
   const [pullLog, setPullLog] = React.useState<string[]>([]);
   const [pullComplete, setPullComplete] = React.useState(false);
@@ -135,7 +167,9 @@ function SandboxImageCheck() {
     const unlisten = listen<string>("sandbox-pull-output", (event) => {
       setPullLog((prev) => [...prev.slice(-20), event.payload]); // Keep last 20 lines
     });
-    return () => { unlisten.then(fn => fn()); };
+    return () => {
+      unlisten.then((fn) => fn());
+    };
   }, []);
 
   React.useEffect(() => {
@@ -160,7 +194,9 @@ function SandboxImageCheck() {
       },
       onError: (err) => {
         setPulling(false);
-        setPullError(extractTauriErrorMessage(err) || "Failed to build sandbox image");
+        setPullError(
+          extractTauriErrorMessage(err) || "Failed to build sandbox image",
+        );
       },
     });
   };
@@ -181,16 +217,23 @@ function SandboxImageCheck() {
   return (
     <div className="space-y-3">
       <div className="rounded-lg border border-yellow-500/50 bg-yellow-500/10 p-4">
-        <p className="text-sm font-medium text-yellow-600">Sandbox Image Required</p>
+        <p className="text-sm font-medium text-yellow-600">
+          Sandbox Image Required
+        </p>
         <p className="mt-1 text-xs text-muted-foreground">
-          The openclaw-sandbox image is not found. Build it now or skip Docker sandboxing.
+          The openclaw-sandbox image is not found. Build it now or skip Docker
+          sandboxing.
         </p>
         <button
           onClick={handlePull}
           disabled={pulling}
           className="mt-3 flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
         >
-          {pulling ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+          {pulling ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Download className="h-4 w-4" />
+          )}
           {pulling ? "Building image..." : "Build Sandbox Image"}
         </button>
       </div>
@@ -210,7 +253,7 @@ function SandboxImageCheck() {
 
       {pullLog.length > 0 && (
         <pre className="max-h-32 overflow-auto rounded-md border border-border bg-black p-2 text-xs text-green-400">
-{pullLog.join("\n")}
+          {pullLog.join("\n")}
         </pre>
       )}
     </div>
@@ -273,7 +316,8 @@ export function SandboxStep() {
       <div className="space-y-3">
         <p className="text-sm font-medium">Workspace Directory</p>
         <p className="text-xs text-muted-foreground">
-          Select where OpenClaw stores its workspace files (project files, memory, skills).
+          Select where OpenClaw stores its workspace files (project files,
+          memory, skills).
         </p>
         <div className="flex items-center gap-2">
           <div className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm">
@@ -305,31 +349,33 @@ export function SandboxStep() {
       <div className="space-y-3">
         <p className="text-sm font-medium">Sandbox Backend</p>
         <div className="grid gap-2 sm:grid-cols-3">
-          {SANDBOX_BACKENDS.map(({ value, label, description, icon: Icon, recommended }) => (
-            <button
-              key={value}
-              onClick={() => setSandboxBackend(value)}
-              className={cn(
-                "rounded-lg border p-3 text-left text-sm transition-colors relative",
-                sandboxBackend === value
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-input hover:bg-accent"
-              )}
-            >
-              {recommended && (
-                <span className="absolute -top-2 right-2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-medium text-primary-foreground">
-                  Recommended
-                </span>
-              )}
-              <div className="flex items-center gap-2">
-                <Icon className="h-4 w-4" />
-                <p className="font-medium">{label}</p>
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {description}
-              </p>
-            </button>
-          ))}
+          {SANDBOX_BACKENDS.map(
+            ({ value, label, description, icon: Icon, recommended }) => (
+              <button
+                key={value}
+                onClick={() => setSandboxBackend(value)}
+                className={cn(
+                  "rounded-lg border p-3 text-left text-sm transition-colors relative",
+                  sandboxBackend === value
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-input hover:bg-accent",
+                )}
+              >
+                {recommended && (
+                  <span className="absolute -top-2 right-2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-medium text-primary-foreground">
+                    Recommended
+                  </span>
+                )}
+                <div className="flex items-center gap-2">
+                  <Icon className="h-4 w-4" />
+                  <p className="font-medium">{label}</p>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {description}
+                </p>
+              </button>
+            ),
+          )}
         </div>
       </div>
 
@@ -345,7 +391,7 @@ export function SandboxStep() {
                 "rounded-lg border p-3 text-left text-sm transition-colors",
                 sandboxMode === value
                   ? "border-primary bg-primary/10 text-primary"
-                  : "border-input hover:bg-accent"
+                  : "border-input hover:bg-accent",
               )}
             >
               <div className="flex items-center gap-2">
@@ -372,7 +418,7 @@ export function SandboxStep() {
                 "rounded-lg border p-3 text-left text-sm transition-colors",
                 sandboxScope === value
                   ? "border-primary bg-primary/10 text-primary"
-                  : "border-input hover:bg-accent"
+                  : "border-input hover:bg-accent",
               )}
             >
               <p className="font-medium">{label}</p>
@@ -396,7 +442,7 @@ export function SandboxStep() {
                 "rounded-lg border p-3 text-left text-sm transition-colors",
                 workspaceAccess === value
                   ? "border-primary bg-primary/10 text-primary"
-                  : "border-input hover:bg-accent"
+                  : "border-input hover:bg-accent",
               )}
             >
               <p className="font-medium">{label}</p>
@@ -409,9 +455,7 @@ export function SandboxStep() {
       </div>
 
       {/* Sandbox Image Check - only for Docker backend */}
-      {sandboxBackend === "docker" && (
-        <SandboxImageCheck />
-      )}
+      {sandboxBackend === "docker" && <SandboxImageCheck />}
 
       {/* Docker-specific settings */}
       {sandboxBackend === "docker" && (
@@ -433,7 +477,7 @@ export function SandboxStep() {
                     "rounded-lg border p-3 text-left text-sm transition-colors",
                     dockerNetwork === value
                       ? "border-primary bg-primary/10 text-primary"
-                      : "border-input hover:bg-accent"
+                      : "border-input hover:bg-accent",
                   )}
                 >
                   <p className="font-medium">{label}</p>
@@ -449,12 +493,16 @@ export function SandboxStep() {
           <div className="space-y-3">
             <p className="text-sm font-medium">Bind Mounts</p>
             <p className="text-xs text-muted-foreground">
-              Host directories accessible inside the sandbox (format: /host/path:/container/path).
+              Host directories accessible inside the sandbox (format:
+              /host/path:/container/path).
             </p>
             {dockerBinds.length > 0 && (
               <div className="space-y-1">
                 {dockerBinds.map((bind, i) => (
-                  <div key={i} className="flex items-center gap-2 rounded-md border border-input bg-background px-3 py-1.5 text-sm">
+                  <div
+                    key={i}
+                    className="flex items-center gap-2 rounded-md border border-input bg-background px-3 py-1.5 text-sm"
+                  >
                     <code className="flex-1 text-xs">{bind}</code>
                     <button
                       onClick={() => removeDockerBind(i)}
@@ -503,8 +551,9 @@ export function SandboxStep() {
         >
           <p className="text-sm font-medium">SSH Backend</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            SSH sandbox configuration will be available after installation in the Settings page.
-            Configure the target host, workspace path, and SSH key in the sandbox settings.
+            SSH sandbox configuration will be available after installation in
+            the Settings page. Configure the target host, workspace path, and
+            SSH key in the sandbox settings.
           </p>
         </motion.div>
       )}
@@ -520,7 +569,8 @@ export function SandboxStep() {
           <p className="text-sm font-medium">OpenShell Backend</p>
           <p className="mt-1 text-xs text-muted-foreground">
             OpenShell requires the OpenShell plugin to be installed in OpenClaw.
-            Configuration will be available in the Settings page after installation.
+            Configuration will be available in the Settings page after
+            installation.
           </p>
         </motion.div>
       )}

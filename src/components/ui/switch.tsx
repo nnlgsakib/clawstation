@@ -16,7 +16,7 @@ const Switch = React.forwardRef<
         "disabled:cursor-not-allowed disabled:opacity-50",
         "data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted",
       ].join(" "),
-      className
+      className,
     )}
     {...props}
     ref={ref}
@@ -28,7 +28,7 @@ const Switch = React.forwardRef<
           "transition-all duration-200 ease-out",
           "data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0",
           "data-[state=checked]:bg-primary-foreground",
-        ].join(" ")
+        ].join(" "),
       )}
     />
   </SwitchPrimitives.Root>

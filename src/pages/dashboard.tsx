@@ -14,7 +14,13 @@ import {
   Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useGatewayStore } from "@/stores/use-gateway-store";
 import { Link } from "react-router-dom";
@@ -169,7 +175,8 @@ function StatusBannerConnected() {
         <div className="flex-1">
           <h3 className="font-semibold text-foreground">Gateway Running</h3>
           <p className="text-sm text-muted-foreground mt-0.5">
-            OpenClaw is connected and ready to handle requests. All systems operational.
+            OpenClaw is connected and ready to handle requests. All systems
+            operational.
           </p>
         </div>
         <Badge className="bg-success hover:bg-success/90 text-success-foreground">
@@ -188,7 +195,10 @@ interface StatusBannerDisconnectedProps {
   onStart: () => void;
 }
 
-function StatusBannerDisconnected({ starting, onStart }: StatusBannerDisconnectedProps) {
+function StatusBannerDisconnected({
+  starting,
+  onStart,
+}: StatusBannerDisconnectedProps) {
   return (
     <div className="relative overflow-hidden rounded-xl border border-border bg-card">
       {/* Subtle gradient overlay */}
@@ -201,10 +211,12 @@ function StatusBannerDisconnected({ starting, onStart }: StatusBannerDisconnecte
               <Rocket className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h3 className="font-semibold text-foreground text-lg">Get Started</h3>
+              <h3 className="font-semibold text-foreground text-lg">
+                Get Started
+              </h3>
               <p className="text-sm text-muted-foreground mt-1 max-w-md">
-                Set up your AI assistant in three simple steps. Configure your model,
-                install OpenClaw, and connect your messaging channels.
+                Set up your AI assistant in three simple steps. Configure your
+                model, install OpenClaw, and connect your messaging channels.
               </p>
             </div>
           </div>
@@ -248,7 +260,14 @@ interface ActionCardProps {
   step?: number;
 }
 
-function ActionCard({ icon: Icon, title, description, to, variant, step }: ActionCardProps) {
+function ActionCard({
+  icon: Icon,
+  title,
+  description,
+  to,
+  variant,
+  step,
+}: ActionCardProps) {
   return (
     <Link to={to} className="block group">
       <Card
@@ -256,7 +275,7 @@ function ActionCard({ icon: Icon, title, description, to, variant, step }: Actio
           "h-full transition-all duration-200",
           "hover:border-border-hover hover:shadow-md",
           "hover:-translate-y-0.5",
-          variant === "primary" && "border-primary/30 bg-primary-subtle"
+          variant === "primary" && "border-primary/30 bg-primary-subtle",
         )}
       >
         <CardHeader className="pb-3">
@@ -266,7 +285,7 @@ function ActionCard({ icon: Icon, title, description, to, variant, step }: Actio
                 "flex items-center justify-center w-9 h-9 rounded-lg transition-colors",
                 variant === "primary"
                   ? "bg-primary/15 text-primary"
-                  : "bg-muted text-muted-foreground group-hover:bg-accent group-hover:text-foreground"
+                  : "bg-muted text-muted-foreground group-hover:bg-accent group-hover:text-foreground",
               )}
             >
               <Icon className="h-4 w-4" />
@@ -280,7 +299,9 @@ function ActionCard({ icon: Icon, title, description, to, variant, step }: Actio
         </CardHeader>
         <CardContent className="pt-0">
           <CardTitle className="text-sm font-semibold">{title}</CardTitle>
-          <CardDescription className="text-xs mt-1">{description}</CardDescription>
+          <CardDescription className="text-xs mt-1">
+            {description}
+          </CardDescription>
         </CardContent>
       </Card>
     </Link>

@@ -23,7 +23,7 @@ export interface ModelEntry {
 export function useProviderModels(
   providerId: string,
   apiKey?: string,
-  baseUrl?: string
+  baseUrl?: string,
 ) {
   return useQuery<ModelEntry[]>({
     queryKey: ["provider-models", providerId, apiKey ? "***" : undefined],

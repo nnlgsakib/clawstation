@@ -1,10 +1,14 @@
-import { useQuery } from "@tanstack/react-query"
-import { platform as getPlatform, arch as getArch, version as getVersion } from "@tauri-apps/plugin-os"
+import { useQuery } from "@tanstack/react-query";
+import {
+  platform as getPlatform,
+  arch as getArch,
+  version as getVersion,
+} from "@tauri-apps/plugin-os";
 
 export interface PlatformInfo {
-  os: string
-  architecture: string
-  osVersion: string
+  os: string;
+  architecture: string;
+  osVersion: string;
 }
 
 /**
@@ -15,11 +19,11 @@ export function usePlatform() {
   return useQuery<PlatformInfo>({
     queryKey: ["platform"],
     queryFn: async () => {
-      const os = await getPlatform()
-      const architecture = await getArch()
-      const osVersion = await getVersion()
-      return { os, architecture, osVersion }
+      const os = await getPlatform();
+      const architecture = await getArch();
+      const osVersion = await getVersion();
+      return { os, architecture, osVersion };
     },
     staleTime: Infinity,
-  })
+  });
 }

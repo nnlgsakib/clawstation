@@ -5,7 +5,11 @@ import { ArrowLeft, ArrowRight, Download, Loader2, Check } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { useWizardStore, TOTAL_STEPS, MODEL_PROVIDERS } from "@/stores/use-wizard-store";
+import {
+  useWizardStore,
+  TOTAL_STEPS,
+  MODEL_PROVIDERS,
+} from "@/stores/use-wizard-store";
 import { WelcomeStep } from "@/components/wizard/welcome-step";
 import { ModelStep } from "@/components/wizard/model-step";
 import { ApiKeysStep } from "@/components/wizard/api-keys-step";
@@ -101,7 +105,9 @@ export default function SetupWizard() {
                 disabled={i > currentStep}
                 className={cn(
                   "flex flex-col items-center gap-2 transition-all duration-200",
-                  i <= currentStep ? "cursor-pointer" : "cursor-not-allowed opacity-40"
+                  i <= currentStep
+                    ? "cursor-pointer"
+                    : "cursor-not-allowed opacity-40",
                 )}
               >
                 <div
@@ -110,8 +116,8 @@ export default function SetupWizard() {
                     i < currentStep
                       ? "bg-success text-success-foreground shadow-sm"
                       : i === currentStep
-                      ? "bg-primary text-primary-foreground ring-4 ring-primary/20"
-                      : "bg-muted text-muted-foreground"
+                        ? "bg-primary text-primary-foreground ring-4 ring-primary/20"
+                        : "bg-muted text-muted-foreground",
                   )}
                 >
                   {i < currentStep ? <Check className="h-4 w-4" /> : i + 1}
@@ -121,7 +127,7 @@ export default function SetupWizard() {
                     "text-xs transition-colors",
                     i === currentStep
                       ? "font-medium text-foreground"
-                      : "text-muted-foreground"
+                      : "text-muted-foreground",
                   )}
                 >
                   {label}
@@ -188,7 +194,7 @@ export default function SetupWizard() {
                 key={i}
                 className={cn(
                   "h-1.5 w-1.5 rounded-full transition-colors",
-                  i === currentStep ? "bg-primary" : "bg-muted-foreground/30"
+                  i === currentStep ? "bg-primary" : "bg-muted-foreground/30",
                 )}
               />
             ))}
@@ -200,7 +206,11 @@ export default function SetupWizard() {
               <ArrowRight className="h-4 w-4" />
             </Button>
           ) : (
-            <Button onClick={handleInstall} disabled={isInstalling} className="gap-2">
+            <Button
+              onClick={handleInstall}
+              disabled={isInstalling}
+              className="gap-2"
+            >
               {isInstalling ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (

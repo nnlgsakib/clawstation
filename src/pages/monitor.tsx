@@ -32,9 +32,10 @@ import { cn } from "@/lib/utils";
 export function Monitor() {
   const { connected, startupPhase } = useGatewayStore();
 
-  const isStarting = startupPhase === 'starting' || startupPhase === 'health_checking';
-  const isReady = connected || startupPhase === 'ready';
-  const isFailed = startupPhase === 'failed';
+  const isStarting =
+    startupPhase === "starting" || startupPhase === "health_checking";
+  const isReady = connected || startupPhase === "ready";
+  const isFailed = startupPhase === "failed";
   const { start, stop, restart } = useGatewayActions();
   const [loading, setLoading] = useState<string | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
@@ -48,7 +49,7 @@ export function Monitor() {
       else if (action === "stop") await stop();
       else await restart();
       toast.success(
-        `Gateway ${action === "start" ? "started" : action === "stop" ? "stopped" : "restarted"}`
+        `Gateway ${action === "start" ? "started" : action === "stop" ? "stopped" : "restarted"}`,
       );
     } catch (e) {
       toast.error(`Failed: ${e}`);
@@ -61,7 +62,7 @@ export function Monitor() {
   useEffect(() => {
     if (connected) {
       invoke<{ running: boolean; port: number; pid: number | null }>(
-        "get_gateway_status"
+        "get_gateway_status",
       ).then((s) => {
         if (s.pid) setGatewayVersion(`PID ${s.pid}`);
       });
@@ -87,7 +88,7 @@ export function Monitor() {
       "gateway-output",
       (e) => {
         setLogs((prev) => [...prev.slice(-199), e.payload.line]);
-      }
+      },
     );
     return () => {
       unlisten.then((fn) => fn());
@@ -123,26 +124,35 @@ export function Monitor() {
               </CardTitle>
               <Badge
                 variant={
-                  isReady ? "success" :
-                  isStarting ? "warning" :
-                  isFailed ? "destructive" :
-                  "outline"
+                  isReady
+                    ? "success"
+                    : isStarting
+                      ? "warning"
+                      : isFailed
+                        ? "destructive"
+                        : "outline"
                 }
               >
                 <span className="flex items-center gap-1.5">
                   <span
                     className={cn(
                       "h-1.5 w-1.5 rounded-full",
-                      isReady ? "bg-success pulse-status" :
-                      isStarting ? "bg-warning pulse-status" :
-                      isFailed ? "bg-destructive" :
-                      "bg-muted-foreground"
+                      isReady
+                        ? "bg-success pulse-status"
+                        : isStarting
+                          ? "bg-warning pulse-status"
+                          : isFailed
+                            ? "bg-destructive"
+                            : "bg-muted-foreground",
                     )}
                   />
-                  {isReady ? "Running" :
-                   isStarting ? "Starting" :
-                   isFailed ? "Failed" :
-                   "Stopped"}
+                  {isReady
+                    ? "Running"
+                    : isStarting
+                      ? "Starting"
+                      : isFailed
+                        ? "Failed"
+                        : "Stopped"}
                 </span>
               </Badge>
             </div>
@@ -150,14 +160,27 @@ export function Monitor() {
           <CardContent className="space-y-4">
             {/* Status details */}
             <div className="grid grid-cols-2 gap-3">
-              <StatusItem label="Status" value={
-                isReady ? "Connected" :
-                isStarting ? (startupPhase === 'health_checking' ? "Health Checking" : "Starting") :
-                isFailed ? "Startup Failed" :
-                "Disconnected"
-              } />
+              <StatusItem
+                label="Status"
+                value={
+                  isReady
+                    ? "Connected"
+                    : isStarting
+                      ? startupPhase === "health_checking"
+                        ? "Health Checking"
+                        : "Starting"
+                      : isFailed
+                        ? "Startup Failed"
+                        : "Disconnected"
+                }
+              />
               <StatusItem label="Port" value="18789" mono />
-              <StatusItem label="Process" value={gatewayVersion ?? "N/A"} mono className="col-span-2" />
+              <StatusItem
+                label="Process"
+                value={gatewayVersion ?? "N/A"}
+                mono
+                className="col-span-2"
+              />
             </div>
 
             {/* Action buttons */}
@@ -238,22 +261,16 @@ export function Monitor() {
                 to="/webapp"
                 disabled={!isReady}
               />
-              <QuickLink
-                icon={Activity}
-                label="Configure"
-                to="/configure"
-              />
-              <QuickLink
-                icon={Activity}
-                label="Channels"
-                to="/channels"
-              />
+              <QuickLink icon={Activity} label="Configure" to="/configure" />
+              <QuickLink icon={Activity} label="Channels" to="/channels" />
             </div>
 
             {!connected && !isStarting && !isFailed && (
               <Alert className="mt-4 border-warning/30 bg-warning/5">
                 <AlertTriangle className="h-4 w-4 text-warning" />
-                <AlertTitle className="text-warning">Gateway Not Running</AlertTitle>
+                <AlertTitle className="text-warning">
+                  Gateway Not Running
+                </AlertTitle>
                 <AlertDescription>
                   Start the Gateway to enable AI agent features.{" "}
                   <Link
@@ -269,9 +286,12 @@ export function Monitor() {
             {isStarting && (
               <Alert className="mt-4 border-warning/30 bg-warning/5">
                 <Loader2 className="h-4 w-4 text-warning animate-spin" />
-                <AlertTitle className="text-warning">Gateway Starting</AlertTitle>
+                <AlertTitle className="text-warning">
+                  Gateway Starting
+                </AlertTitle>
                 <AlertDescription>
-                  Waiting for gateway to become ready. This usually takes 5-15 seconds.
+                  Waiting for gateway to become ready. This usually takes 5-15
+                  seconds.
                 </AlertDescription>
               </Alert>
             )}
@@ -279,9 +299,12 @@ export function Monitor() {
             {isFailed && (
               <Alert className="mt-4 border-destructive/30 bg-destructive/5">
                 <AlertTriangle className="h-4 w-4 text-destructive" />
-                <AlertTitle className="text-destructive">Gateway Startup Failed</AlertTitle>
+                <AlertTitle className="text-destructive">
+                  Gateway Startup Failed
+                </AlertTitle>
                 <AlertDescription>
-                  Gateway failed to become healthy. Check the logs below or retry.{" "}
+                  Gateway failed to become healthy. Check the logs below or
+                  retry.{" "}
                   <Link
                     to="/install"
                     className="font-medium underline hover:text-foreground"
@@ -317,7 +340,7 @@ export function Monitor() {
             className={cn(
               "relative rounded-lg border border-border overflow-auto",
               "bg-[#0d0f12] font-mono text-xs",
-              "max-h-[400px]"
+              "max-h-[400px]",
             )}
           >
             {/* Log header bar */}
@@ -327,7 +350,9 @@ export function Monitor() {
                 <span className="h-2.5 w-2.5 rounded-full bg-yellow-500/80" />
                 <span className="h-2.5 w-2.5 rounded-full bg-green-500/80" />
               </div>
-              <span className="text-[10px] text-muted-foreground ml-2">gateway.log</span>
+              <span className="text-[10px] text-muted-foreground ml-2">
+                gateway.log
+              </span>
             </div>
 
             {/* Log content */}
@@ -366,7 +391,12 @@ function StatusItem({
   return (
     <div className={cn("space-y-1", className)}>
       <p className="text-xs text-muted-foreground">{label}</p>
-      <p className={cn("text-sm font-medium text-foreground", mono && "font-mono")}>
+      <p
+        className={cn(
+          "text-sm font-medium text-foreground",
+          mono && "font-mono",
+        )}
+      >
         {value}
       </p>
     </div>
@@ -382,7 +412,14 @@ interface QuickLinkProps {
   disabled?: boolean;
 }
 
-function QuickLink({ icon: Icon, label, href, to, external, disabled }: QuickLinkProps) {
+function QuickLink({
+  icon: Icon,
+  label,
+  href,
+  to,
+  external,
+  disabled,
+}: QuickLinkProps) {
   const content = (
     <div
       className={cn(
@@ -390,10 +427,15 @@ function QuickLink({ icon: Icon, label, href, to, external, disabled }: QuickLin
         "transition-all duration-200",
         disabled
           ? "opacity-50 cursor-not-allowed"
-          : "hover:bg-accent hover:border-border-hover cursor-pointer hover:-translate-y-0.5"
+          : "hover:bg-accent hover:border-border-hover cursor-pointer hover:-translate-y-0.5",
       )}
     >
-      <Icon className={cn("h-5 w-5", disabled ? "text-muted-foreground" : "text-primary")} />
+      <Icon
+        className={cn(
+          "h-5 w-5",
+          disabled ? "text-muted-foreground" : "text-primary",
+        )}
+      />
       <span className="text-xs font-medium text-foreground">{label}</span>
     </div>
   );
@@ -421,14 +463,17 @@ function LogLine({ line }: { line: string }) {
   // Simple syntax highlighting for log levels
   const getLineClass = (text: string) => {
     if (text.includes("ERROR") || text.includes("error")) return "text-red-400";
-    if (text.includes("WARN") || text.includes("warn")) return "text-yellow-400";
+    if (text.includes("WARN") || text.includes("warn"))
+      return "text-yellow-400";
     if (text.includes("INFO")) return "text-green-400";
     if (text.includes("DEBUG")) return "text-muted-foreground";
     return "text-foreground/80";
   };
 
   return (
-    <div className={cn("whitespace-pre-wrap leading-relaxed", getLineClass(line))}>
+    <div
+      className={cn("whitespace-pre-wrap leading-relaxed", getLineClass(line))}
+    >
       {line}
     </div>
   );

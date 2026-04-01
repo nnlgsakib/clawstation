@@ -19,17 +19,17 @@ export function ChannelsStep() {
   const { data: metadata } = useOpenClawMetadata();
   const allChannels = useMemo(() => {
     if (!metadata) return CHANNEL_OPTIONS;
-    return metadata.channels.map(ch => ({
+    return metadata.channels.map((ch) => ({
       id: ch.id,
       name: ch.name,
       description: ch.description,
-      fields: ch.configFields.map(f => ({
+      fields: ch.configFields.map((f) => ({
         key: f.key,
         label: f.label,
         type: f.fieldType as "text" | "password" | "select",
         placeholder: f.placeholder,
         required: f.required,
-        options: f.enumValues?.map(v => ({ label: v, value: v })),
+        options: f.enumValues?.map((v) => ({ label: v, value: v })),
       })),
     }));
   }, [metadata]);
@@ -60,9 +60,7 @@ export function ChannelsStep() {
               key={channel.id}
               className={cn(
                 "rounded-lg border transition-colors",
-                isEnabled
-                  ? "border-primary bg-primary/5"
-                  : "border-border"
+                isEnabled ? "border-primary bg-primary/5" : "border-border",
               )}
             >
               <button
@@ -73,7 +71,7 @@ export function ChannelsStep() {
                   <MessageSquare
                     className={cn(
                       "h-5 w-5",
-                      isEnabled ? "text-primary" : "text-muted-foreground"
+                      isEnabled ? "text-primary" : "text-muted-foreground",
                     )}
                   />
                   <div>
@@ -86,13 +84,13 @@ export function ChannelsStep() {
                 <div
                   className={cn(
                     "relative h-6 w-11 rounded-full transition-colors",
-                    isEnabled ? "bg-primary" : "bg-muted"
+                    isEnabled ? "bg-primary" : "bg-muted",
                   )}
                 >
                   <div
                     className={cn(
                       "absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform",
-                      isEnabled ? "left-[22px]" : "left-0.5"
+                      isEnabled ? "left-[22px]" : "left-0.5",
                     )}
                   />
                 </div>
@@ -127,7 +125,7 @@ export function ChannelsStep() {
                       onChange={(e) =>
                         setDmPolicy(
                           channel.id,
-                          e.target.value as typeof dmPolicy
+                          e.target.value as typeof dmPolicy,
                         )
                       }
                       className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
@@ -139,7 +137,9 @@ export function ChannelsStep() {
                         Allowlist — only approved contacts
                       </option>
                       <option value="open">Open — allow all DMs</option>
-                      <option value="disabled">Disabled — ignore all DMs</option>
+                      <option value="disabled">
+                        Disabled — ignore all DMs
+                      </option>
                     </select>
                   </div>
                 </div>

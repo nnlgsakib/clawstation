@@ -48,7 +48,7 @@ function DialogTitle({
     <h2
       className={cn(
         "text-lg font-semibold leading-none tracking-tight text-foreground",
-        className
+        className,
       )}
       {...props}
     />
@@ -79,7 +79,7 @@ function DialogFooter({
     <div
       className={cn(
         "flex items-center justify-end gap-2 p-6 pt-4 border-t border-border",
-        className
+        className,
       )}
       {...props}
     />
@@ -100,7 +100,7 @@ function DialogClose({
         "text-muted-foreground hover:text-foreground",
         "transition-colors duration-150",
         "focus:outline-none focus:ring-2 focus:ring-ring",
-        className
+        className,
       )}
       onClick={onClose}
       {...props}

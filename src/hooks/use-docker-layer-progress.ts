@@ -67,7 +67,7 @@ export function useDockerLayerProgress(): {
           }
           return [...prev, entry];
         });
-      }
+      },
     );
     return () => {
       unlisten.then((fn) => fn());

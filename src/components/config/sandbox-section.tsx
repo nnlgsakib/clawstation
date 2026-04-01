@@ -1,5 +1,15 @@
-import { useConfigStore, type SandboxConfig, type BindMount } from "@/stores/use-config-store";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  useConfigStore,
+  type SandboxConfig,
+  type BindMount,
+} from "@/stores/use-config-store";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -69,7 +79,8 @@ export function SandboxSection() {
   const sandbox: SandboxConfig = {
     ...DEFAULT_SANDBOX,
     ...(config.sandbox as Partial<SandboxConfig> | undefined),
-    bindMounts: ((config.sandbox as Record<string, unknown> | undefined)?.bindMounts ?? DEFAULT_SANDBOX.bindMounts) as BindMount[],
+    bindMounts: ((config.sandbox as Record<string, unknown> | undefined)
+      ?.bindMounts ?? DEFAULT_SANDBOX.bindMounts) as BindMount[],
   };
 
   // Handle sandbox toggle
@@ -142,10 +153,7 @@ export function SandboxSection() {
               {sandbox.enabled ? "Enabled" : "Disabled"}
             </Badge>
           </div>
-          <Switch
-            checked={sandbox.enabled}
-            onCheckedChange={handleToggle}
-          />
+          <Switch checked={sandbox.enabled} onCheckedChange={handleToggle} />
         </div>
         <CardDescription>
           Configure sandbox isolation for OpenClaw execution
@@ -204,7 +212,10 @@ export function SandboxSection() {
                   className="flex items-center gap-2 p-2 rounded-md border bg-card"
                 >
                   <FolderOpen className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <span className="flex-1 text-sm truncate" title={mount.hostPath}>
+                  <span
+                    className="flex-1 text-sm truncate"
+                    title={mount.hostPath}
+                  >
                     {mount.hostPath}
                   </span>
                   <select

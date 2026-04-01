@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { ConfigFieldMeta, ChannelMetadata } from "@/hooks/use-openclaw-metadata";
+import type {
+  ConfigFieldMeta,
+  ChannelMetadata,
+} from "@/hooks/use-openclaw-metadata";
 
 interface ChannelConfigFormProps {
   channel: ChannelMetadata;
@@ -19,7 +22,9 @@ export function ChannelConfigForm({
   showDmPolicy = true,
 }: ChannelConfigFormProps) {
   const [values, setValues] = useState<Record<string, string>>(initialValues);
-  const [showSensitive, setShowSensitive] = useState<Record<string, boolean>>({});
+  const [showSensitive, setShowSensitive] = useState<Record<string, boolean>>(
+    {},
+  );
   const [dmPolicy, setDmPolicy] = useState(initialValues.dmPolicy ?? "pairing");
 
   const handleSave = () => {
@@ -41,8 +46,13 @@ export function ChannelConfigForm({
           field={field}
           value={values[field.key] ?? ""}
           showSensitive={showSensitive[field.key] ?? false}
-          onChange={(v) => setValues(prev => ({ ...prev, [field.key]: v }))}
-          onToggleSensitive={() => setShowSensitive(prev => ({ ...prev, [field.key]: !prev[field.key] }))}
+          onChange={(v) => setValues((prev) => ({ ...prev, [field.key]: v }))}
+          onToggleSensitive={() =>
+            setShowSensitive((prev) => ({
+              ...prev,
+              [field.key]: !prev[field.key],
+            }))
+          }
         />
       ))}
 
@@ -54,8 +64,12 @@ export function ChannelConfigForm({
             onChange={(e) => setDmPolicy(e.target.value)}
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
           >
-            <option value="pairing">Pairing — unknown senders get a one-time code</option>
-            <option value="allowlist">Allowlist — only approved contacts</option>
+            <option value="pairing">
+              Pairing — unknown senders get a one-time code
+            </option>
+            <option value="allowlist">
+              Allowlist — only approved contacts
+            </option>
             <option value="open">Open — allow all DMs</option>
             <option value="disabled">Disabled — ignore all DMs</option>
           </select>
@@ -70,7 +84,13 @@ export function ChannelConfigForm({
   );
 }
 
-function ConfigFieldRenderer({ field, value, showSensitive, onChange, onToggleSensitive }: {
+function ConfigFieldRenderer({
+  field,
+  value,
+  showSensitive,
+  onChange,
+  onToggleSensitive,
+}: {
   field: ConfigFieldMeta;
   value: string;
   showSensitive: boolean;
@@ -86,13 +106,19 @@ function ConfigFieldRenderer({ field, value, showSensitive, onChange, onToggleSe
         </label>
         <select
           value={value}
-          onChange={e => onChange(e.target.value)}
+          onChange={(e) => onChange(e.target.value)}
           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
         >
           <option value="">Select...</option>
-          {field.enumValues.map(v => <option key={v} value={v}>{v}</option>)}
+          {field.enumValues.map((v) => (
+            <option key={v} value={v}>
+              {v}
+            </option>
+          ))}
         </select>
-        {field.help && <p className="text-xs text-muted-foreground">{field.help}</p>}
+        {field.help && (
+          <p className="text-xs text-muted-foreground">{field.help}</p>
+        )}
       </div>
     );
   }
@@ -103,7 +129,7 @@ function ConfigFieldRenderer({ field, value, showSensitive, onChange, onToggleSe
         <input
           type="checkbox"
           checked={value === "true"}
-          onChange={e => onChange(e.target.checked ? "true" : "false")}
+          onChange={(e) => onChange(e.target.checked ? "true" : "false")}
           className="h-4 w-4 rounded border-input"
         />
         <label className="text-sm font-medium">{field.label}</label>
@@ -124,7 +150,7 @@ function ConfigFieldRenderer({ field, value, showSensitive, onChange, onToggleSe
           type={isSecret && !showSensitive ? "password" : "text"}
           placeholder={field.placeholder}
           value={value}
-          onChange={e => onChange(e.target.value)}
+          onChange={(e) => onChange(e.target.value)}
           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         />
         {isSecret && (
@@ -133,11 +159,17 @@ function ConfigFieldRenderer({ field, value, showSensitive, onChange, onToggleSe
             onClick={onToggleSensitive}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
           >
-            {showSensitive ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            {showSensitive ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
           </button>
         )}
       </div>
-      {field.help && <p className="text-xs text-muted-foreground">{field.help}</p>}
+      {field.help && (
+        <p className="text-xs text-muted-foreground">{field.help}</p>
+      )}
     </div>
   );
 }

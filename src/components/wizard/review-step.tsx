@@ -1,6 +1,10 @@
 import { motion } from "motion/react";
 import { Check, AlertTriangle } from "lucide-react";
-import { useWizardStore, MODEL_PROVIDERS, CHANNEL_OPTIONS } from "@/stores/use-wizard-store";
+import {
+  useWizardStore,
+  MODEL_PROVIDERS,
+  CHANNEL_OPTIONS,
+} from "@/stores/use-wizard-store";
 
 export function ReviewStep() {
   const {
@@ -54,13 +58,14 @@ export function ReviewStep() {
           </div>
           <div className="mt-2 space-y-1 text-sm text-muted-foreground">
             <p>
-              Provider: <span className="text-foreground">{provider?.name}</span>
+              Provider:{" "}
+              <span className="text-foreground">{provider?.name}</span>
               <span className="ml-2 rounded-full bg-muted px-1.5 py-0.5 text-[10px]">
                 {provider?.authType === "api-key"
                   ? "API Key"
                   : provider?.authType === "oauth"
-                  ? "OAuth"
-                  : "Local"}
+                    ? "OAuth"
+                    : "Local"}
               </span>
             </p>
             <p>
@@ -73,7 +78,9 @@ export function ReviewStep() {
             <p>
               Auth:{" "}
               {provider?.authType === "oauth" ? (
-                <span className="text-purple-500">OAuth (login after install)</span>
+                <span className="text-purple-500">
+                  OAuth (login after install)
+                </span>
               ) : provider?.authType === "none" ? (
                 <span className="text-green-500">None required (local)</span>
               ) : hasApiKey ? (
@@ -99,14 +106,18 @@ export function ReviewStep() {
               </span>
             </p>
             <p>
-              Scope: <span className="text-foreground capitalize">{sandboxScope}</span>
+              Scope:{" "}
+              <span className="text-foreground capitalize">{sandboxScope}</span>
             </p>
             <p>
               Workspace:{" "}
-              <span className="text-foreground capitalize">{workspaceAccess}</span>
+              <span className="text-foreground capitalize">
+                {workspaceAccess}
+              </span>
             </p>
             <p>
-              Network: <span className="text-foreground">None</span> (secure default)
+              Network: <span className="text-foreground">None</span> (secure
+              default)
             </p>
           </div>
         </div>

@@ -1,10 +1,23 @@
 import { useDockerHealth } from "@/hooks/use-docker";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { showError } from "@/lib/toast-errors";
-import { RefreshCw, AlertTriangle, CheckCircle2, XCircle, Container, Server } from "lucide-react";
+import {
+  RefreshCw,
+  AlertTriangle,
+  CheckCircle2,
+  XCircle,
+  Container,
+  Server,
+} from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 
@@ -38,7 +51,9 @@ export function Docker() {
           onClick={handleRefresh}
           disabled={isLoading}
         >
-          <RefreshCw className={cn("mr-2 h-4 w-4", isLoading && "animate-spin")} />
+          <RefreshCw
+            className={cn("mr-2 h-4 w-4", isLoading && "animate-spin")}
+          />
           Refresh
         </Button>
       </div>
@@ -51,15 +66,15 @@ export function Docker() {
               <div
                 className={cn(
                   "flex items-center justify-center w-10 h-10 rounded-lg",
-                  dockerStatus?.running
-                    ? "bg-success/10"
-                    : "bg-muted"
+                  dockerStatus?.running ? "bg-success/10" : "bg-muted",
                 )}
               >
                 <Container
                   className={cn(
                     "h-5 w-5",
-                    dockerStatus?.running ? "text-success" : "text-muted-foreground"
+                    dockerStatus?.running
+                      ? "text-success"
+                      : "text-muted-foreground",
                   )}
                 />
               </div>
@@ -82,8 +97,8 @@ export function Docker() {
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>Docker Not Found</AlertTitle>
               <AlertDescription>
-                Docker is not installed on this system. Install Docker Desktop to use
-                sandboxed OpenClaw features.
+                Docker is not installed on this system. Install Docker Desktop
+                to use sandboxed OpenClaw features.
                 {dockerStatus.platform === "windows" ? (
                   <span className="mt-3 block">
                     Download from:{" "}
@@ -113,7 +128,9 @@ export function Docker() {
           {dockerStatus?.installed && !dockerStatus.running && (
             <Alert className="border-warning/30 bg-warning/5">
               <AlertTriangle className="h-4 w-4 text-warning" />
-              <AlertTitle className="text-warning">Docker Not Running</AlertTitle>
+              <AlertTitle className="text-warning">
+                Docker Not Running
+              </AlertTitle>
               <AlertDescription>
                 {dockerStatus.platform === "windows"
                   ? "Open Docker Desktop from the Start menu and wait for it to start."
@@ -181,11 +198,14 @@ export function Docker() {
               <Container className="h-5 w-5 text-info" />
             </div>
             <div>
-              <h3 className="font-medium text-foreground">About Docker Sandboxing</h3>
+              <h3 className="font-medium text-foreground">
+                About Docker Sandboxing
+              </h3>
               <p className="text-sm text-muted-foreground mt-1">
-                Docker provides isolated environments for running OpenClaw agents safely.
-                With sandboxing enabled, each agent runs in its own container with
-                configurable permissions, network access, and resource limits.
+                Docker provides isolated environments for running OpenClaw
+                agents safely. With sandboxing enabled, each agent runs in its
+                own container with configurable permissions, network access, and
+                resource limits.
               </p>
             </div>
           </div>
@@ -218,7 +238,7 @@ function StatusCard({
         className={cn(
           "text-sm font-medium text-foreground",
           mono && "font-mono",
-          capitalize && "capitalize"
+          capitalize && "capitalize",
         )}
       >
         {value}

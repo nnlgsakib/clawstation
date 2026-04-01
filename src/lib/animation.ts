@@ -30,7 +30,7 @@ export const animationTiming = {
   moderate: 300,
   /** 450ms — page transitions, large layout shifts, modals */
   slow: 450,
-} as const
+} as const;
 
 /**
  * Spring physics presets for natural-feeling animations.
@@ -41,10 +41,10 @@ export const animationTiming = {
  * - `stable`: Quick settle, no overshoot — good for data updates and status changes
  */
 export const springPresets = {
-  gentle: { type: 'spring' as const, stiffness: 200, damping: 20 },
-  bouncy: { type: 'spring' as const, stiffness: 300, damping: 10 },
-  stable: { type: 'spring' as const, stiffness: 400, damping: 30 },
-} as const
+  gentle: { type: "spring" as const, stiffness: 200, damping: 20 },
+  bouncy: { type: "spring" as const, stiffness: 300, damping: 10 },
+  stable: { type: "spring" as const, stiffness: 400, damping: 30 },
+} as const;
 
 /**
  * Generate a CSS transition string or spring configuration object.
@@ -71,8 +71,8 @@ export const springPresets = {
  */
 export function getTransition(
   duration: number = animationTiming.moderate,
-  property: string = 'all',
-  easing: string = 'ease-in-out',
+  property: string = "all",
+  easing: string = "ease-in-out",
 ): string {
-  return `${property} ${duration}ms ${easing}`
+  return `${property} ${duration}ms ${easing}`;
 }

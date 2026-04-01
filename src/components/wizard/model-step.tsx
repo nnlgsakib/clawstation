@@ -35,7 +35,7 @@ const CATEGORY_ICONS: Record<string, typeof Sparkles> = {
 
 function useClickOutside(
   ref: React.RefObject<HTMLElement | null>,
-  handler: () => void
+  handler: () => void,
 ) {
   useEffect(() => {
     const listener = (e: MouseEvent | TouchEvent) => {
@@ -91,7 +91,7 @@ function ProviderCombobox({
       (p) =>
         p.name.toLowerCase().includes(s) ||
         p.id.toLowerCase().includes(s) ||
-        p.description.toLowerCase().includes(s)
+        p.description.toLowerCase().includes(s),
     );
   }, [providers, search]);
 
@@ -104,13 +104,13 @@ function ProviderCombobox({
           providers: filtered.filter((p) => p.category === catId),
         }))
         .filter((g) => g.providers.length > 0),
-    [filtered, categories]
+    [filtered, categories],
   );
 
   // Flat list for keyboard nav
   const flatList = useMemo(
     () => grouped.flatMap((g) => g.providers),
-    [grouped]
+    [grouped],
   );
 
   const handleKeyDown = useCallback(
@@ -133,7 +133,7 @@ function ProviderCombobox({
         setOpen(false);
       }
     },
-    [flatList, activeIndex, onSelect]
+    [flatList, activeIndex, onSelect],
   );
 
   return (
@@ -146,7 +146,7 @@ function ProviderCombobox({
           "flex w-full items-center justify-between gap-3 rounded-lg border px-4 py-3 text-left transition-all",
           "border-border bg-background hover:border-ring/50",
           open && "border-ring ring-2 ring-ring/20",
-          selectedProvider && "border-primary/30 bg-primary/5"
+          selectedProvider && "border-primary/30 bg-primary/5",
         )}
       >
         <div className="flex items-center gap-3 min-w-0">
@@ -179,7 +179,7 @@ function ProviderCombobox({
           <ChevronDown
             className={cn(
               "h-4 w-4 text-muted-foreground transition-transform",
-              open && "rotate-180"
+              open && "rotate-180",
             )}
           />
         </div>
@@ -250,7 +250,7 @@ function ProviderCombobox({
                                 ? "bg-primary/10 text-primary"
                                 : isActive
                                   ? "bg-accent text-accent-foreground"
-                                  : "text-popover-foreground hover:bg-accent"
+                                  : "text-popover-foreground hover:bg-accent",
                             )}
                           >
                             <div
@@ -258,7 +258,7 @@ function ProviderCombobox({
                                 "flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-xs font-semibold",
                                 isSelected
                                   ? "bg-primary/20 text-primary"
-                                  : "bg-muted text-muted-foreground"
+                                  : "bg-muted text-muted-foreground",
                               )}
                             >
                               {provider.name.charAt(0)}
@@ -348,7 +348,7 @@ function ModelCombobox({
     return models.filter(
       (m) =>
         m.id.toLowerCase().includes(s) ||
-        (m.name && m.name.toLowerCase().includes(s))
+        (m.name && m.name.toLowerCase().includes(s)),
     );
   }, [models, search]);
 
@@ -375,7 +375,7 @@ function ModelCombobox({
         setOpen(false);
       }
     },
-    [filtered, activeIndex, onSelect]
+    [filtered, activeIndex, onSelect],
   );
 
   return (
@@ -388,7 +388,7 @@ function ModelCombobox({
           "flex w-full items-center justify-between gap-3 rounded-lg border px-4 py-3 text-left transition-all",
           "border-border bg-background hover:border-ring/50",
           open && "border-ring ring-2 ring-ring/20",
-          displayValue && "border-primary/30 bg-primary/5"
+          displayValue && "border-primary/30 bg-primary/5",
         )}
       >
         <div className="min-w-0 flex-1">
@@ -412,7 +412,7 @@ function ModelCombobox({
         <ChevronDown
           className={cn(
             "h-4 w-4 text-muted-foreground shrink-0 transition-transform",
-            open && "rotate-180"
+            open && "rotate-180",
           )}
         />
       </button>
@@ -478,7 +478,7 @@ function ModelCombobox({
                           ? "bg-primary/10 text-primary"
                           : isActive
                             ? "bg-accent text-accent-foreground"
-                            : "text-popover-foreground hover:bg-accent"
+                            : "text-popover-foreground hover:bg-accent",
                       )}
                     >
                       <span className="truncate text-sm">

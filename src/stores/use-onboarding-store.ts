@@ -80,7 +80,8 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
   setInstallMethod: (method) => set({ installMethod: method }),
   setInstallDir: (dir) => set({ installDir: dir }),
   setInstallProgress: (progress) => set({ installProgress: progress }),
-  setVerificationProgress: (progress) => set({ verificationProgress: progress }),
+  setVerificationProgress: (progress) =>
+    set({ verificationProgress: progress }),
   setVerificationResult: (result) => set({ verificationResult: result }),
   setLoading: (loading) => set({ isLoading: loading }),
   setError: (error) => set({ error }),

@@ -20,7 +20,10 @@ export function PlatformBadge() {
 
   const os = platform?.os ?? "unknown";
 
-  const platformConfig: Record<string, { icon: typeof Monitor; label: string }> = {
+  const platformConfig: Record<
+    string,
+    { icon: typeof Monitor; label: string }
+  > = {
     windows: { icon: Monitor, label: "Windows" },
     linux: { icon: Cpu, label: "Linux" },
   };

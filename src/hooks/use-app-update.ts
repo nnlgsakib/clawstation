@@ -1,5 +1,9 @@
 import { useState, useCallback } from "react";
-import { check, type Update, type DownloadEvent } from "@tauri-apps/plugin-updater";
+import {
+  check,
+  type Update,
+  type DownloadEvent,
+} from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { toast } from "sonner";
 

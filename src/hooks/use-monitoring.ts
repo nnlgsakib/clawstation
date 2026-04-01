@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query"
-import { invoke } from "@tauri-apps/api/core"
+import { useQuery } from "@tanstack/react-query";
+import { invoke } from "@tauri-apps/api/core";
 
 // ─── Types ────────────────────────────────────────────────────────
 
@@ -10,29 +10,29 @@ export type OpenClawStatus =
   | { state: "running"; version: string | null; port: number }
   | { state: "stopped" }
   | { state: "error"; message: string }
-  | { state: "unknown" }
+  | { state: "unknown" };
 
 /**
  * An active agent session — matches Rust AgentSession struct.
  */
 export interface AgentSession {
-  id: string
-  name: string | null
-  status: string
-  startedAt: string | null
-  model: string | null
+  id: string;
+  name: string | null;
+  status: string;
+  startedAt: string | null;
+  model: string | null;
 }
 
 /**
  * A sandbox container — matches Rust SandboxContainer struct.
  */
 export interface SandboxContainer {
-  id: string
-  name: string
-  state: string
-  statusText: string
-  image: string
-  created: string
+  id: string;
+  name: string;
+  state: string;
+  statusText: string;
+  image: string;
+  created: string;
 }
 
 // ─── Hooks ────────────────────────────────────────────────────────
@@ -45,14 +45,14 @@ export function useOpenClawStatus() {
   return useQuery<OpenClawStatus>({
     queryKey: ["monitoring", "status"],
     queryFn: async () => {
-      return await invoke<OpenClawStatus>("get_openclaw_status")
+      return await invoke<OpenClawStatus>("get_openclaw_status");
     },
     refetchInterval: (query) => {
-      if (query.state.data?.state !== "running") return 15_000
-      return 60_000
+      if (query.state.data?.state !== "running") return 15_000;
+      return 60_000;
     },
     retry: 1,
-  })
+  });
 }
 
 /**
@@ -64,11 +64,11 @@ export function useAgentSessions() {
   return useQuery<AgentSession[]>({
     queryKey: ["monitoring", "sessions"],
     queryFn: async () => {
-      return await invoke<AgentSession[]>("get_agent_sessions")
+      return await invoke<AgentSession[]>("get_agent_sessions");
     },
     refetchInterval: 30_000,
     retry: 1,
-  })
+  });
 }
 
 /**
@@ -80,11 +80,11 @@ export function useSandboxContainers() {
   return useQuery<SandboxContainer[]>({
     queryKey: ["monitoring", "sandbox"],
     queryFn: async () => {
-      return await invoke<SandboxContainer[]>("get_sandbox_containers")
+      return await invoke<SandboxContainer[]>("get_sandbox_containers");
     },
     refetchInterval: 30_000,
     retry: 1,
-  })
+  });
 }
 
 /**
@@ -99,10 +99,10 @@ export function useContainerLogs(containerId: string, enabled: boolean) {
       return await invoke<string>("get_container_logs", {
         containerId,
         tail: 200,
-      })
+      });
     },
     enabled: enabled && !!containerId,
     refetchInterval: 5_000,
     retry: 0,
-  })
+  });
 }

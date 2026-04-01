@@ -62,7 +62,9 @@ function getCheckItems(result: SystemCheckResult): CheckItem[] {
       label: "Node.js",
       icon: <Cpu className="h-5 w-5" />,
       passed: result.nodeAvailable,
-      value: result.nodeAvailable ? result.nodeVersion ?? "Installed" : "Not found",
+      value: result.nodeAvailable
+        ? (result.nodeVersion ?? "Installed")
+        : "Not found",
       suggestion: result.nodeAvailable
         ? undefined
         : "Install Node.js 22+ from https://nodejs.org",
@@ -72,18 +74,20 @@ function getCheckItems(result: SystemCheckResult): CheckItem[] {
       icon: <HardDrive className="h-5 w-5" />,
       passed: result.diskFreeGb >= 2,
       value: `${result.diskFreeGb} GB free`,
-      suggestion: result.diskFreeGb >= 2
-        ? undefined
-        : "Free up at least 2 GB of disk space before installing",
+      suggestion:
+        result.diskFreeGb >= 2
+          ? undefined
+          : "Free up at least 2 GB of disk space before installing",
     },
     {
       label: "Available RAM",
       icon: <MemoryStick className="h-5 w-5" />,
       passed: result.ramAvailableGb >= 2,
       value: `${result.ramAvailableGb} GB available`,
-      suggestion: result.ramAvailableGb >= 2
-        ? undefined
-        : "Close other applications to free up at least 2 GB of RAM",
+      suggestion:
+        result.ramAvailableGb >= 2
+          ? undefined
+          : "Close other applications to free up at least 2 GB of RAM",
     },
     {
       label: "Port 18789",
@@ -140,7 +144,9 @@ export function SystemCheck() {
   }, [systemCheckResult, runCheck]);
 
   const checks = systemCheckResult ? getCheckItems(systemCheckResult) : [];
-  const canProceed = systemCheckResult ? allChecksPass(systemCheckResult) : false;
+  const canProceed = systemCheckResult
+    ? allChecksPass(systemCheckResult)
+    : false;
   const failedChecks = checks.filter((c) => !c.passed);
   const passedChecks = checks.length - failedChecks.length;
 
@@ -167,7 +173,9 @@ export function SystemCheck() {
           <CardContent className="flex flex-col items-center justify-center gap-4 py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <div className="text-center">
-              <p className="text-sm font-medium text-foreground">Running system checks...</p>
+              <p className="text-sm font-medium text-foreground">
+                Running system checks...
+              </p>
               <p className="text-xs text-muted-foreground mt-1">
                 This may take a few seconds
               </p>
@@ -189,18 +197,14 @@ export function SystemCheck() {
       {systemCheckResult && (
         <>
           {/* Summary card */}
-          <Card
-            className={cn(
-              canProceed && "border-success/30 bg-success/5"
-            )}
-          >
+          <Card className={cn(canProceed && "border-success/30 bg-success/5")}>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div
                     className={cn(
                       "flex items-center justify-center w-12 h-12 rounded-xl",
-                      canProceed ? "bg-success/10" : "bg-warning/10"
+                      canProceed ? "bg-success/10" : "bg-warning/10",
                     )}
                   >
                     {canProceed ? (
@@ -241,16 +245,20 @@ export function SystemCheck() {
                     "flex items-center gap-3 p-3 rounded-lg border transition-colors",
                     check.passed
                       ? "border-border bg-card/50"
-                      : "border-warning/30 bg-warning/5"
+                      : "border-warning/30 bg-warning/5",
                   )}
                 >
                   <div
                     className={cn(
                       "flex items-center justify-center w-8 h-8 rounded-lg",
-                      check.passed ? "bg-muted" : "bg-warning/10"
+                      check.passed ? "bg-muted" : "bg-warning/10",
                     )}
                   >
-                    <span className={check.passed ? "text-muted-foreground" : "text-warning"}>
+                    <span
+                      className={
+                        check.passed ? "text-muted-foreground" : "text-warning"
+                      }
+                    >
                       {check.icon}
                     </span>
                   </div>
@@ -264,7 +272,9 @@ export function SystemCheck() {
                       </span>
                     </div>
                     {check.suggestion && (
-                      <p className="mt-1 text-xs text-warning">{check.suggestion}</p>
+                      <p className="mt-1 text-xs text-warning">
+                        {check.suggestion}
+                      </p>
                     )}
                   </div>
                   {check.passed ? (
@@ -279,12 +289,10 @@ export function SystemCheck() {
 
           {/* Action buttons */}
           <div className="flex items-center justify-between pt-2">
-            <Button
-              variant="outline"
-              onClick={runCheck}
-              disabled={isLoading}
-            >
-              <RefreshCw className={cn("mr-2 h-4 w-4", isLoading && "animate-spin")} />
+            <Button variant="outline" onClick={runCheck} disabled={isLoading}>
+              <RefreshCw
+                className={cn("mr-2 h-4 w-4", isLoading && "animate-spin")}
+              />
               Retry Check
             </Button>
             <Button onClick={() => setStep("install")} disabled={!canProceed}>

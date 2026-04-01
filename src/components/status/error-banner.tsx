@@ -1,12 +1,12 @@
-import { useState } from "react"
-import { AlertCircle, ChevronDown, ChevronUp, X } from "lucide-react"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Button } from "@/components/ui/button"
-import { formatError, type AppError } from "@/lib/errors"
+import { useState } from "react";
+import { AlertCircle, ChevronDown, ChevronUp, X } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { formatError, type AppError } from "@/lib/errors";
 
 interface ErrorBannerProps {
-  error: unknown
-  onDismiss?: () => void
+  error: unknown;
+  onDismiss?: () => void;
 }
 
 /**
@@ -14,8 +14,8 @@ interface ErrorBannerProps {
  * Renders error with expandable suggestion text.
  */
 export function ErrorBanner({ error, onDismiss }: ErrorBannerProps) {
-  const [expanded, setExpanded] = useState(false)
-  const appError: AppError = formatError(error)
+  const [expanded, setExpanded] = useState(false);
+  const appError: AppError = formatError(error);
 
   return (
     <Alert variant="destructive" className="relative">
@@ -53,5 +53,5 @@ export function ErrorBanner({ error, onDismiss }: ErrorBannerProps) {
         </Button>
       )}
     </Alert>
-  )
+  );
 }

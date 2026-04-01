@@ -41,10 +41,7 @@ const buttonVariants = cva(
           "text-muted-foreground",
           "hover:bg-accent hover:text-foreground",
         ].join(" "),
-        link: [
-          "text-primary underline-offset-4",
-          "hover:underline",
-        ].join(" "),
+        link: ["text-primary underline-offset-4", "hover:underline"].join(" "),
         // New variants
         success: [
           "bg-success text-success-foreground shadow-sm",
@@ -64,14 +61,21 @@ const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
+  },
 );
 
 export interface ButtonProps
-  extends Omit<
-    React.ButtonHTMLAttributes<HTMLButtonElement>,
-    "onDrag" | "onDragStart" | "onDragEnd" | "onDragOver" | "onDragEnter" | "onDragLeave" | "onDrop"
-  >,
+  extends
+    Omit<
+      React.ButtonHTMLAttributes<HTMLButtonElement>,
+      | "onDrag"
+      | "onDragStart"
+      | "onDragEnd"
+      | "onDragOver"
+      | "onDragEnter"
+      | "onDragLeave"
+      | "onDrop"
+    >,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
 }
@@ -84,14 +88,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       return <Slot ref={ref} className={classes} {...props} />;
     }
 
-    return (
-      <button
-        ref={ref}
-        className={classes}
-        {...props}
-      />
-    );
-  }
+    return <button ref={ref} className={classes} {...props} />;
+  },
 );
 Button.displayName = "Button";
 

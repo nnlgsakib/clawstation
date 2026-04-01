@@ -118,7 +118,9 @@ export function ApiKeysStep() {
                   ollama.com/download
                 </a>
               </li>
-              <li>Pull a model: <code>ollama pull llama3.3</code></li>
+              <li>
+                Pull a model: <code>ollama pull llama3.3</code>
+              </li>
               <li>
                 Set <code>OLLAMA_API_KEY=1</code> to enable auto-detection
               </li>
@@ -140,8 +142,8 @@ export function ApiKeysStep() {
       <div>
         <h2 className="text-xl font-semibold">{provider.name} API Key</h2>
         <p className="text-sm text-muted-foreground">
-          Enter your {provider.name} API key. It will be stored securely in
-          your OpenClaw config.
+          Enter your {provider.name} API key. It will be stored securely in your
+          OpenClaw config.
         </p>
       </div>
 
@@ -153,7 +155,7 @@ export function ApiKeysStep() {
             "rounded-md border px-3 py-1.5 text-sm transition-colors",
             apiKeyFormat === "direct"
               ? "border-primary bg-primary/10 text-primary font-medium"
-              : "border-border text-muted-foreground hover:bg-accent"
+              : "border-border text-muted-foreground hover:bg-accent",
           )}
         >
           Direct Key
@@ -164,7 +166,7 @@ export function ApiKeysStep() {
             "rounded-md border px-3 py-1.5 text-sm transition-colors",
             apiKeyFormat === "env"
               ? "border-primary bg-primary/10 text-primary font-medium"
-              : "border-border text-muted-foreground hover:bg-accent"
+              : "border-border text-muted-foreground hover:bg-accent",
           )}
         >
           Environment Variable

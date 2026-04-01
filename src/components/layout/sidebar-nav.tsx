@@ -19,14 +19,39 @@ interface NavItem {
 }
 
 const mainNavItems: NavItem[] = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard, description: "Overview" },
-  { to: "/install", label: "Install", icon: Download, description: "Setup OpenClaw" },
-  { to: "/channels", label: "Channels", icon: MessageSquare, description: "Messaging" },
+  {
+    to: "/",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    description: "Overview",
+  },
+  {
+    to: "/install",
+    label: "Install",
+    icon: Download,
+    description: "Setup OpenClaw",
+  },
+  {
+    to: "/channels",
+    label: "Channels",
+    icon: MessageSquare,
+    description: "Messaging",
+  },
 ];
 
 const manageNavItems: NavItem[] = [
-  { to: "/docker", label: "Docker", icon: Container, description: "Containers" },
-  { to: "/configure", label: "Configure", icon: Settings2, description: "Settings" },
+  {
+    to: "/docker",
+    label: "Docker",
+    icon: Container,
+    description: "Containers",
+  },
+  {
+    to: "/configure",
+    label: "Configure",
+    icon: Settings2,
+    description: "Settings",
+  },
   { to: "/monitor", label: "Monitor", icon: Activity, description: "Logs" },
   { to: "/settings", label: "Settings", icon: Settings, description: "App" },
 ];
@@ -89,14 +114,14 @@ function NavItem({ item }: { item: NavItem }) {
                 "before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2",
                 "before:w-0.5 before:h-5 before:rounded-full before:bg-primary",
               ]
-            : "text-muted-foreground hover:text-foreground"
+            : "text-muted-foreground hover:text-foreground",
         )
       }
     >
       <Icon
         className={cn(
           "h-4 w-4 shrink-0 transition-colors duration-200",
-          "group-hover:text-foreground"
+          "group-hover:text-foreground",
         )}
       />
       <div className="flex flex-col flex-1 min-w-0">
@@ -110,7 +135,7 @@ function NavItem({ item }: { item: NavItem }) {
       <ChevronRight
         className={cn(
           "h-3 w-3 opacity-0 -translate-x-1 transition-all duration-200",
-          "group-hover:opacity-40 group-hover:translate-x-0"
+          "group-hover:opacity-40 group-hover:translate-x-0",
         )}
       />
     </NavLink>
