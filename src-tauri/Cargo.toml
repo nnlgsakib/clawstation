@@ -45,5 +45,5 @@ futures = "0.3"
 image = "0.25"
 
 [target.'cfg(windows)'.dependencies]
-winreg = "0.55"
+winreg = "0.56"
 
